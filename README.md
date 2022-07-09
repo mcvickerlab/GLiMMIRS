@@ -1,2 +1,2 @@
-# crisprQTL_DGE
-Negative Binomial Generalized Linear Mixed Model (GLMM) for Understanding Enhancer-Gene Interactions
+# crisprQTL
+Modeling enhancer-enhancer interactions using Generalized Linear Mixed Models (GLMMs)
