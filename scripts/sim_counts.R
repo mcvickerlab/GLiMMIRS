@@ -3,7 +3,10 @@ library(Matrix)
 library(mvtnorm)
 library(ggplot2)
 library(hexbin)
+<<<<<<< HEAD
 library(rhdf5)
+=======
+>>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
 
 parser <- ArgumentParser(description = "process input arguments")
 parser$add_argument('--genes', action = "store", type = "integer", 
@@ -47,7 +50,11 @@ onehot.guides <- matrix(0, args$cells, nGuides)
 # get guides per cell
 guides.per.cell <- rpois(args$cells, args$lambda)
 
+<<<<<<< HEAD
 png(file.path(args$out, "hist_guides_per_cell.png"))
+=======
+png(file.path("hist_guides_per_cell.png"))
+>>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
 hist(guides.per.cell, xlab = "guides per cell", ylab = "cells")  
 dev.off()
 
@@ -122,9 +129,13 @@ combined_prob <- function(cell, gene, verbose = FALSE) {
 ####################################################
 #  define all guide metadata to file
 ####################################################
+<<<<<<< HEAD
 guides.metadata <- data.frame(guide.gene.map, efficiencies, rep(effect.sizes,2))
 colnames(guides.metadata) <- c("target.gene", "efficiency", "effect.size")
 write.table(guides.metadata, 
+=======
+write.table(data.frame(guide.gene.map, efficiencies, rep(effect.sizes,2)), 
+>>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
 	file.path(args$out, "guides_metadata.txt"), row.names = TRUE, quote = FALSE)
 
 ####################################################
@@ -209,6 +220,7 @@ for (gene in 1:args$genes) {
     counts <- rnbinom(length(mu.vec), mu = mu.vec, size = 1.5)
     sim.counts[gene,] <- counts
 }
+<<<<<<< HEAD
 
 writeMM(Matrix(sim.counts), file.path(args$out, "counts.mtx"))
 
@@ -229,3 +241,5 @@ h5createDataset(h5.path, "guides/one_hot", dim(onehot.guides),
 
 h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
+=======
+>>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
