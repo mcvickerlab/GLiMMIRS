@@ -2,14 +2,16 @@
 #$ -V
 #$ -cwd
 
-<<<<<<< HEAD
 # outdir=$HOME/crisprqtl_sim/sim_data
 outdir=$HOME/crisprQTL/simulated_data
-=======
-outdir=$HOME/crisprqtl_sim/sim_data
->>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
 
 mkdir -p $outdir
+
+h5=$outdir/sim.h5
+
+if [ -f "$h5" ] ; then
+    rm "$h5"
+fi
 
 Rscript $PWD/sim_counts.R --out $outdir
 

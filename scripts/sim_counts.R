@@ -3,10 +3,15 @@ library(Matrix)
 library(mvtnorm)
 library(ggplot2)
 library(hexbin)
-<<<<<<< HEAD
 library(rhdf5)
-=======
->>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
+
+###### outputs
+# simulated counts matrix
+# x1, x2, x3
+# beta0, beta1, beta2, beta3
+# one hot encoding of guides x cells
+# guide metadata (target gene, efficiency, effect size)
+# scaling factors
 
 parser <- ArgumentParser(description = "process input arguments")
 parser$add_argument('--genes', action = "store", type = "integer", 
@@ -32,7 +37,8 @@ args <- parser$parse_args()
 nGuides = args$d * args$targets
 
 #######################################
-#  simulated baseline beta0
+#  simulated baseline (beta0)
+#  one beta per gene
 #######################################
 baselines <- rnorm(args$genes, mean = 2.24, sd = 1.8)
 
@@ -42,6 +48,7 @@ dev.off()
 
 #######################################
 #  assign guides to cells
+#  store as one hot encoding
 #######################################
 
 # initialize one hot encoding
@@ -50,16 +57,14 @@ onehot.guides <- matrix(0, args$cells, nGuides)
 # get guides per cell
 guides.per.cell <- rpois(args$cells, args$lambda)
 
-<<<<<<< HEAD
+# plot
 png(file.path(args$out, "hist_guides_per_cell.png"))
-=======
-png(file.path("hist_guides_per_cell.png"))
->>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
 hist(guides.per.cell, xlab = "guides per cell", ylab = "cells")  
 dev.off()
 
 # assign guides to each cell
-guides.idx.list <- sapply(guides.per.cell, function(x) {sample(1:nGuides, x, replace = FALSE)})
+guides.idx.list <- sapply(guides.per.cell, 
+    function(x) {sample(1:nGuides, x, replace = FALSE)})
 
 # update one hot encoding
 for (i in 1:args$cells) {
@@ -68,11 +73,13 @@ for (i in 1:args$cells) {
 }
 
 # write cell by guides mapping to sparse matrix
-writeMM(Matrix(onehot.guides, sparse = TRUE), file.path(args$out, "guides_per_cell.mtx"))
+writeMM(Matrix(onehot.guides, sparse = TRUE), 
+    file.path(args$out, "guides_per_cell.mtx"))
 
 # assign guide efficiencies to guides in library
 efficiencies <- rbeta(nGuides, 6,3)
 
+# plot
 png(file.path(args$out, "hist_guide_efficiencies.png"))
 hist(efficiencies)
 dev.off()
@@ -96,6 +103,7 @@ for (i in 1:length(target.genes)) {
     beta1[target] <- effect.sizes[i]
 }
 
+# plot
 png(file.path(args$out, "hist_beta1.png"))
 hist(beta1)
 dev.off()
@@ -129,14 +137,11 @@ combined_prob <- function(cell, gene, verbose = FALSE) {
 ####################################################
 #  define all guide metadata to file
 ####################################################
-<<<<<<< HEAD
+
+# row index = gRNA identifier 
 guides.metadata <- data.frame(guide.gene.map, efficiencies, rep(effect.sizes,2))
 colnames(guides.metadata) <- c("target.gene", "efficiency", "effect.size")
-write.table(guides.metadata, 
-=======
-write.table(data.frame(guide.gene.map, efficiencies, rep(effect.sizes,2)), 
->>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
-	file.path(args$out, "guides_metadata.txt"), row.names = TRUE, quote = FALSE)
+write.table(guides.metadata, file.path(args$out, "guides_metadata.txt"), row.names = TRUE, quote = FALSE)
 
 ####################################################
 #  use MVN to generate cell cycle scores (X2,X3)
@@ -154,12 +159,17 @@ bin<-hexbin(s.scores, g2m.scores, xbins=50)
 plot(bin, main="Hexagonal Binning")
 dev.off()
 
+# row index = cell identifier
+cell.cycle.scores <- data.frame(s.scores, g2m.scores)
+write.table(cell.cycle.scores, file.path(args$out, "cell_cycle_scores.txt"), row.names = TRUE, quote = FALSE)
+
 ####################################################
 #  select beta2, beta3
 ####################################################
 beta2 <- rgamma(args$genes, shape = 6, scale = 0.5)
 beta3 <- rgamma(args$genes, shape =6, scale = 0.5)
 
+# plot
 png(file.path(args$out, "beta2_hist.png"))
 hist(beta2)
 dev.off()
@@ -167,6 +177,14 @@ dev.off()
 png(file.path(args$out, "beta3_hist.png"))
 hist(beta3)
 dev.off()
+
+####################################################
+#  write coeffs to file
+####################################################
+
+# row index = gene identifier
+coeffs <- data.frame(baselines, beta1, beta2, beta3)
+write.table(coeffs, file.path(args$out, "coeffs.txt"), row.names = TRUE, quote = FALSE)
 
 ####################################################
 #  scaling factors
@@ -179,9 +197,14 @@ dev.off()
 
 scaling.factors <- t.vec/1e6
 
+# plot
 png(file.path(args$out, "scaling_factors_hist.png"))
 hist(scaling.factors)
 dev.off()
+
+# row index = cell identifier
+write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.txt"), 
+    row.names = TRUE, quote = FALSE)
 
 ####################################################
 #  simulate data
@@ -189,6 +212,9 @@ dev.off()
 
 # initialize counts matrix
 sim.counts <-  matrix(0, args$genes, args$cells)
+
+# initialize matrix of x1 values
+x1.mtx <- matrix(0, args$genes, args$cells)
 
 # populate counts mtx by gene (by row)
 for (gene in 1:args$genes) {
@@ -208,6 +234,8 @@ for (gene in 1:args$genes) {
         }
     }
     
+    x1.mtx[gene,] <- x1
+
     # get cell cycle scores
     x2 <- s.scores
     x3 <- g2m.scores
@@ -220,26 +248,45 @@ for (gene in 1:args$genes) {
     counts <- rnbinom(length(mu.vec), mu = mu.vec, size = 1.5)
     sim.counts[gene,] <- counts
 }
-<<<<<<< HEAD
 
+# write simulated counts to sparse matrix
 writeMM(Matrix(sim.counts), file.path(args$out, "counts.mtx"))
 
-#### write to h5
+# write matrix of x1 values to sparse matrix 
+writeMM(Matrix(x1.mtx), file.path(args$out, "x1.mtx"))
+
+####################################################
+#  write data to h5
+####################################################
 h5.path <- file.path(args$out, "sim.h5")
 h5createFile(h5.path)
 
 # write counts, chunked
 h5createDataset(h5.path, "counts", dim(sim.counts),
-                storage.mode = "integer", chunk=c(1000, 10000), level=7)
+    storage.mode = "integer", chunk=c(1000, 10000), level=7)
 
 h5write(sim.counts, h5.path, "counts")
 
 # write guide info
 h5createGroup(h5.path, "guides")
 h5createDataset(h5.path, "guides/one_hot", dim(onehot.guides),
-                storage.mode = "integer", chunk=c(1000, 1), level=7)
+    storage.mode = "integer", chunk=c(1000, 1), level=7)
 
 h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
-=======
->>>>>>> 484e4f3229fb141ed4efa5485bbaa02b24273cbf
+
+# write coeffs
+h5write(coeffs, h5.path, "coeffs")
+
+# write x
+h5createGroup(h5.path, "x")
+
+h5createDataset(h5.path, "x/x1", dim(x1.mtx),
+    storage.mode = "integer", chunk = c(1000,1000), level = 7)
+h5write(x1.mtx, h5.path, "x/x1")
+
+# write cell cycle scores
+h5write(cell.cycle.scores, h5.path, "x/cell_cycle_scores")
+
+# write scaling factors
+h5write(scaling.factors, h5.path, "scaling_factors")
