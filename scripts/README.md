@@ -5,3 +5,4 @@ The first approach involved using FlashFry, since this was the method initially 
 The second approach was to use GuideScan 2.0, and the new gRNA sequence search, which takes as input a list of protospacers + NGG (PAM), and outputs the coordinates, efficiency, and specificity of the guide sequence. Mapping to hg38 should not create significant issues, since the assemblies are mostly similar. This approach was smoother overall, but there are roughly 3000 guide sequences out of roughly 13000 that did not find a match in the GuideScan database. 
 
 I plotted the distribution of guide efficiencies derived from the second method using BoutrosLab.plotting.general.
+
