@@ -2,6 +2,7 @@
 *.mtx
 *.mtx.gz
 *.h5
+*.csv
 
 # ignore all ipynb checkpoints
 .ipynb_checkpoints
