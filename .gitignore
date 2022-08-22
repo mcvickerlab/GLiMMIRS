@@ -1,3 +1,4 @@
+simulated_data/
 scripts/*sh.e*
 scripts/*sh.o*
 notebooks/.ipynb_checkpoints
