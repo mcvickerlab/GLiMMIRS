@@ -1,1 +1,13 @@
 simulated_data/
+
+# ignore all matrix files (these are data files)
+*.mtx
+*.mtx.gz
+*.h5
+*.csv
+
+# ignore all ipynb checkpoints
+.ipynb_checkpoints
+
+# ignore all plots
+*.tiff
