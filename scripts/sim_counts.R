@@ -115,11 +115,12 @@ if (!is.null(args$guide_disp)) {
     }
 } 
 
-est.efficiencies.df <- data.frame(est.efficiency = do.call(rbind, est.efficiencies.list), 
-                                    D = do.call(rbind, disps.list))
+est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
+                                    D = do.call(c, disps.list))
+
 head(est.efficiencies.df)
 write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
-    row.names = TRUE, col.names = TRUE)
+    row.names = TRUE, col.names = TRUE, quote = FALSE)
 ####################################################
 #  assign target genes to gRNAs
 ####################################################
