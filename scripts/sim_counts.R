@@ -29,6 +29,9 @@ parser$add_argument("--d", action = "store", type = "integer",
 parser$add_argument("--lambda", action = "store", type = "double",
 	default = 15,
 	help = "lambda parameter for Poisson distribution to draw number of guides per cell")
+parser$add_argument("--guide_disp", action = "store", type = "integer", nargs = "+",
+                    default = NULL,
+                    help = "dispersion value(s) to use when simulating estimated guide efficiencies")
 parser$add_argument("--out", action = "store", type = "character",
 	help = "where to save outputs")
 
@@ -87,6 +90,37 @@ png(file.path(args$out, "hist_guide_efficiencies.png"))
 hist(efficiencies)
 dev.off()
 
+#######################################
+#  simulated est. guide efficiency
+#######################################
+est.efficiencies.list <- list()
+disps.list <- list()
+i <- 1
+
+if (!is.null(args$guide_disp)) {
+    print("simulating estimated guide efficiency values")
+
+    for (d in args$guide_disp) {
+        cat(sprintf("D=%d\n",d))
+        est.eff <- rbeta(nGuides, efficiencies*d, efficiencies*d)  
+        est.efficiencies.list[[i]] <- est.eff 
+        disps.list[[i]] <- rep(d, nGuides)
+        # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
+
+        png(file.path(args$out, sprintf("hist_est_guide_efficiences_D%d.png", d)))
+        hist(est.eff, main = sprintf("Histogram of estimated guide efficiencies, D=%d", d))
+        dev.off()
+
+        i <- i + 1
+    }
+} 
+
+est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
+                                    D = do.call(c, disps.list))
+
+head(est.efficiencies.df)
+write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
+    row.names = TRUE, col.names = TRUE, quote = FALSE)
 ####################################################
 #  assign target genes to gRNAs
 ####################################################
@@ -111,32 +145,6 @@ for (i in 1:length(target.genes)) {
 png(file.path(args$out, "hist_beta1.png"))
 hist(beta1)
 dev.off()
-
-############################################################################
-#  define a function for calculating X1 (different values for each gene) 
-############################################################################ 
-
-combined_prob <- function(cell, gene, verbose = FALSE) {
-    if (verbose) {
-        cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
-    }
-    # identify which gRNAs in our design target this gene
-    guides <- which(guide.gene.map==gene)
-    
-    # check if any of these gRNAs are present in cell
-    if (sum(onehot.guides[cell, guides]) > 0) {
-        terms <- numeric(length(guides))
-        for (i in 1:args$d) {
-            if (onehot.guides[cell,guides[i]]!=0) {
-                terms[i] <- 1-efficiencies[guides[i]]
-            }
-        }
-        x1 <- rbinom(1,1,1-prod(1-terms))
-        return(x1)
-    } else {
-        return(0)
-    }
-}
 
 ####################################################
 #  write all guide metadata to file
@@ -184,12 +192,34 @@ png(file.path(args$out, "beta3_hist.png"))
 hist(beta3)
 dev.off()
 
+####################################################
+#  simulate beta4, x4
+####################################################
+percent.mito <- rbeta(args$cells, shape1 = 3.3, shape2 = 81.48)
+
+# plot
+png(file.path(args$out, "x4_hist.png"))
+hist(percent.mito, main = "Histogram of simulated percent.mito")
+dev.off()
+
+beta4 <- rgamma(args$genes , shape = 6 , scale = 0.5)
+
+# plot
+png("../hist_beta4.png")
+hist(beta4, main = "Histogram of beta4")
+dev.off()
+
+# write percent.mito to file
+# row index = cell identifier
+percent.mito.df <- data.frame(percent.mito)
+write.table(percent.mito.df, file.path(args$out, "percent_mito.txt"), row.names = TRUE, quote = FALSE)
+
 ######################################################
 #  write coeffs to file (beta0, beta1, beta2, beta3)
 ######################################################
 
 # row index = gene identifier
-coeffs <- data.frame(baselines, beta1, beta2, beta3)
+coeffs <- data.frame(baselines, beta1, beta2, beta3, beta4)
 write.table(coeffs, file.path(args$out, "coeffs.txt"), row.names = TRUE, quote = FALSE)
 
 ####################################################
@@ -217,6 +247,34 @@ dev.off()
 write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.txt"), 
     row.names = TRUE, quote = FALSE)
 
+
+############################################################################
+#  define a function for calculating X1 (different values for each gene) 
+############################################################################ 
+
+combined_prob <- function(cell, gene, verbose = FALSE) {
+    if (verbose) {
+        cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
+    }
+    # identify which gRNAs in our design target this gene
+    guides <- which(guide.gene.map==gene)
+    
+    # check if any of these gRNAs are present in cell
+    if (sum(onehot.guides[cell, guides]) > 0) {
+        terms <- numeric(length(guides))
+        for (i in 1:args$d) {
+            if (onehot.guides[cell,guides[i]]!=0) {
+                terms[i] <- 1-efficiencies[guides[i]]
+            }
+        }
+        x1 <- rbinom(1,1,1-prod(1-terms))
+        return(x1)
+    } else {
+        return(0)
+    }
+}
+
+
 ####################################################
 #  simulate counts matrix 
 ####################################################
@@ -234,6 +292,7 @@ for (gene in 1:args$genes) {
     b1 <- beta1[gene]
     b2 <- beta2[gene]
     b3 <- beta3[gene]
+    b4 <- beta4[gene]
     
     # initialize x1 as vector of zeros (assume it is not affected by any gRNAs in library)
     x1 <- numeric(args$cells)
@@ -250,9 +309,10 @@ for (gene in 1:args$genes) {
     # get cell cycle scores
     x2 <- s.scores
     x3 <- g2m.scores
+    x4 <- percent.mito
     
     # calculate values of mu
-    mu.vec <- scaling.factors*exp(b0 + b1*x1 + b2*x2 + b3*x3)
+    mu.vec <- scaling.factors*exp(b0 + b1*x1 + b2*x2 + b3*x3 + b4*x4)
     
     # use rnbinom to generate counts of each cell for this gene and update counts matrix
 #     counts <- sapply(mu.vec, function(x) {rnbinom(1, mu = x, size = 1.5)})
@@ -286,6 +346,13 @@ h5createDataset(h5.path, "guides/one_hot", dim(onehot.guides),
 h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
 
+# write estimate guide efficiencies
+if (!is.null(args$guide_disp)) {
+    for (i in 1:length(est.efficiencies.list)) {
+        h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
+    }
+}
+
 # write coeffs
 h5write(coeffs, h5.path, "coeffs")
 
@@ -299,5 +366,9 @@ h5write(x1.mtx, h5.path, "x/x1")
 # write cell cycle scores
 h5write(cell.cycle.scores, h5.path, "x/cell_cycle_scores")
 
+# write percent.mito
+h5write(percent.mito, h5.path, "x/percent_mito")
+
 # write scaling factors
 h5write(scaling.factors, h5.path, "scaling_factors")
+

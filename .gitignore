@@ -1,4 +1,6 @@
-simulated_data/
+scripts/*sh.e*
+scripts/*sh.o*
+notebooks/.ipynb_checkpoints
 
 # ignore all matrix files (these are data files)
 *.mtx
