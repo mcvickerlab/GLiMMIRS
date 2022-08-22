@@ -13,7 +13,7 @@ if [ -f "$h5" ] ; then
     rm "$h5"
 fi
 
-Rscript $PWD/sim_counts.R --out $outdir
+Rscript $PWD/sim_counts.R --out $outdir --guide_disp 10 100
 
 # message the user on slack if possible
 exit_code="$?"

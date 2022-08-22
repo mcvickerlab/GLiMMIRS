@@ -1,1 +1,4 @@
 simulated_data/
+*png
+scripts/*sh.e*
+scripts/*sh.o*
