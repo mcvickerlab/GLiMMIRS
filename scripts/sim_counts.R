@@ -4,6 +4,7 @@ library(mvtnorm)
 library(ggplot2)
 library(hexbin)
 library(rhdf5)
+library(BoutrosLab.plotting.general)
 
 ###### outputs
 # simulated counts matrix
@@ -47,9 +48,13 @@ nGuides = args$d * args$targets
 baselines <- rnorm(args$genes, mean = 2.24, sd = 1.8)
 
 # plot simulated values of beta0 (baseline)
-png(file.path(args$out, "hist_beta0.png"))
-hist(baselines)
-dev.off()
+create.histogram(
+    x = baselines,
+    filename = file.path(args$out, 'plots', 'beta0_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'beta0 value',
+    ylab.label = 'Percent'
+)
 
 #######################################
 #  assign guides to cells
@@ -64,9 +69,13 @@ onehot.guides <- matrix(0, args$cells, nGuides)
 guides.per.cell <- rpois(args$cells, args$lambda)
 
 # plot # of guides per cell
-png(file.path(args$out, "hist_guides_per_cell.png"))
-hist(guides.per.cell, xlab = "guides per cell", ylab = "cells")  
-dev.off()
+create.histogram(
+    x = guides.per.cell,
+    filename = file.path(args$out, 'plots', 'guides_per_cell_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Guides in cell',
+    ylab.label = 'Percent'
+)
 
 # assign guides to each cell
 guides.idx.list <- sapply(guides.per.cell, 
@@ -78,49 +87,53 @@ for (i in 1:args$cells) {
     onehot.guides[i, guides.idx] <- 1
 }
 
-# write cell by guides mapping to sparse matrix
-writeMM(Matrix(onehot.guides, sparse = TRUE), 
-    file.path(args$out, "guides_per_cell.mtx"))
+h5.path <- file.path(args$out, 'simulated_data', "sim.h5")
+h5createFile(h5.path)
 
 # assign guide efficiencies to guides in library
 efficiencies <- rbeta(nGuides, 6,3)
 
 # plot guide efficiencies
-png(file.path(args$out, "hist_guide_efficiencies.png"))
-hist(efficiencies)
-dev.off()
+create.histogram(
+    x = efficiencies,
+    filename = file.path(args$out, 'plots', 'guide_efficiency_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Guide efficiency',
+    ylab.label = 'Percent of guides'
+)
 
 #######################################
 #  simulated est. guide efficiency
 #######################################
-est.efficiencies.list <- list()
-disps.list <- list()
-i <- 1
+# est.efficiencies.list <- list()
+# disps.list <- list()
+# i <- 1
 
-if (!is.null(args$guide_disp)) {
-    print("simulating estimated guide efficiency values")
+# if (!is.null(args$guide_disp)) {
+#     print("simulating estimated guide efficiency values")
 
-    for (d in args$guide_disp) {
-        cat(sprintf("D=%d\n",d))
-        est.eff <- rbeta(nGuides, efficiencies*d, efficiencies*d)  
-        est.efficiencies.list[[i]] <- est.eff 
-        disps.list[[i]] <- rep(d, nGuides)
-        # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
+#     for (d in args$guide_disp) {
+#         cat(sprintf("D=%d\n",d))
+#         est.eff <- rbeta(nGuides, efficiencies*d, efficiencies*d)  
+#         est.efficiencies.list[[i]] <- est.eff 
+#         disps.list[[i]] <- rep(d, nGuides)
+#         # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
 
-        png(file.path(args$out, sprintf("hist_est_guide_efficiences_D%d.png", d)))
-        hist(est.eff, main = sprintf("Histogram of estimated guide efficiencies, D=%d", d))
-        dev.off()
+#         png(file.path(args$out, sprintf("hist_est_guide_efficiences_D%d.png", d)))
+#         hist(est.eff, main = sprintf("Histogram of estimated guide efficiencies, D=%d", d))
+#         dev.off()
 
-        i <- i + 1
-    }
-} 
+#         i <- i + 1
+#     }
+# } 
 
-est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
-                                    D = do.call(c, disps.list))
+# est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
+#                                     D = do.call(c, disps.list))
 
-head(est.efficiencies.df)
-write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
-    row.names = TRUE, col.names = TRUE, quote = FALSE)
+# head(est.efficiencies.df)
+# write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
+#     row.names = TRUE, col.names = TRUE, quote = FALSE)
+
 ####################################################
 #  assign target genes to gRNAs
 ####################################################
