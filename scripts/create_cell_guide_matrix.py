@@ -35,4 +35,4 @@ cell_guide_matrix = cell_guide_matrix.T
 
 # write output to h5 file (for storing large data)
 print('writing to h5')
-cell_guide_matrix.to_hdf('/iblm/netapp/data1/external/Gasperini2019/processed/cell_guide_matrix.h5')
+cell_guide_matrix.to_hdf('/iblm/netapp/data1/external/Gasperini2019/processed/cell_guide_matrix.h5', key = 'df')
