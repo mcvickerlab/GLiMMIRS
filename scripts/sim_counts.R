@@ -285,6 +285,10 @@ sim.counts <-  matrix(0, args$genes, args$cells)
 # initialize matrix of x1 values (different set of values for each gene)
 x1.mtx <- matrix(0, args$genes, args$cells)
 
+# initialize matrices for storing values of linear predictor and mu
+lp.mtx <- matrix(0, args$genes, args$cells)
+mu.mtx <- matrix(0, args$genes, args$cells)
+
 # populate counts mtx by gene (by row)
 for (gene in 1:args$genes) {
     # get coeffs
@@ -312,7 +316,10 @@ for (gene in 1:args$genes) {
     x4 <- percent.mito
     
     # calculate values of mu
-    mu.vec <- scaling.factors*exp(b0 + b1*x1 + b2*x2 + b3*x3 + b4*x4)
+    lp.vec <- b0 + b1*x1 + b2*x2 + b3*x3 + b4*x4 + log(scaling.factors)
+    lp.mtx[gene,] <- lp.vec
+    mu.vec <- exp(lp.vec)
+    mu.mtx[gene,] <- mu.vec
     
     # use rnbinom to generate counts of each cell for this gene and update counts matrix
 #     counts <- sapply(mu.vec, function(x) {rnbinom(1, mu = x, size = 1.5)})
@@ -326,6 +333,15 @@ writeMM(Matrix(sim.counts), file.path(args$out, "counts.mtx"))
 # write matrix of x1 values to sparse matrix 
 writeMM(Matrix(x1.mtx), file.path(args$out, "x1.mtx"))
 
+# # write linear predictor/mu values to sparse matrix
+# print('writing linear predictors to MM file')
+# print(head(lp.mtx))
+# writeMM(Matrix(lp.mtx), file.path(args$out, "linear_predictor.mtx"))
+
+# print('writing mu to MM file')
+# print(head(mu.mtx))
+# writeMM(Matrix(mu.mtx), file.path(args$out, "mu.mtx"))
+
 ####################################################
 #  write all data to h5
 ####################################################
@@ -337,6 +353,18 @@ h5createDataset(h5.path, "counts", dim(sim.counts),
     storage.mode = "integer", chunk=c(1000, 10000), level=5)
 
 h5write(sim.counts, h5.path, "counts")
+
+# linear predictor, chunked
+h5createDataset(h5.path, "linear_predictor", dim(lp.mtx),
+    storage.mode = "double", chunk=c(1000, 10000), level=5)
+
+h5write(lp.mtx, h5.path, "linear_predictor")
+
+# write mu, chunked
+h5createDataset(h5.path, "mu", dim(mu.mtx),
+    storage.mode = "double", chunk=c(1000, 10000), level=5)
+
+h5write(mu.mtx, h5.path, "mu")
 
 # write guide info
 h5createGroup(h5.path, "guides")
