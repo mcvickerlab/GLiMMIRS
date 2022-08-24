@@ -34,5 +34,5 @@ cell_guide_matrix.columns = guide_sequences
 cell_guide_matrix = cell_guide_matrix.T
 
 # write output to h5 file (for storing large data)
-print('writing to csv')
-cell_guide_matrix.to_csv('/iblm/netapp/data1/external/Gasperini2019/processed/cell_guide_matrix.csv')
+print('writing to h5')
+cell_guide_matrix.to_hdf('/iblm/netapp/data1/external/Gasperini2019/processed/cell_guide_matrix.h5')
