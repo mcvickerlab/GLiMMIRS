@@ -64,8 +64,7 @@ rownames(counts.matrix) <- gene.names
 
 # compute scaling factors based on count matrix
 print('computing scaling factors!')
-scaling.factors <- colSums(gene.counts) / sum(colSums(gene.counts))
-
+scaling.factors <- colSums(counts.matrix) / sum(colSums(counts.matrix))
 
 # read in previously published enhancer gene pairs
 print('reading in enhancer gene pairs!')
