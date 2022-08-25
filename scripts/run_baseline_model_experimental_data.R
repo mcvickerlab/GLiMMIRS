@@ -88,38 +88,32 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     enhancer.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer, ]$spacer.sequence
     
     # get guide effiencies corresponding to spacers
-    enhancer.spacers.efficiencies <- guide.efficiencies.table[guide.efficiency.table$spacer %in% enhancer.spacers, c('spacer', 'Cutting.Efficiency')]
+    enhancer.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.spacers, c('spacer', 'Cutting.Efficiency')]
 
     # get indicator vectors and efficiencies for each guide
-    guide1.indicator.vector <- cell.guide.matrix[, target.site.spacers.efficiencies$spacer[1]]
-    guide2.indicator.vector <- cell.guide.matrix[, target.site.spacers.efficiencies$spacer[2]]
-    guide1.efficiency <- target.site.spacers.efficiencies$Cutting.Efficiency[1]
-    guide1.efficiency <- target.site.spacers.efficiencies$Cutting.Efficiency[2]
+    guide1.indicator.vector <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer[1]]
+    guide2.indicator.vector <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer[2]]
+    guide1.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[1]
+    guide2.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[2]
 
     # compute indicator vector factoring in guide efficiency
     indicator.vector <- guide1.indicator.vector + guide2.indicator.vector
-    for (i in 1:length(indicator.vector)) {
+    for (j in 1:length(indicator.vector)) {
 
-        if (indicator.vector[i] == 2) {
-            return (rbern(1, 1 - (1 - guide1.efficiency) * (1 - guide2.efficiency)))
+        if (indicator.vector[j] == 2) {
+            indicator.vector[j] <- rbinom(1, 1, 1 - (1 - guide1.efficiency) * (1 - guide2.efficiency))
         }
 
-        if (indicator.vector[i] == 1) {
+        if (indicator.vector[j] == 1) {
 
-            if (guide1.indicator.vector[i] == 1) {
-                return (rbern(1, guide1.efficiency))
+            if (guide1.indicator.vector[j] == 1) {
+                indicator.vector[j] <- rbinom(1, 1, guide1.efficiency)
             }
 
-            if (guide2.indicator.vector[i] == 1) {
-                return (rbern(1, guide2.efficiency))
+            if (guide2.indicator.vector[j] == 1) {
+                indicator.vector[j] <- rbinom(1, 1, guide2.efficiency)
             }
         }
-
-        if (indicator.vector[i] == 0) {
-            return (0)
-        }
-
-        return (0)
     }
 
     # get gene counts for gene
