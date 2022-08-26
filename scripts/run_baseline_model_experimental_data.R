@@ -89,7 +89,8 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     
     # get guide effiencies corresponding to spacers
     enhancer.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.spacers, c('spacer', 'Cutting.Efficiency')]
-
+    enhancer.spacers.efficiencies[is.na(enhancer.spacers.efficiencies)] <- 0
+    
     # get indicator vectors and efficiencies for each guide
     guide1.indicator.vector <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer[1]]
     guide2.indicator.vector <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer[2]]
@@ -130,7 +131,14 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
 
     enhancer.list[i] <- enhancer
     gene.list[i] <- gene
-    pvalue.list[i] <- summary(model)$coefficients['combined.indicator.vector', 'Pr(>|z|)']
+
+    if ('indicator.vector' %in% rownames(summary(model)$coefficients)){
+        pvalue.list[i] <- summary(model)$coefficients['indicator.vector', 'Pr(>|z|)']
+
+    }
+    else {
+        pvalue.list[i] <- NA
+    }
 }
 
 # write to output file
