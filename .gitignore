@@ -1,6 +1,9 @@
+# ignore outputs of simulation script
 simulated_data/
 scripts/*sh.e*
 scripts/*sh.o*
+
+# ignore ipynb checkpoints
 notebooks/.ipynb_checkpoints
 
 # ignore all matrix files (these are data files)
