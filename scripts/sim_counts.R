@@ -1,43 +1,41 @@
+# This program creates simulated count data for a Perturb-seq experiment by sampling counts from a
+# negative binomial distribution, and including several experimental covariates. The outputs of
+# this program include a simulated count matrix, values for the various covariates, model
+# coefficients that were used for simulation, and guide metadata including efficiency and target
+# gene.
+# This program was written by Jessica Zhou.
+
 library(argparse)
 library(Matrix)
 library(mvtnorm)
 library(ggplot2)
 library(hexbin)
 library(rhdf5)
+library(BoutrosLab.plotting.general)
 
-###### outputs
-# simulated counts matrix
-# x1, x2, x3
-# beta0, beta1, beta2, beta3
-# one hot encoding of guides x cells
-# guide metadata (target gene, efficiency, effect size)
-# scaling factors
-
+# define parser to handle input arguments from command line
 parser <- ArgumentParser(description = "process input arguments")
 parser$add_argument('--genes', action = "store", type = "integer", 
-	default = 13000,
-	help = "number of genes in simulated dataset")
+	                default = 13000,
+                    help = "number of genes in simulated dataset")
 parser$add_argument("--targets", action = "store", type = "integer",
-	default = 1000,
-	help = "number of candidate enhancers targeted in simulation")
+	                default = 1000,
+                    help = "number of candidate enhancers targeted in simulation")
 parser$add_argument("--cells", action = "store", type = 'integer',
-	default = 50000,
-	help = "number of cells in simualted dataset")
+	                default = 50000,
+	                help = "number of cells in simualted dataset")
 parser$add_argument("--d", action = "store", type = "integer",
-	default = 2,
-	help = "number of gRNAs for each target site (candidate enhancer)")
+	                default = 2,
+	                help = "number of gRNAs for each target site (candidate enhancer)")
 parser$add_argument("--lambda", action = "store", type = "double",
-	default = 15,
-	help = "lambda parameter for Poisson distribution to draw number of guides per cell")
+	                default = 15,
+	                help = "lambda parameter for Poisson distribution to draw number of guides per cell")
 parser$add_argument("--guide_disp", action = "store", type = "integer", nargs = "+",
                     default = NULL,
                     help = "dispersion value(s) to use when simulating estimated guide efficiencies")
 parser$add_argument("--out", action = "store", type = "character",
-	help = "where to save outputs")
-
+	                help = "where to save outputs")
 args <- parser$parse_args()
-
-nGuides = args$d * args$targets
 
 ##############################################################
 #  simulated baseline (beta0)
@@ -47,9 +45,13 @@ nGuides = args$d * args$targets
 baselines <- rnorm(args$genes, mean = 2.24, sd = 1.8)
 
 # plot simulated values of beta0 (baseline)
-png(file.path(args$out, "hist_beta0.png"))
-hist(baselines)
-dev.off()
+create.histogram(
+    x = baselines,
+    filename = file.path(args$out, 'beta0_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'beta0 value',
+    ylab.label = 'Percent'
+)
 
 #######################################
 #  assign guides to cells
@@ -57,20 +59,26 @@ dev.off()
 #  simulate guide efficiencies 
 #######################################
 
+# compute number of guides
+num.guides = args$d * args$targets
+
 # initialize one hot encoding
-onehot.guides <- matrix(0, args$cells, nGuides)
+onehot.guides <- matrix(0, args$cells, num.guides)
 
 # get # of guides per cell
 guides.per.cell <- rpois(args$cells, args$lambda)
 
 # plot # of guides per cell
-png(file.path(args$out, "hist_guides_per_cell.png"))
-hist(guides.per.cell, xlab = "guides per cell", ylab = "cells")  
-dev.off()
+create.histogram(
+    x = guides.per.cell,
+    filename = file.path(args$out, 'guides_per_cell_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Guides in cell',
+    ylab.label = 'Percent'
+)
 
 # assign guides to each cell
-guides.idx.list <- sapply(guides.per.cell, 
-    function(x) {sample(1:nGuides, x, replace = FALSE)})
+guides.idx.list <- sapply(guides.per.cell, function(x) {sample(1:num.guides, x, replace = FALSE)})
 
 # update one hot encoding
 for (i in 1:args$cells) {
@@ -78,62 +86,65 @@ for (i in 1:args$cells) {
     onehot.guides[i, guides.idx] <- 1
 }
 
-# write cell by guides mapping to sparse matrix
-writeMM(Matrix(onehot.guides, sparse = TRUE), 
-    file.path(args$out, "guides_per_cell.mtx"))
-
 # assign guide efficiencies to guides in library
-efficiencies <- rbeta(nGuides, 6,3)
+efficiencies <- rbeta(num.guides, 6,3)
 
 # plot guide efficiencies
-png(file.path(args$out, "hist_guide_efficiencies.png"))
-hist(efficiencies)
-dev.off()
+create.histogram(
+    x = efficiencies,
+    filename = file.path(args$out, 'guide_efficiency_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Guide efficiency',
+    ylab.label = 'Percent of guides'
+)
 
 #######################################
 #  simulated est. guide efficiency
 #######################################
-est.efficiencies.list <- list()
-disps.list <- list()
-i <- 1
+# est.efficiencies.list <- list()
+# disps.list <- list()
+# i <- 1
 
-if (!is.null(args$guide_disp)) {
-    print("simulating estimated guide efficiency values")
+# if (!is.null(args$guide_disp)) {
+#     print("simulating estimated guide efficiency values")
 
-    for (d in args$guide_disp) {
-        cat(sprintf("D=%d\n",d))
-        est.eff <- rbeta(nGuides, efficiencies*d, efficiencies*d)  
-        est.efficiencies.list[[i]] <- est.eff 
-        disps.list[[i]] <- rep(d, nGuides)
-        # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
+#     for (d in args$guide_disp) {
+#         cat(sprintf("D=%d\n",d))
+#         est.eff <- rbeta(nGuides, efficiencies*d, efficiencies*d)  
+#         est.efficiencies.list[[i]] <- est.eff 
+#         disps.list[[i]] <- rep(d, nGuides)
+#         # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
 
-        png(file.path(args$out, sprintf("hist_est_guide_efficiences_D%d.png", d)))
-        hist(est.eff, main = sprintf("Histogram of estimated guide efficiencies, D=%d", d))
-        dev.off()
+#         png(file.path(args$out, sprintf("hist_est_guide_efficiences_D%d.png", d)))
+#         hist(est.eff, main = sprintf("Histogram of estimated guide efficiencies, D=%d", d))
+#         dev.off()
 
-        i <- i + 1
-    }
-} 
+#         i <- i + 1
+#     }
+# } 
 
-est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
-                                    D = do.call(c, disps.list))
+# est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
+#                                     D = do.call(c, disps.list))
 
-head(est.efficiencies.df)
-write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
-    row.names = TRUE, col.names = TRUE, quote = FALSE)
+# head(est.efficiencies.df)
+# write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
+#     row.names = TRUE, col.names = TRUE, quote = FALSE)
+
 ####################################################
 #  assign target genes to gRNAs
 ####################################################
 target.genes <- sample(1:args$genes, args$targets, replace = FALSE)
+
+# create guide gene map which has the gene ID of the enhancer that gRNA is targeting
 guide.gene.map <- rep(target.genes, args$d)
 
-# get effect sizes of each enhancer on its target gene 
-effect.sizes <- -1*(rgamma(args$targets, shape = 6, scale = 0.5))
+# get effect sizes of each enhancer on its target gene (beta1)
+effect.sizes <- -1 * (rgamma(args$targets, shape = 6, scale = 0.5))
 
 ####################################################
 #  get vector of beta1 values
 ####################################################
-beta1 <- numeric(args$genes) # initialize vector of zeros
+beta1 <- rep(0, args$genes) # initialize vector of zeros
 
 for (i in 1:length(target.genes)) {
     # for each target gene, update its position in beta1 to effect size
@@ -142,16 +153,20 @@ for (i in 1:length(target.genes)) {
 }
 
 # plot beta1 values (expected pileup at zero)
-png(file.path(args$out, "hist_beta1.png"))
-hist(beta1)
-dev.off()
+create.histogram(
+    x = beta1,
+    filename = file.path(args$out, 'beta1_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Beta 1 value',
+    ylab.label = 'Percent'
+)
 
 ####################################################
 #  write all guide metadata to file
 ####################################################
 
 # row index = gRNA identifier 
-guides.metadata <- data.frame(guide.gene.map, efficiencies, rep(effect.sizes,2))
+guides.metadata <- data.frame(guide.gene.map, efficiencies, rep(effect.sizes, 2))
 colnames(guides.metadata) <- c("target.gene", "efficiency", "effect.size")
 write.table(guides.metadata, file.path(args$out, "guides_metadata.txt"), row.names = TRUE, quote = FALSE)
 
@@ -167,7 +182,7 @@ g2m.scores <- rmv.rand[,2]
 
 # plot S/G2M scores as hexbin
 png(file.path(args$out, "cell_cycle_scores_hexbin.png"))
-bin<-hexbin(s.scores, g2m.scores, xbins=50)
+bin < -hexbin(s.scores, g2m.scores, xbins = 50)
 plot(bin, main="Hexagonal Binning")
 dev.off()
 
@@ -180,34 +195,50 @@ write.table(cell.cycle.scores, file.path(args$out, "cell_cycle_scores.txt"), row
 #  simulate beta2, beta3 (from gamma distr.)
 ####################################################
 beta2 <- rgamma(args$genes, shape = 6, scale = 0.5)
-beta3 <- rgamma(args$genes, shape =6, scale = 0.5)
+beta3 <- rgamma(args$genes, shape = 6, scale = 0.5)
 
 # plot beta2
-png(file.path(args$out, "beta2_hist.png"))
-hist(beta2)
-dev.off()
+create.histogram(
+    x = beta2,
+    filename = file.path(args$out, 'beta2_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Beta 2 value',
+    ylab.label = 'Percent'
+)
 
 # plot beta3
-png(file.path(args$out, "beta3_hist.png"))
-hist(beta3)
-dev.off()
+create.histogram(
+    x = beta3,
+    filename = file.path(args$out, 'beta3_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Beta 3 value',
+    ylab.label = 'Percent'
+)
 
 ####################################################
 #  simulate beta4, x4
 ####################################################
 percent.mito <- rbeta(args$cells, shape1 = 3.3, shape2 = 81.48)
 
-# plot
-png(file.path(args$out, "x4_hist.png"))
-hist(percent.mito, main = "Histogram of simulated percent.mito")
-dev.off()
+# plot distribution of percent mito
+create.histogram(
+    x = percent.mito,
+    filename = file.path(args$out, 'percent_mito_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Percent mito value',
+    ylab.label = 'Percent'
+)
 
 beta4 <- rgamma(args$genes , shape = 6 , scale = 0.5)
 
 # plot
-png("../hist_beta4.png")
-hist(beta4, main = "Histogram of beta4")
-dev.off()
+create.histogram(
+    x = beta4,
+    filename = file.path(args$out, 'beta4_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Beta 4 value',
+    ylab.label = 'Percent'
+)
 
 # write percent.mito to file
 # row index = cell identifier
@@ -230,22 +261,31 @@ write.table(coeffs, file.path(args$out, "coeffs.txt"), row.names = TRUE, quote =
 t.vec <- rpois(args$cells, 50000)
 
 # plot total counts per cell
-png(file.path(args$out, "t_pois_hist.png"))
-hist(t.vec)
-dev.off()
+create.histogram(
+    x = t.vec,
+    filename = file.path(args$out, 'counts_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Counts per cell',
+    ylab.label = 'Percent'
+)
 
 # get scaling factors
-scaling.factors <- t.vec/1e6
+scaling.factors <- t.vec / 1e6
 
-# plot scaling factors 
-png(file.path(args$out, "scaling_factors_hist.png"))
-hist(scaling.factors)
-dev.off()
+# plot distribution of scaling factors
+create.histogram(
+    x = scaling.factors,
+    filename = file.path(args$out, 'scaling_factor_distribution.tiff'),
+    resolution = 200,
+    xlab.label = 'Scaling factor',
+    ylab.label = 'Percent'
+
+)
 
 # write scaling factors to file
 # row index = cell identifier
 write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.txt"), 
-    row.names = TRUE, quote = FALSE)
+                       row.names = TRUE, quote = FALSE)
 
 
 ############################################################################
@@ -253,9 +293,11 @@ write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.tx
 ############################################################################ 
 
 combined_prob <- function(cell, gene, verbose = FALSE) {
+
     if (verbose) {
         cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
     }
+
     # identify which gRNAs in our design target this gene
     guides <- which(guide.gene.map==gene)
     
@@ -374,12 +416,12 @@ h5createDataset(h5.path, "guides/one_hot", dim(onehot.guides),
 h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
 
-# write estimate guide efficiencies
-if (!is.null(args$guide_disp)) {
-    for (i in 1:length(est.efficiencies.list)) {
-        h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
-    }
-}
+# # write estimate guide efficiencies
+# if (!is.null(args$guide_disp)) {
+#     for (i in 1:length(est.efficiencies.list)) {
+#         h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
+#     }
+# }
 
 # write coeffs
 h5write(coeffs, h5.path, "coeffs")
