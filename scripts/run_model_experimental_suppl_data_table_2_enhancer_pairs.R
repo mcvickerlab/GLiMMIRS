@@ -89,12 +89,12 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
     print(paste0('running model for ', enhancer.1, ' enhancer 1 and ', enhancer.2, ' enhancer 2 and ', gene, ' gene!'))
 
-    enhancer.1.spacers <- target.site.spacers.table[target.site.spacers.table$target.site == enhancer.1, ]$spacer.sequence
-    enhancer.2.spacers <- target.site.spacers.table[target.site.spacers.table$target.site == enhancer.2, ]$spacer.sequence
+    enhancer.1.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.1, ]$spacer.sequence
+    enhancer.2.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.2, ]$spacer.sequence
 
     # get guide effiencies corresponding to spacers
-    enhancer.1.spacers.efficiencies <- all.guide.efficiencies[all.guide.efficiencies$spacer %in% enhancer.1.spacers, c('spacer', 'Cutting.Efficiency')]
-    enhancer.2.spacers.efficiencies <- all.guide.efficiencies[all.guide.efficiencies$spacer %in% enhancer.2.spacers, c('spacer', 'Cutting.Efficiency')]
+    enhancer.1.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.1.spacers, c('spacer', 'Cutting.Efficiency')]
+    enhancer.2.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.2.spacers, c('spacer', 'Cutting.Efficiency')]
 
     enhancer.1.spacers.efficiencies[is.na(enhancer.1.spacers.efficiencies)] <- 0
     enhancer.2.spacers.efficiencies[is.na(enhancer.2.spacers.efficiencies)] <- 0
