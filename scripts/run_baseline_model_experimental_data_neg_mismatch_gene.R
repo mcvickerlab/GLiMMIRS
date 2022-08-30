@@ -92,7 +92,7 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     enhancer.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.spacers, c('spacer', 'Cutting.Efficiency')]
     enhancer.spacers.efficiencies[is.na(enhancer.spacers.efficiencies)] <- 0
     
-    indicator.vector.probs <- rep(NA, nrow(cell.guide.matrix))
+    indicator.vector.probs <- rep(1, nrow(cell.guide.matrix))
 
     for (i in 1:nrow(enhancer.spacers.efficiencies)) {
         
