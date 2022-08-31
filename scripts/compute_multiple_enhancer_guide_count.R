@@ -1,6 +1,6 @@
-# This program runs a generalized linear model on enhancer pairs determined by analyzing
-# the 664 enhancer-gene pairs published in the Gasperini et al. 2019 paper, and looking at
-# enhancers that target the same gene.
+# This program computes the number of cells which would have both enhancers targeted for the 330
+# enhancer-enhancer pairs derived from the 664 enhancer-gene pairs published by Gasperini et al.
+# in 2019.
 #
 # Author: Karthik Guruvayurappan
 
@@ -59,35 +59,19 @@ cell.guide.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed
 guide.spacers <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'guide.spacers')
 colnames(cell.guide.matrix) <- guide.spacers
 
-# read in counts matrix
-print('reading in counts matrix!')
-counts.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.counts')
-gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.names')
-rownames(counts.matrix) <- gene.names
-
-# compute scaling factors based on count matrix
-print('computing scaling factors!')
-scaling.factors <- colSums(counts.matrix) / 1e6
-
 # read in enhancer-enhancer pairs
 enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_pairs_suppl_table_2.csv')
 
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-gene.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.1.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.2.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-interaction.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-interaction.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+count.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+count.guide.efficiency.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 
 for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
     # get name of enhancers and gene
     enhancer.1 <- enhancer.enhancer.pairs[i, 'enhancer_1']
     enhancer.2 <- enhancer.enhancer.pairs[i, 'enhancer_2']
-    gene <- enhancer.enhancer.pairs[i, 'gene']
-
-    print(paste0('running model for ', enhancer.1, ' enhancer 1 and ', enhancer.2, ' enhancer 2 and ', gene, ' gene!'))
 
     enhancer.1.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.1, ]$spacer.sequence
     enhancer.2.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.2, ]$spacer.sequence
@@ -98,6 +82,34 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
     enhancer.1.spacers.efficiencies[is.na(enhancer.1.spacers.efficiencies)] <- 0
     enhancer.2.spacers.efficiencies[is.na(enhancer.2.spacers.efficiencies)] <- 0
+
+    enhancer.1.indicator.vector <- rep(0, nrow(cell.guide.matrix))
+
+    for (j in 1:nrow(enhancer.1.spacers.efficiencies)) {
+        guide.spacer <- enhancer.1.spacers.efficiencies$spacer[j]
+        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
+
+        enhancer.1.indicator.vector <- enhancer.1.indicator.vector + guide.indicator.vector
+    }
+
+    enhancer.1.indicator.vector[enhancer.1.indicator.vector > 1] <- 1 
+
+    enhancer.2.indicator.vector <- rep(0, nrow(cell.guide.matrix))
+
+    for (j in 1:nrow(enhancer.2.spacers.efficiencies)) {
+        guide.spacer <- enhancer.2.spacers.efficiencies$spacer[j]
+        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
+        
+        enhancer.2.indicator.vector <- enhancer.2.indicator.vector + guide.indicator.vector
+    }
+
+    enhancer.2.indicator.vector[enhancer.2.indicator.vector > 1] <- 1 
+    
+    both.target.count <- sum((enhancer.1.indicator.vector + enhancer.2.indicator.vector) == 2)
+
+    enhancer.1.list[i] <- enhancer.1
+    enhancer.2.list[i] <- enhancer.2
+    count.list[i] <- both.target.count
 
     enhancer.1.indicator.probs <- rep(1, nrow(cell.guide.matrix))
 
@@ -110,7 +122,7 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
     }
 
     enhancer.1.indicator.probs <- 1 - enhancer.1.indicator.probs
-    enhancer.1.indicator.vector <- enhancer.1.indicator.probs
+    enhancer.1.indicator.vector <- rbinom(nrow(cell.guide.matrix), 1, enhancer.1.indicator.probs)
 
     enhancer.2.indicator.probs <- rep(1, nrow(cell.guide.matrix))
 
@@ -123,56 +135,19 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
     }
 
     enhancer.2.indicator.probs <- 1 - enhancer.2.indicator.probs
-    enhancer.2.indicator.vector <- enhancer.2.indicator.probs
+    enhancer.2.indicator.vector <- rbinom(nrow(cell.guide.matrix), 1, enhancer.2.indicator.probs)
 
-    # get gene counts for gene
-    gene.counts <- counts.matrix[gene, ]
+    both.target.count <- sum((enhancer.1.indicator.vector + enhancer.2.indicator.vector) == 2)
+    count.guide.efficiency.list[i] <- both.target.count
 
-    # create dataframe for modeling
-    model.df <- cbind(covariates, enhancer.1.indicator.vector, enhancer.2.indicator.vector, gene.counts)
 
-    # fit negative binomial GLM model
-    model <- glm.nb(
-        formula = gene.counts ~ enhancer.1.indicator.vector * enhancer.2.indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(scaling.factors),
-        data = model.df
-    )
-
-    enhancer.1.list[i] <- enhancer.1
-    enhancer.2.list[i] <- enhancer.2
-    gene.list[i] <- gene
-
-    if ('enhancer.1.indicator.vector' %in% rownames(summary(model)$coefficients)){
-        enhancer.1.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Pr(>|z|)']
-
-    }
-    else {
-        enhancer.1.pvalue.list[i] <- NA
-    }
-
-    if ('enhancer.2.indicator.vector' %in% rownames(summary(model)$coefficients)){
-        enhancer.2.pvalue.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Pr(>|z|)']
-
-    }
-    else {
-        enhancer.2.pvalue.list[i] <- NA
-    }
-
-    if ('enhancer.1.indicator.vector:enhancer.2.indicator.vector' %in% rownames(summary(model)$coefficients)){
-        interaction.coeff.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector:enhancer.2.indicator.vector', 'Estimate']
-        interaction.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector:enhancer.2.indicator.vector', 'Pr(>|z|)']
-
-    }
-    else {
-        interaction.coeff.list[i] <- NA
-        interaction.pvalue.list[i] <- NA
-    }
 }
 
 # write to output file
-print('writing p-values to output file!')
-pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.pvalue.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
+print('writing counts to output file!')
+pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, count.list, count.guide.efficiency.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_count_both_enhancers_target.csv',
     row.names = FALSE
 )

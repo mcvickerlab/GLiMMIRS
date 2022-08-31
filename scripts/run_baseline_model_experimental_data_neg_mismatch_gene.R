@@ -94,10 +94,10 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     
     indicator.vector.probs <- rep(1, nrow(cell.guide.matrix))
 
-    for (i in 1:nrow(enhancer.spacers.efficiencies)) {
+    for (j in 1:nrow(enhancer.spacers.efficiencies)) {
         
-        guide.spacer <- enhancer.spacers.efficiencies$spacer[i]
-        guide.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[i]
+        guide.spacer <- enhancer.spacers.efficiencies$spacer[j]
+        guide.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[j]
 
         guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
 
@@ -107,7 +107,7 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     }
 
     indicator.vector.probs <- 1 - indicator.vector.probs
-    indicator.vector <- rbinom(nrow(cell.guide.matrix), 1, indicator.vector.probs)
+    indicator.vector <- indicator.vector.probs
 
     # get gene counts for gene
     gene.counts <- counts.matrix[gene, ]
