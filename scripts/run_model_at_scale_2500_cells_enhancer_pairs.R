@@ -71,7 +71,7 @@ scaling.factors <- colSums(counts.matrix) / 1e6
 
 # read in enhancer-enhancer pairs
 enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_at_scale_2500_cells.csv')
-
+enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$gene %in% rownames(counts.matrix), ]
 
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
