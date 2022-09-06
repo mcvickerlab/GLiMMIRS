@@ -20,6 +20,9 @@ create.scatterplot(
     formula = interaction.pvalue ~ unif,
     data = interaction.pvalues,
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/interaction_term_qqplot.tiff',
-    resolution = 200
+    resolution = 200,
+    add.xyline = TRUE,
+    xlab.label = '-log10(expected pvalue)',
+    ylab.label = '-log10(observed pvalue)'
 )
 
