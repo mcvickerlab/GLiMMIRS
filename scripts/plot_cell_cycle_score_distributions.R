@@ -21,3 +21,17 @@ create.histogram(
     ylimits = c(0, 28),
     xlab.label = 'G2M Score'
 )
+
+s.scores <- read.csv('/iblm/netapp/home/karthik/crisprQTL/gasperini_data/s_scores.csv')
+g2m.scores <- read.csv('/iblm/netapp/home/karthik/crisprQTL/gasperini_data/g2m_scores.csv')
+cell.cycle.scores <- merge(s.scores, g2m.scores, by = 'X')
+
+create.scatterplot(
+    formula = G2M.Score ~ S.Score,
+    data = cell.cycle.scores,
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/cell_s_score_vs_g2m_score.tiff',
+    resolution = 200,
+    xlab.label = 'S Score',
+    ylab.label = 'G2M Score',
+    alpha = 0.2
+)

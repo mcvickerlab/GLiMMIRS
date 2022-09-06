@@ -68,3 +68,35 @@ create.scatterplot(
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot.tiff',
     resolution = 200
 )
+
+plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene)
+plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
+plot.df$unif <- -log10(plot.df$unif)
+plot.df$pvalue <- -log10(plot.df$pvalue)
+
+create.scatterplot(
+    formula = pvalue ~ unif,
+    data = plot.df,
+    groups = plot.df$set,
+    col = default.colours(2),
+    xlab.label = NULL,
+    ylab.label = NULL,
+    alpha  = 0.5,
+    key = list(
+        text = list(
+            lab = c('Mismatch Gene', 'Scrambled Guide'),
+            cex = 1,
+            col = 'black'
+        ),
+        points = list(
+            pch = 19,
+            col = default.colours(2),
+            cex = 1
+        ),
+        x = 0.04,
+        y = 0.95,
+        padding.text = 2
+    ),
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot_neg_zoom_in.tiff',
+    resolution = 200
+)

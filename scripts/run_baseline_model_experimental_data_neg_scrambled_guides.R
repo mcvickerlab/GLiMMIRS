@@ -92,31 +92,22 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     enhancer.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.spacers, c('spacer', 'Cutting.Efficiency')]
     enhancer.spacers.efficiencies[is.na(enhancer.spacers.efficiencies)] <- 0
     
-    # get indicator vectors and efficiencies for each guide
-    guide1.indicator.vector <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer[1]]
-    guide2.indicator.vector <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer[2]]
-    guide1.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[1]
-    guide2.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[2]
+    indicator.vector.probs <- rep(1, nrow(cell.guide.matrix))
 
-    # compute indicator vector factoring in guide efficiency
-    indicator.vector <- guide1.indicator.vector + guide2.indicator.vector
-    for (j in 1:length(indicator.vector)) {
+    for (j in 1:nrow(enhancer.spacers.efficiencies)) {
+        
+        guide.spacer <- enhancer.spacers.efficiencies$spacer[j]
+        guide.efficiency <- enhancer.spacers.efficiencies$Cutting.Efficiency[j]
 
-        if (indicator.vector[j] == 2) {
-            indicator.vector[j] <- rbinom(1, 1, 1 - (1 - guide1.efficiency) * (1 - guide2.efficiency))
-        }
+        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
 
-        if (indicator.vector[j] == 1) {
+        guide.probs <- 1 - (guide.indicator.vector * guide.efficiency)
 
-            if (guide1.indicator.vector[j] == 1) {
-                indicator.vector[j] <- rbinom(1, 1, guide1.efficiency)
-            }
-
-            if (guide2.indicator.vector[j] == 1) {
-                indicator.vector[j] <- rbinom(1, 1, guide2.efficiency)
-            }
-        }
+        indicator.vector.probs <- indicator.vector.probs * guide.probs
     }
+
+    indicator.vector.probs <- 1 - indicator.vector.probs
+    indicator.vector <- indicator.vector.probs
 
     # scramble the indicator vector
     indicator.vector <- sample(indicator.vector)
