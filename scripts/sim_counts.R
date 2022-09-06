@@ -41,6 +41,14 @@ parser$add_argument("--out", action = "store", type = "character",
 args <- parser$parse_args()
 
 ##############################################################
+#  write parameters of simulation to file for recordkeeping
+##############################################################
+args.df <- data.frame(args)
+args.df$date <- Sys.Date()
+
+write.csv(t(args.df), file.path(args$out, "simulation_params.csv"))
+
+##############################################################
 #  simulated baseline (beta0)
 #  one beta per gene
 #  rnorm params obtained by fitting to experimental data
@@ -338,8 +346,32 @@ write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.tx
 #  define a function for calculating X1 (different values for each gene) 
 ############################################################################ 
 
-combined_prob <- function(cell, gene, verbose = FALSE) {
+# combined_prob <- function(cell, gene, verbose = FALSE) {
+#     # calculate X1 as a binary indicator variable
+#     if (verbose) {
+#         cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
+#     }
 
+#     # identify which gRNAs in our design target this gene
+#     guides <- which(guide.gene.map==gene)
+    
+#     # check if any of these gRNAs are present in cell
+#     if (sum(onehot.guides[cell, guides]) > 0) {
+#         terms <- numeric(length(guides))
+#         for (i in 1:args$d) {
+#             if (onehot.guides[cell,guides[i]]!=0) {
+#                 terms[i] <- 1-efficiencies[guides[i]]
+#             }
+#         }
+#         x1 <- rbinom(1,1,1-prod(1-terms))
+#         return(x1)
+#     } else {
+#         return(0)
+#     }
+# }
+
+combined_prob <- function(cell, gene, verbose = FALSE) {
+    # calculate X1 as a combined probability 
     if (verbose) {
         cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
     }
@@ -352,10 +384,11 @@ combined_prob <- function(cell, gene, verbose = FALSE) {
         terms <- numeric(length(guides))
         for (i in 1:args$d) {
             if (onehot.guides[cell,guides[i]]!=0) {
-                terms[i] <- 1-efficiencies[guides[i]]
+                terms[i] <- efficiencies[guides[i]]
             }
         }
-        x1 <- rbinom(1,1,1-prod(1-terms))
+        x1 <- 1-prod(1-terms)
+
         return(x1)
     } else {
         return(0)
@@ -462,12 +495,12 @@ h5createDataset(h5.path, "guides/one_hot", dim(onehot.guides),
 h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
 
-# # write estimate guide efficiencies
-# if (!is.null(args$guide_disp)) {
-#     for (i in 1:length(est.efficiencies.list)) {
-#         h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
-#     }
-# }
+# write estimate guide efficiencies
+if (!is.null(args$guide_disp)) {
+    for (i in 1:length(est.efficiencies.list)) {
+        h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
+    }
+}
 
 # write coeffs
 h5write(coeffs, h5.path, "coeffs")
@@ -487,4 +520,3 @@ h5write(percent.mito, h5.path, "x/percent_mito")
 
 # write scaling factors
 h5write(scaling.factors, h5.path, "scaling_factors")
-
