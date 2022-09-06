@@ -11,5 +11,8 @@ create.histogram(
     x = pair.counts$count.list,
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/enhancer_enhancer_330_pairs_counts.tiff',
     resolution = 200,
-    type = 'count'
+    type = 'count',
+    xlab.label = 'Number of cells',
+    ylab.label = 'Count of enhancer-enhancer pairs',
+    ylab.cex = 1.5
 )
