@@ -6,26 +6,15 @@
 
 library(BoutrosLab.plotting.general)
 
-pair.counts <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count.csv')
+pair.counts <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count_nodups.csv')
+print(head(pair.counts))
+
 create.histogram(
-    x = pair.counts$count.list,
+    x = pair.counts$count,
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/enhancer_enhancer_at_scale_counts.tiff',
     resolution = 200,
     type = 'count',
     xlab.label = 'Number of cells',
     ylab.label = 'Count of enhancer-enhancer pairs',
     ylab.cex = 1.5
-)
-
-# get rid of pairs with more than 100 cells (outliers)
-pair.counts <- pair.counts[pair.counts$count.list <= 100, ]
-create.histogram(
-    x = pair.counts$count.list,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/enhancer_enhancer_at_scale_counts_zoom_in.tiff',
-    resolution = 200,
-    type = 'count',
-    xlab.label = 'Number of cells',
-    ylab.label = 'Count of enhancer-enhancer pairs',
-    ylab.cex = 1.5,
-    xlimits = c(0, 100)
 )
