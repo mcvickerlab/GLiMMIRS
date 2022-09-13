@@ -89,7 +89,9 @@ create.histogram(
 )
 
 # assign guides to each cell
-guides.idx.list <- sapply(guides.per.cell, function(x) {sample(1:num.guides, x, replace = FALSE)})
+guides.idx.list <- sapply(guides.per.cell, function(x) {
+    sample(1:num.guides, x, replace = FALSE)
+    })
 
 # update one hot encoding
 for (i in 1:args$cells) {
@@ -119,15 +121,20 @@ i <- 1
 if (!is.null(args$guide_disp)) {
     print("simulating estimated guide efficiency values")
 
-    for (d in args$guide_disp) {
-        cat(sprintf("D=%d\n",d))
-        est.eff <- rbeta(num.guides, efficiencies*d, efficiencies*d)  
+    for (gd in args$guide_disp) {
+        cat(sprintf("D=%d\n",gd))
+        est.eff <- rbeta(num.guides, 
+            efficiencies*gd, 
+            efficiencies*gd)  
         est.efficiencies.list[[i]] <- est.eff 
-        disps.list[[i]] <- rep(d, num.guides)
+        disps.list[[i]] <- rep(gd, num.guides)
         # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
 
-        png(file.path(args$out, sprintf("hist_est_guide_efficiences_D%d.png", d)))
-        hist(est.eff, main = sprintf("Histogram of estimated guide efficiencies, D=%d", d))
+        # tiff(file.path(args$out, 
+        #     sprintf("hist_est_guide_efficiences_D%d.tiff", gd)))
+        png(file.path(args$out, sprintf("hist_est_guide_efficiencies_D%d.png", gd)))
+        hist(est.eff, 
+            main = sprintf("Histogram of estimated guide efficiencies, D=%d", gd))
         dev.off()
 
         i <- i + 1
@@ -137,7 +144,22 @@ if (!is.null(args$guide_disp)) {
 est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
                                     D = do.call(c, disps.list))
 
-head(est.efficiencies.df)
+# plot estimated efficiencies together on sme histogram
+est.efficiencies.df$D <- as.factor(est.efficiencies.df$D)
+est.efficiencies.p <- ggplot(est.efficiencies.df, 
+                            aes(x = est.efficiency, fill = D, color = D)) + 
+                        geom_histogram(position = "dodge") + 
+                        theme_classic() + 
+                        theme(text = element_text(size = 20))
+
+# tiff(file.path(args$out, 
+#     "hist_est_guide_efficiences.tiff"), 
+#         res = 300, units = "in")
+png(file.path(args$out, "hist_est_guide_efficiencies.png"))
+print(est.efficiencies.p)
+dev.off()
+
+# head(est.efficiencies.df)
 write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
     row.names = TRUE, col.names = TRUE, quote = FALSE)
 
@@ -209,13 +231,26 @@ extractSECdistr(g2m.fit)
 g2m.scores <- rsn(n=args$cells, xi=-0.2556359, omega=0.3124325, alpha=6.2932919, tau=0, dp=NULL)
 
 # Plot 
-png("../rnorm_s_scores.png")
-hist(s.scores, main = expression(paste("Simulated S scores, ", mu, "=-1.296e-3, ", sigma, "=0.11")))
+# tiff("../rnorm_s_scores.tiff",
+#     res = 300, units = "in")
+png(file.path(args$out, "rnorm_s_scores.png"))
+hist(s.scores, 
+    main = expression(
+        paste("Simulated S scores, ", 
+            mu, "=-1.296e-3, ", 
+            sigma, "=0.11")))
 dev.off()
 
-png("../rsn_g2m_scores.png")
+# tiff("../rsn_g2m_scores.tiff",
+#     res = 300, units = "in")
+png(file.path(args$out, "rsn_g2m_scores.png"))
 hist(g2m.scores,
-    main = expression(paste("Simulated G2M scores\n", xi, "=-0.256, ", omega, "=0.312, ", alpha, "=6.29, ", tau, "=0")))
+    main = expression(
+        paste("Simulated G2M scores\n", 
+            xi, "=-0.256, ", 
+            omega, "=0.312, ", 
+            alpha, "=6.29, ", 
+            tau, "=0")))
 dev.off()
 
 
@@ -370,30 +405,26 @@ write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.tx
 #     }
 # }
 
-combined_prob <- function(cell, gene, verbose = FALSE) {
-    # calculate X1 as a combined probability 
-    if (verbose) {
-        cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
-    }
+# combined_prob <- function(cell, gene, verbose = FALSE) {
+#     # calculate X1 as a combined probability 
+#     if (verbose) {
+#         cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
+#     }
 
-    # identify which gRNAs in our design target this gene
-    guides <- which(guide.gene.map==gene)
+#     # identify which gRNAs in our design target this gene
+#     guides <- which(guide.gene.map==gene)
     
-    # check if any of these gRNAs are present in cell
-    if (sum(onehot.guides[cell, guides]) > 0) {
-        terms <- numeric(length(guides))
-        for (i in 1:args$d) {
-            if (onehot.guides[cell,guides[i]]!=0) {
-                terms[i] <- efficiencies[guides[i]]
-            }
-        }
-        x1 <- 1-prod(1-terms)
-
-        return(x1)
-    } else {
-        return(0)
-    }
-}
+#     terms <- numeric(length(guides))
+#     for (i in 1:length(guides)) {
+#         cat(sprintf("i = %d\n", i))
+#         if (onehot.guides[cell,guides[i]]!=0) {
+#         # if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides[i])))!=0) {
+#             terms[i] <- efficiencies[guides[i]]
+#         }
+#     }
+#     x1 <- 1-prod(1-terms)
+#     return(x1)
+# }
 
 
 ####################################################
@@ -401,17 +432,23 @@ combined_prob <- function(cell, gene, verbose = FALSE) {
 ####################################################
 
 # initialize counts matrix
-sim.counts <-  matrix(0, args$genes, args$cells)
+sim.counts.discrete <-  matrix(0, args$genes, args$cells)
+sim.counts.continuous <-  matrix(0, args$genes, args$cells)
 
 # initialize matrix of x1 values (different set of values for each gene)
-x1.mtx <- matrix(0, args$genes, args$cells)
+x1.discrete.mtx <- matrix(0, args$genes, args$cells)
+x1.continuous.mtx <- matrix(0, args$genes, args$cells)
 
 # initialize matrices for storing values of linear predictor and mu
-lp.mtx <- matrix(0, args$genes, args$cells)
-mu.mtx <- matrix(0, args$genes, args$cells)
+lp.discrete.mtx <- matrix(0, args$genes, args$cells)
+lp.continuous.mtx <- matrix(0, args$genes, args$cells)
+mu.discrete.mtx <- matrix(0, args$genes, args$cells)
+mu.continuous.mtx <- matrix(0, args$genes, args$cells)
 
 # populate counts mtx by gene (by row)
 for (gene in 1:args$genes) {
+    cat(sprintf("simulating counts for gene %d\n", gene))
+
     # get coeffs
     b0 <- baselines[gene]
     b1 <- beta1[gene]
@@ -420,39 +457,57 @@ for (gene in 1:args$genes) {
     b4 <- beta4[gene]
     
     # initialize x1 as vector of zeros (assume it is not affected by any gRNAs in library)
-    x1 <- numeric(args$cells)
+    x1.discrete <- numeric(args$cells)
+    x1.continuous <- numeric(args$cells)
     
     # check if enhancer of gene is targeted by any gRNAs
     if (gene %in% target.genes) {
-        for (i in 1:args$cells) {
-            x1[i] <- combined_prob(i, gene)
-        }
+        cat(sprintf("gene %d is a targeting gene\n", gene))
+        guides.for.gene <- which(guide.gene.map==gene)
+        temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
+        x1.continuous <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
+        x1.discrete <- rbinom(args$cells,1,x1.continuous)
+        # for (i in 1:args$cells) {
+        #     x1[i] <- combined_prob(i, gene)
+        # }
+        # cat(sprintf("x1 total = %.3f\n", sum(x1)))
+
+        x1.continuous.mtx[gene,] <- x1.continuous
+        x1.discrete.mtx[gene,] <- x1.discrete
     }
-    
-    x1.mtx[gene,] <- x1
 
     # get cell cycle scores
     x2 <- s.scores
     x3 <- g2m.scores
     x4 <- percent.mito
     
-    # calculate values of mu
-    lp.vec <- b0 + b1*x1 + b2*x2 + b3*x3 + b4*x4 + log(scaling.factors)
-    lp.mtx[gene,] <- lp.vec
-    mu.vec <- exp(lp.vec)
-    mu.mtx[gene,] <- mu.vec
-    
+    # calculate values of mu - with discrete x
+    lp.discrete.vec <- b0 + b1*x1.discrete + b2*x2 + b3*x3 + b4*x4 + log(scaling.factors)
+    lp.discrete.mtx[gene,] <- lp.discrete.vec
+    mu.discrete.vec <- exp(lp.discrete.vec)
+    mu.discrete.mtx[gene,] <- mu.discrete.vec
+
+    # calculate values of mu - with continuous x
+    lp.continuous.vec <- b0 + b1*x1.continuous + b2*x2 + b3*x3 + b4*x4 + log(scaling.factors)
+    lp.continuous.mtx[gene,] <- lp.continuous.vec
+    mu.continuous.vec <- exp(lp.continuous.vec)
+    mu.continuous.mtx[gene,] <- mu.continuous.vec
+
     # use rnbinom to generate counts of each cell for this gene and update counts matrix
 #     counts <- sapply(mu.vec, function(x) {rnbinom(1, mu = x, size = 1.5)})
-    counts <- rnbinom(length(mu.vec), mu = mu.vec, size = 1.5)
-    sim.counts[gene,] <- counts
+    counts.discrete <- rnbinom(length(mu.discrete.vec), mu = mu.discrete.vec, size = 1.5)
+    sim.counts.discrete[gene,] <- counts.discrete
+    counts.continuous <- rnbinom(length(mu.continuous.vec), mu = mu.continuous.vec, size = 1.5)
+    sim.counts.continuous[gene,] <- counts.continuous
 }
 
-# write simulated counts to sparse matrix
-writeMM(Matrix(sim.counts), file.path(args$out, "counts.mtx"))
+# # write simulated counts to sparse matrix
+# print('writing simulated counts to sparse matrix')
+# writeMM(Matrix(sim.counts), file.path(args$out, "counts.mtx"))
 
-# write matrix of x1 values to sparse matrix 
-writeMM(Matrix(x1.mtx), file.path(args$out, "x1.mtx"))
+# # write matrix of x1 values to sparse matrix 
+# print('writing x1 to sparse matrix')
+# writeMM(Matrix(x1.mtx), file.path(args$out, "x1.mtx"))
 
 # # write linear predictor/mu values to sparse matrix
 # print('writing linear predictors to MM file')
@@ -466,28 +521,51 @@ writeMM(Matrix(x1.mtx), file.path(args$out, "x1.mtx"))
 ####################################################
 #  write all data to h5
 ####################################################
+print("writing data to h5")
 h5.path <- file.path(args$out, "sim.h5")
 h5createFile(h5.path)
 
 # write counts, chunked
-h5createDataset(h5.path, "counts", dim(sim.counts),
+print('writing counts, chunked')
+h5createGroup(h5.path, "counts")
+h5createDataset(h5.path, "counts/discrete", dim(sim.counts.discrete),
     storage.mode = "integer", chunk=c(1000, 10000), level=5)
 
-h5write(sim.counts, h5.path, "counts")
+h5write(sim.counts.discrete, h5.path, "counts/discrete")
+
+h5createDataset(h5.path, "counts/continuous", dim(sim.counts.continuous),
+    storage.mode = "integer", chunk=c(1000, 10000), level=5)
+
+h5write(sim.counts.continuous, h5.path, "counts/continuous")
 
 # linear predictor, chunked
-h5createDataset(h5.path, "linear_predictor", dim(lp.mtx),
+print('writing linear predictor')
+h5createGroup(h5.path, "linear_predictor")
+h5createDataset(h5.path, "linear_predictor/discrete", dim(lp.discrete.mtx),
     storage.mode = "double", chunk=c(1000, 10000), level=5)
 
-h5write(lp.mtx, h5.path, "linear_predictor")
+h5write(lp.discrete.mtx, h5.path, "linear_predictor/discrete")
+
+h5createDataset(h5.path, "linear_predictor/continuous", dim(lp.continuous.mtx),
+    storage.mode = "double", chunk=c(1000, 10000), level=5)
+
+h5write(lp.continuous.mtx, h5.path, "linear_predictor/continuous")
 
 # write mu, chunked
-h5createDataset(h5.path, "mu", dim(mu.mtx),
+print('writing mu')
+h5createGroup(h5.path, "mu")
+h5createDataset(h5.path, "mu/discrete", dim(mu.discrete.mtx),
     storage.mode = "double", chunk=c(1000, 10000), level=5)
 
-h5write(mu.mtx, h5.path, "mu")
+h5write(mu.discrete.mtx, h5.path, "mu/discrete")
+
+h5createDataset(h5.path, "mu/continuous", dim(mu.continuous.mtx),
+    storage.mode = "double", chunk=c(1000, 10000), level=5)
+
+h5write(mu.continuous.mtx, h5.path, "mu/continuous")
 
 # write guide info
+print('writing guide info')
 h5createGroup(h5.path, "guides")
 h5createDataset(h5.path, "guides/one_hot", dim(onehot.guides),
     storage.mode = "integer", chunk=c(1000, 1), level=5)
@@ -496,27 +574,38 @@ h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
 
 # write estimate guide efficiencies
+print('writing estimated guide efficiencies')
 if (!is.null(args$guide_disp)) {
     for (i in 1:length(est.efficiencies.list)) {
+        cat(sprintf("writing est efficiencies with dispersion D = %d\n",i))
         h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
     }
 }
 
 # write coeffs
+print('writing coeffs')
 h5write(coeffs, h5.path, "coeffs")
 
 # write x1
+print('writing x1')
 h5createGroup(h5.path, "x")
 
-h5createDataset(h5.path, "x/x1", dim(x1.mtx),
+h5createDataset(h5.path, "x/x1_discrete", dim(x1.discrete.mtx),
     storage.mode = "integer", chunk = c(1000,1000), level = 7)
-h5write(x1.mtx, h5.path, "x/x1")
+h5write(x1.discrete.mtx, h5.path, "x/x1_discrete")
+
+h5createDataset(h5.path, "x/x1_continuous", dim(x1.continuous.mtx),
+    storage.mode = "double", chunk = c(1000, 1000), level = 7)
+h5write(x1.continuous.mtx, h5.path, "x/x1_continuous")
 
 # write cell cycle scores
+print('writing cell cycle scores')
 h5write(cell.cycle.scores, h5.path, "x/cell_cycle_scores")
 
 # write percent.mito
+print('writing percent.mito')
 h5write(percent.mito, h5.path, "x/percent_mito")
 
 # write scaling factors
+print('writing scaling factors')
 h5write(scaling.factors, h5.path, "scaling_factors")
