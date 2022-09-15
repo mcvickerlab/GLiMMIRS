@@ -35,25 +35,25 @@ args <- parser$parse_args()
 #  define a function for calculating X1 (different values for each gene) 
 ############################################################################ 
 
-combined_prob <- function(cell, gene, efficiencies, guide.gene.map, onehot, verbose = FALSE) {
-    # calculate X1 as a combined probability 
-    if (verbose) {
-        cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
-    }
+# combined_prob <- function(cell, gene, efficiencies, guide.gene.map, onehot, verbose = FALSE) {
+#     # calculate X1 as a combined probability 
+#     if (verbose) {
+#         cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
+#     }
 
-    # identify which gRNAs in our design target this gene
-    guides <- which(guide.gene.map==gene)
+#     # identify which gRNAs in our design target this gene
+#     guides <- which(guide.gene.map==gene)
     
-    terms <- numeric(length(guides))
-    for (i in 1:length(guides)) {
-        if (onehot[cell,guides[i]]!=0) {
-        # if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides[i])))!=0) {
-            terms[i] <- efficiencies[guides[i]]
-        }
-    }
-	x1 <- 1-prod(1-terms)
-    return(x1)
-}
+#     terms <- numeric(length(guides))
+#     for (i in 1:length(guides)) {
+#         if (onehot[cell,guides[i]]!=0) {
+#         # if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides[i])))!=0) {
+#             terms[i] <- efficiencies[guides[i]]
+#         }
+#     }
+# 	x1 <- 1-prod(1-terms)
+#     return(x1)
+# }
 
 # load fixed values from h5
 coeffs <- h5read(file = args$h5, name = "coeffs")

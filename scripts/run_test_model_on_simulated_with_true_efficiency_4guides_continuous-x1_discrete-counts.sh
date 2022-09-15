@@ -4,11 +4,18 @@
 #$ -o /iblm/netapp/data1/jezhou/out
 #$ -e /iblm/netapp/data1/jezhou/err
 
+
+### model specifications:
+### using 4 gRNAs per target
+### evaluating only targeted genes
+### using continuous X1 values
+### using counts simulated with discrete X1 values
+
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_4guides_targeting
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_4guides_cont-x1_disc-counts_targeting
 mkdir -p $outdir
 
-h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_x1prob/sim.h5
+h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous/sim.h5
 
 # if [ -f "$outdir/x1_with_D100_efficiencies.h5" ] ; then
 #     rm "$outdir/x1_with_D100_efficiencies.h5"

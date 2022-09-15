@@ -46,7 +46,8 @@ args <- parser$parse_args()
 args.df <- data.frame(args)
 args.df$date <- Sys.Date()
 
-write.csv(t(args.df), file.path(args$out, "simulation_params.csv"))
+write.csv(t(args.df), file.path(args$out, "simulation_params.csv"),
+    row.names = TRUE, col.names = FALSE, quote = FALSE)
 
 ##############################################################
 #  simulated baseline (beta0)
@@ -467,6 +468,8 @@ for (gene in 1:args$genes) {
         temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
         x1.continuous <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
         x1.discrete <- rbinom(args$cells,1,x1.continuous)
+        cat(sprintf("x1 (continuous) sum = %.3f\n", sum(x1.continuous)))
+        cat(sprintf("x1 (discrete) sum = %d\n", sum(x1.discrete)))
         # for (i in 1:args$cells) {
         #     x1[i] <- combined_prob(i, gene)
         # }
