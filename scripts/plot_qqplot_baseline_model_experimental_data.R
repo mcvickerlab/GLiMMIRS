@@ -47,8 +47,8 @@ create.scatterplot(
     data = plot.df,
     groups = plot.df$set,
     col = default.colours(4),
-    xlab.label = NULL,
-    ylab.label = NULL,
+    xlab.label = '-log10(expected pvalue)',
+    ylab.label = '-log10(observed pvalue)',
     alpha  = 0.5,
     key = list(
         text = list(
@@ -65,6 +65,7 @@ create.scatterplot(
         y = 0.95,
         padding.text = 2
     ),
+    add.xyline = TRUE,
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot.tiff',
     resolution = 200
 )
@@ -79,8 +80,8 @@ create.scatterplot(
     data = plot.df,
     groups = plot.df$set,
     col = default.colours(2),
-    xlab.label = NULL,
-    ylab.label = NULL,
+    xlab.label = '-log10(expected pvalue)',
+    ylab.label = '-log10(observed pvalue)',
     alpha  = 0.5,
     key = list(
         text = list(
@@ -97,6 +98,7 @@ create.scatterplot(
         y = 0.95,
         padding.text = 2
     ),
+    add.xyline = TRUE,
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot_neg_zoom_in.tiff',
     resolution = 200
 )
