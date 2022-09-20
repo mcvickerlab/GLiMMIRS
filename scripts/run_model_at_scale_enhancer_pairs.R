@@ -70,7 +70,8 @@ print('computing scaling factors!')
 scaling.factors <- colSums(counts.matrix) / 1e6
 
 # read in enhancer-enhancer pairs
-enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_at_scale_2500_cells.csv')
+enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count_nodups.csv')
+enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$count > 20, ]
 enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$gene %in% rownames(counts.matrix), ]
 
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
@@ -138,6 +139,7 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
         data = model.df
     )
 
+    print(summary(model)$coefficients)
     enhancer.1.list[i] <- enhancer.1
     enhancer.2.list[i] <- enhancer.2
     gene.list[i] <- gene
@@ -174,6 +176,6 @@ print('writing p-values to output file!')
 pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.pvalue.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_at_scale_2500_cells_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_at_scale_20_cells_model.csv',
     row.names = FALSE
 )

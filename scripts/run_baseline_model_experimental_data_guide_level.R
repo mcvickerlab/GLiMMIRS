@@ -93,37 +93,41 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     # get guide effiencies corresponding to spacers
     enhancer.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.spacers, c('spacer', 'Cutting.Efficiency')]
     enhancer.spacers.efficiencies[is.na(enhancer.spacers.efficiencies)] <- 0
+    enhancer.spacers.efficiencies <- enhancer.spacers.efficiencies[enhancer.spacers.efficiencies$Cutting.Efficiency > 0, ]
 
-    guide.indicator.vectors <- cell.guide.matrix[, enhancer.spacers.efficiencies$spacer]
+    if (nrow(enhancer.spacers.efficiencies) >= 2) {
+        max.efficiency.spacer <- enhancer.spacers.efficiencies[enhancer.spacers.efficiencies$Cutting.Efficiency == max(enhancer.spacers.efficiencies$Cutting.Efficiency), c('spacer')]
+        max.indicator.vector <- cell.guide.matrix[, max.efficiency.spacer]
+        min.efficiency.spacer <- enhancer.spacers.efficiencies[enhancer.spacers.efficiencies$Cutting.Efficiency == min(enhancer.spacers.efficiencies$Cutting.Efficiency), c('spacer')]
+        min.indicator.vector <- cell.guide.matrix[, min.efficiency.spacer]
 
-    # get gene counts for gene
-    gene.counts <- counts.matrix[gene, ]
+        # get gene counts for gene
+        gene.counts <- counts.matrix[gene, ]
 
-    # create dataframe for modeling
-    model.df <- cbind(covariates, guide.indicator.vectors, gene.counts)
+        # create dataframe for modeling
+        model.df <- cbind(covariates, max.indicator.vector, min.indicator.vector, gene.counts)
 
-    # fit negative binomial GLM model
-    guide.formula = 'gene.counts ~ '
-    for (j in 1:nrow(enhancer.spacers.efficiencies)) {
-        guide.formula <- paste0(guide.formula, enhancer.spacers.efficiencies$spacer[j], ' + ')
+        max.model <- glm.nb(
+            formula = gene.counts ~ max.indicator.vector + guide_count + prep_batch + percent.mito + s.score + g2m.score + offset(scaling.factors),
+            data = model.df
+        )
+
+        min.model <- glm.nb(
+            formula = gene.counts ~ min.indicator.vector + guide_count + prep_batch + percent.mito + s.score + g2m.score + offset(scaling.factors),
+            data = model.df
+        )
+        
+        enhancer.list[i] <- enhancer
+        gene.list[i] <- gene
+
+        efficiency.diff <- max(enhancer.spacers.efficiencies$Cutting.Efficiency) - min(enhancer.spacers.efficiencies$Cutting.Efficiency)
+        efficiency.range.list[i] <- efficiency.diff
+
+        max.coefficient <- summary(max.model)$coefficients[c('max.indicator.vector'), 'Estimate']
+        min.coefficient <- summary(min.model)$coefficients[c('min.indicator.vector'), 'Estimate']
+        effect.range <- max.coefficient - min.coefficient
+        effect.range.list[i] <- effect.range
     }
-
-    guide.formula <- paste0(guide.formula, 'prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(scaling.factors)')
-
-    model <- glm.nb(
-        formula = as.formula(guide.formula),
-        data = model.df
-    )
-    
-    enhancer.list[i] <- enhancer
-    gene.list[i] <- gene
-
-    efficiency.range <- max(enhancer.spacers.efficiencies$Cutting.Efficiency) - min(enhancer.spacers.efficiencies$Cutting.Efficiency)
-    efficiency.range.list[i] <- efficiency.range
-
-    coefficient.stats <- summary(model)$coefficients[enhancer.spacers.efficiencies$spacer, ]
-    effect.range <- max(coefficient.stats[, 'Estimate']) - min(coefficient.stats[, 'Estimate'])
-    effect.range.list[i] <- effect.range
 }
 
 # write to output file
