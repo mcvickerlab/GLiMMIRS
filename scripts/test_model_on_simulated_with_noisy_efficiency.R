@@ -37,13 +37,10 @@ args <- parser$parse_args()
 
 ##############################################################
 #  write parameters of simulation to file for recordkeeping
-##############################################################\
+##############################################################
 args.df <- data.frame(unlist(args))
-print(args.df)
 args.df$date <- Sys.Date()
 
-print('writing job parameters to file')
-print(t(args.df))
 write.csv(t(args.df), file.path(args$out, "job_params.csv"), 
 	quote = FALSE, col.names = FALSE, row.names = TRUE)
 
@@ -58,7 +55,10 @@ guides.metadata <- h5read(file = args$h5, name = "guides/metadata") %>%
 								group_by(target.gene) %>% 
 								slice_head(n=args$d) 
 percent.mito <- h5read(file = args$h5, name = "x/percent_mito")
-
+guide.efficiencies <- guides.metadata$efficiency
+if (!is.null(args$guide_disp)) {
+	guide.efficiencies <- h5read(args$h5, sprintf("guides/est_efficiency_D%d", args$guide_disp))
+}
 # guide.efficiencies <- h5read(args$h5, sprintf("guides/est_efficiency_D%d", args$guide_disp))
 onehot.guides <- h5read(args$h5, name = "guides/one_hot")
 
@@ -98,6 +98,7 @@ for (tg in genes.to.test) {
 		obs.counts <- h5read(file = args$h5,
 			name = "counts/discrete", index = list(tg, 1:args$cells))
 	}
+	
 
 	print("initializing vector of X1 for gene")
 	# initialize x1 for this gene as vector of zeros (assume it is not affected by any gRNAs in library) 	
@@ -112,7 +113,7 @@ for (tg in genes.to.test) {
 	    if (tg %in% guides.metadata$target.gene) {
 	    	cat(sprintf("gene %s is a target gene\n", tg))
 	    	guides.for.gene <- which(guides.metadata$target.gene==tg)
-	    	temp.mtx <- t(guides.metadata$efficiency[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
+	    	temp.mtx <- t(guides.efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
 	        # temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
 	        if (args$x1 == "continuous") {
 	        	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
