@@ -57,9 +57,9 @@ guides.metadata <- h5read(file = args$h5, name = "guides/metadata") %>%
 percent.mito <- h5read(file = args$h5, name = "x/percent_mito")
 guide.efficiencies <- guides.metadata$efficiency
 if (!is.null(args$guide_disp)) {
+	cat(sprintf('getting noisy guide efficiencies (D=%d)\n', args$guide_disp))
 	guide.efficiencies <- h5read(args$h5, sprintf("guides/est_efficiency_D%d", args$guide_disp))
 }
-# guide.efficiencies <- h5read(args$h5, sprintf("guides/est_efficiency_D%d", args$guide_disp))
 onehot.guides <- h5read(args$h5, name = "guides/one_hot")
 
 # initialize lists for collecting fitted model data
@@ -113,13 +113,15 @@ for (tg in genes.to.test) {
 	    if (tg %in% guides.metadata$target.gene) {
 	    	cat(sprintf("gene %s is a target gene\n", tg))
 	    	guides.for.gene <- which(guides.metadata$target.gene==tg)
-	    	temp.mtx <- t(guides.efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
-	        # temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
+	    	temp.mtx <- t(guide.efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
 	        if (args$x1 == "continuous") {
+	        	print('calculating continuous X1')
 	        	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
 	        } else if (args$x1 == "discrete") {
+	        	print('calculating discrete X1')
 	        	x1 <- apply(temp.mtx, 1, function(x) {rbinom(args$cells,1,1-prod(1-x))})
 	        } else {
+	        	print('using indicator vector for X1')
 	        	# get onehot encoding of cells that contain any guides for this gene
 	        	onehot.gene <- onehot.guides[,guides.for.gene]
 	        	x1 <- as.integer(apply(onehot.gene, 1, function(x) any(x!=0)))

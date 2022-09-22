@@ -115,11 +115,14 @@ for (tg in genes.to.test) {
 	    	temp.mtx <- t(guides.metadata$efficiency[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
 	        # temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
 	        if (args$x1 == "continuous") {
+	        	print("calculating continuous X1")
 	        	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
 	        } else if (args$x1 == "discrete") {
+	        	print("calculating discrete X1 (Bernoulli sampling)")
 	        	x1 <- apply(temp.mtx, 1, function(x) {rbinom(args$cells,1,1-prod(1-x))})
 	        } else {
 	        	# get onehot encoding of cells that contain any guides for this gene
+	        	print("using indicator value as X1")
 	        	onehot.gene <- onehot.guides[,guides.for.gene]
 	        	x1 <- as.integer(apply(onehot.gene, 1, function(x) any(x!=0)))
 	        }
