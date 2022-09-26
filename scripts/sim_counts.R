@@ -200,7 +200,7 @@ create.histogram(
 ####################################################
 
 # row index = gRNA identifier 
-guides.metadata <- data.frame(guide.gene.map, efficiencies, rep(effect.sizes, 2))
+guides.metadata <- data.frame(guide.gene.map, efficiencies, rep(effect.sizes, args$d))
 colnames(guides.metadata) <- c("target.gene", "efficiency", "effect.size")
 write.table(guides.metadata, file.path(args$out, "guides_metadata.txt"), row.names = TRUE, quote = FALSE)
 

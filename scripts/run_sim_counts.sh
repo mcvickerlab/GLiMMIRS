@@ -5,7 +5,7 @@
 #$ -e /iblm/netapp/data1/jezhou/err
 
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous/
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_26-09-2022/
 
 
 mkdir -p $outdir
