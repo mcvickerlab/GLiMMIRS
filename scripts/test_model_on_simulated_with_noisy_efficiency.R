@@ -51,14 +51,14 @@ h5ls(args$h5)
 coeffs <- h5read(file = args$h5, name = "coeffs")
 cell.cycle.scores <- h5read(args$h5, "x/cell_cycle_scores")
 scaling.factors <- h5read(file = args$h5, name = "scaling_factors")
-guides.metadata <- h5read(file = args$h5, name = "guides/metadata") %>% 
-								group_by(target.gene) %>% 
-								slice_head(n=args$d) 
+guides.metadata <- h5read(file = args$h5, name = "guides/metadata")
 percent.mito <- h5read(file = args$h5, name = "x/percent_mito")
 guide.efficiencies <- guides.metadata$efficiency
 if (!is.null(args$guide_disp)) {
 	cat(sprintf('getting noisy guide efficiencies (D=%d)\n', args$guide_disp))
 	guide.efficiencies <- h5read(args$h5, sprintf("guides/est_efficiency_D%d", args$guide_disp))
+	print(guide.efficiencies)
+	print(sum(guide.efficiencies))
 }
 onehot.guides <- h5read(args$h5, name = "guides/one_hot")
 
@@ -71,9 +71,9 @@ null.coeff.dfs <- list()
 
 # initialize matrix of x1 values (different set of values for each gene)
 x1.mtx <- matrix(0, args$genes, args$cells)
-if (args$targeting) {
-	x1.mtx <- matrix(0, length(unique(guides.metadata$target.gene)), args$cells)
-}
+# if (args$targeting) {
+# 	x1.mtx <- matrix(0, length(unique(guides.metadata$target.gene)), args$cells)
+# }
 
 ##############################################################
 # iterate through genes in dataset 
@@ -98,48 +98,71 @@ for (tg in genes.to.test) {
 		obs.counts <- h5read(file = args$h5,
 			name = "counts/discrete", index = list(tg, 1:args$cells))
 	}
-	
 
 	print("initializing vector of X1 for gene")
 	# initialize x1 for this gene as vector of zeros (assume it is not affected by any gRNAs in library) 	
 	x1 <- numeric(args$cells)
 
-	# determine if x1 needs to be re-calculated orn ot
-	if (args$d != nrow(guides.metadata)/length(unique(guides.metadata$target.gene))) {
-   		cat(sprintf("reevaluating x1 values based on %d gRNAs per target\n", args$d))
+    cat(sprintf("checking if enhancer of gene %s is targeted by any gRNAs in library\n", tg))
+    # check if enhancer of gene is targeted by any gRNAs
+    if (tg %in% guides.metadata$target.gene) {
+    	cat(sprintf("gene %s is a target gene\n", tg))
+    	# guides.for.gene <- which(guides.metadata$target.gene==tg)
+    	guides.for.gene <- sample(which(guides.metadata$target.gene == tg), args$d)
+    	temp.mtx <- t(as.numeric(guide.efficiencies[guides.for.gene])*t(onehot.guides[,guides.for.gene]))
+        if (args$x1 == "continuous") {
+        	print('calculating continuous X1')
+        	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
+        } else if (args$x1 == "discrete") {
+        	print('calculating discrete X1')
+        	x1 <- apply(temp.mtx, 1, function(x) {rbinom(args$cells,1,1-prod(1-x))})
+        } else {
+        	print('using indicator vector for X1')
+        	# get onehot encoding of cells that contain any guides for this gene
+        	onehot.gene <- onehot.guides[,guides.for.gene]
+        	x1 <- as.integer(apply(onehot.gene, 1, function(x) any(x!=0)))
+        }
 
-	    cat(sprintf("checking if enhancer of gene %s is targeted by any gRNAs in library\n", tg))
-	    # check if enhancer of gene is targeted by any gRNAs
-	    if (tg %in% guides.metadata$target.gene) {
-	    	cat(sprintf("gene %s is a target gene\n", tg))
-	    	guides.for.gene <- which(guides.metadata$target.gene==tg)
-	    	temp.mtx <- t(guide.efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
-	        if (args$x1 == "continuous") {
-	        	print('calculating continuous X1')
-	        	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
-	        } else if (args$x1 == "discrete") {
-	        	print('calculating discrete X1')
-	        	x1 <- apply(temp.mtx, 1, function(x) {rbinom(args$cells,1,1-prod(1-x))})
-	        } else {
-	        	print('using indicator vector for X1')
-	        	# get onehot encoding of cells that contain any guides for this gene
-	        	onehot.gene <- onehot.guides[,guides.for.gene]
-	        	x1 <- as.integer(apply(onehot.gene, 1, function(x) any(x!=0)))
-	        }
+        cat(sprintf("x1 total = %.3f\n", sum(x1)))
+        x1.mtx[tg,] <- x1
+    }
 
-	        cat(sprintf("x1 total = %.3f\n", sum(x1)))
-	        x1.mtx[i,] <- x1
-	    }
-	} else {
-		print("getting x1 values from h5 file")
-		if (args$x1=="continuous") {
-			print("getting continuous X1 values")
-			x1 <- as.numeric(h5read(args$h5, "x/x1_continuous", index = list(tg, 1:args$cells)))
-		} else {
-			print("getting discrete X1 values")
-			x1 <- as.integer(h5read(args$h5, "x/x1_discrete", index = list(tg, 1:args$cells)))
-		}
-	}
+	# # determine if x1 needs to be re-calculated orn ot
+	# if (args$d != nrow(guides.metadata)/length(unique(guides.metadata$target.gene))) {
+ #   		cat(sprintf("reevaluating x1 values based on %d gRNAs per target\n", args$d))
+
+	#     cat(sprintf("checking if enhancer of gene %s is targeted by any gRNAs in library\n", tg))
+	#     # check if enhancer of gene is targeted by any gRNAs
+	#     if (tg %in% guides.metadata$target.gene) {
+	#     	cat(sprintf("gene %s is a target gene\n", tg))
+	#     	guides.for.gene <- which(guides.metadata$target.gene==tg)
+	#     	temp.mtx <- t(guide.efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
+	#         if (args$x1 == "continuous") {
+	#         	print('calculating continuous X1')
+	#         	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
+	#         } else if (args$x1 == "discrete") {
+	#         	print('calculating discrete X1')
+	#         	x1 <- apply(temp.mtx, 1, function(x) {rbinom(args$cells,1,1-prod(1-x))})
+	#         } else {
+	#         	print('using indicator vector for X1')
+	#         	# get onehot encoding of cells that contain any guides for this gene
+	#         	onehot.gene <- onehot.guides[,guides.for.gene]
+	#         	x1 <- as.integer(apply(onehot.gene, 1, function(x) any(x!=0)))
+	#         }
+
+	#         cat(sprintf("x1 total = %.3f\n", sum(x1)))
+	#         x1.mtx[i,] <- x1
+	#     }
+	# } else {
+	# 	print("getting x1 values from h5 file")
+	# 	if (args$x1=="continuous") {
+	# 		print("getting continuous X1 values")
+	# 		x1 <- as.numeric(h5read(args$h5, "x/x1_continuous", index = list(tg, 1:args$cells)))
+	# 	} else {
+	# 		print("getting discrete X1 values")
+	# 		x1 <- as.integer(h5read(args$h5, "x/x1_discrete", index = list(tg, 1:args$cells)))
+	# 	}
+	# }
 
     # compile df 
 	gene.data <- data.frame(guide.eff = x1,

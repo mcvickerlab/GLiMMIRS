@@ -113,7 +113,7 @@ create.histogram(
 )
 
 #######################################
-#  simulated est. guide efficiency
+#  simulated noisy (est.) guide efficiency
 #######################################
 est.efficiencies.list <- list()
 disps.list <- list()

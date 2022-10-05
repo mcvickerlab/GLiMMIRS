@@ -15,7 +15,7 @@
 outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_4guides_indic-x1_cont-counts_targeting
 mkdir -p $outdir
 
-h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous/sim.h5
+h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_26-09-2022/sim.h5
 
 # if [ -f "$outdir/x1_with_D100_efficiencies.h5" ] ; then
 #     rm "$outdir/x1_with_D100_efficiencies.h5"
