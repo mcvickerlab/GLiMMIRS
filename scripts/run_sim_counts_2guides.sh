@@ -5,7 +5,7 @@
 #$ -e /iblm/netapp/data1/jezhou/err
 
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_10-10-2022_4guides/
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_10-10-2022_2guides/
 
 
 mkdir -p $outdir
@@ -16,7 +16,7 @@ if [ -f "$h5" ] ; then
     rm "$h5"
 fi
 
-Rscript $PWD/sim_counts.R --out $outdir --guide_disp 1 10 100 --d 4
+Rscript $PWD/sim_counts.R --out $outdir --guide_disp 1 10 100 --d 2
 
 
 # message the user on slack if possible
