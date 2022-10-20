@@ -13,6 +13,8 @@ library(hexbin)
 library(rhdf5)
 library(BoutrosLab.plotting.general)
 library(sn)
+library(dplyr)
+library(tidyr)
 
 # define parser to handle input arguments from command line
 parser <- ArgumentParser(description = "process input arguments")
@@ -115,54 +117,133 @@ create.histogram(
 #######################################
 #  simulated noisy (est.) guide efficiency
 #######################################
-est.efficiencies.list <- list()
-disps.list <- list()
-i <- 1
 
-if (!is.null(args$guide_disp)) {
-    print("simulating estimated guide efficiency values")
+calculate_noisy_efficiency <- function(true, D) {
+    a = D*true
+    b = a/true - a
+    return(rbeta(1,a,b))
+}
 
-    for (gd in args$guide_disp) {
-        cat(sprintf("D=%d\n",gd))
-        est.eff <- rbeta(num.guides, 
-            efficiencies*gd, 
-            efficiencies*gd)  
-        est.efficiencies.list[[i]] <- est.eff 
-        disps.list[[i]] <- rep(gd, num.guides)
-        # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
+dispersions <- args$guide_disp
+n.disps <- length(dispersions)
 
-        # tiff(file.path(args$out, 
-        #     sprintf("hist_est_guide_efficiences_D%d.tiff", gd)))
-        png(file.path(args$out, sprintf("hist_est_guide_efficiencies_D%d.png", gd)))
-        hist(est.eff, 
-            main = sprintf("Histogram of estimated guide efficiencies, D=%d", gd))
-        dev.off()
+noisy.mtx <- matrix(0, length(efficiencies), n.disps)
 
-        i <- i + 1
-    }
-} 
 
-est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
-                                    D = do.call(c, disps.list))
+for (i in 1:n.disps) {
+    noisy.mtx[,i] <- sapply(efficiencies, calculate_noisy_efficiency, D = dispersions[i])
+}
 
-# plot estimated efficiencies together on sme histogram
-est.efficiencies.df$D <- as.factor(est.efficiencies.df$D)
-est.efficiencies.p <- ggplot(est.efficiencies.df, 
-                            aes(x = est.efficiency, fill = D, color = D)) + 
-                        geom_histogram(position = "dodge") + 
-                        theme_classic() + 
-                        theme(text = element_text(size = 20))
+noisy.df <- data.frame(noisy.mtx)
+colnames(noisy.df) <- as.character(dispersions)
+noisy.df$guide <- 1:length(efficiencies)
+noisy.df$true <- efficiencies
 
-# tiff(file.path(args$out, 
-#     "hist_est_guide_efficiences.tiff"), 
-#         res = 300, units = "in")
-png(file.path(args$out, "hist_est_guide_efficiencies.png"))
-print(est.efficiencies.p)
+### Plot histogram
+noisy.df.hist <- noisy.df %>% pivot_longer(!guide, names_to = "D", values_to = "efficiency")
+
+group.colors <- c(`1` = "#DABFFF", `10` = "#907AD6", `100` ="#4F518C", `true` = "#F0EC57")
+
+est.efficiencies.hist.p <- ggplot(noisy.df.hist,
+                                aes(x = efficiency, fill = D, color = D)) + 
+                            geom_histogram(position = "dodge", alpha = 0.5) + 
+                            theme_classic() + 
+                            theme(text = element_text(size = 20)) + 
+                            scale_fill_manual(values=group.colors) + 
+                            scale_color_manual(values = group.colors)
+
+
+# plot
+png(file.path(args$out, "hist_est_guide_efficiencies_all.png"))
+# png("../hist_est_guide_efficiencies_all.png")
+print(est.efficiencies.hist.p)
 dev.off()
 
-# head(est.efficiencies.df)
-write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
+tiff(file.path(args$out, "hist_est_guide_efficiencies_all.tiff"))
+print(est.efficiencies.hist.p)
+dev.off()
+
+pdf(file.path(args$out, "hist_est_guide_efficiencies_all.pdf"))
+print(est.efficiencies.hist.p)
+dev.off()
+
+### Plot scatterplot
+noisy.df.scatter <- noisy.df %>% pivot_longer(cols = as.character(dispersions), names_to = "D", values_to = "noisy")
+
+
+est.efficiencies.scatter.p <- ggplot(noisy.df.scatter, aes(x = true, y = noisy, col = D)) + geom_point() +                         
+                                        theme_classic() + 
+                                        theme(text = element_text(size = 20)) + 
+                                        scale_fill_manual(values=group.colors[1:3]) + 
+                                        scale_color_manual(values = group.colors[1:3])
+
+
+# plot
+png(file.path(args$out, "scatter_est_guide_efficiencies_all.png"))
+print(est.efficiencies.scatter.p)
+dev.off()
+
+tiff(file.path(args$out, "scatter_est_guide_efficiencies_all.tiff"))
+print(est.efficiencies.scatter.p)
+dev.off()
+
+pdf(file.path(args$out, "scatter_est_guide_efficiencies_all.pdf"))
+print(est.efficiencies.scatter.p)
+dev.off()
+
+
+### write to file
+write.table(noisy.df, file.path(args$out, "noisy_guide_efficiencies.csv"),
     row.names = TRUE, col.names = TRUE, quote = FALSE)
+
+# est.efficiencies.list <- list()
+# disps.list <- list()
+# i <- 1
+
+# if (!is.null(args$guide_disp)) {
+#     print("simulating estimated guide efficiency values")
+
+#     for (gd in args$guide_disp) {
+#         cat(sprintf("D=%d\n",gd))
+#         est.eff <- rbeta(num.guides, 
+#             efficiencies*gd, 
+#             efficiencies*gd)  
+#         est.efficiencies.list[[i]] <- est.eff 
+#         disps.list[[i]] <- rep(gd, num.guides)
+#         # writeLines(est.efficiencies.list, file.path(args$out, sprintf("est_efficiencies_D%d.txt", d)))
+
+#         # tiff(file.path(args$out, 
+#         #     sprintf("hist_est_guide_efficiences_D%d.tiff", gd)))
+#         png(file.path(args$out, sprintf("hist_est_guide_efficiencies_D%d.png", gd)))
+#         hist(est.eff, 
+#             main = sprintf("Histogram of estimated guide efficiencies, D=%d", gd))
+#         dev.off()
+
+#         i <- i + 1
+#     }
+# } 
+
+# est.efficiencies.df <- data.frame(est.efficiency = do.call(c, est.efficiencies.list), 
+#                                     D = do.call(c, disps.list))
+
+# # plot estimated efficiencies together on sme histogram
+# est.efficiencies.df$D <- as.factor(est.efficiencies.df$D)
+# est.efficiencies.p <- ggplot(est.efficiencies.df, 
+#                             aes(x = est.efficiency, fill = D, color = D)) + 
+#                         geom_histogram(position = "dodge") + 
+#                         theme_classic() + 
+#                         theme(text = element_text(size = 20))
+
+# # tiff(file.path(args$out, 
+# #     "hist_est_guide_efficiences.tiff"), 
+# #         res = 300, units = "in")
+# png(file.path(args$out, "hist_est_guide_efficiencies.png"))
+# print(est.efficiencies.p)
+# dev.off()
+
+# # head(est.efficiencies.df)
+# write.table(est.efficiencies.df, file.path(args$out, "est_guide_efficiencies.csv"),
+#     row.names = TRUE, col.names = TRUE, quote = FALSE)
 
 ####################################################
 #  assign target genes to gRNAs
@@ -577,12 +658,16 @@ h5write(onehot.guides, h5.path,"guides/one_hot")
 h5write(guides.metadata, h5.path, "guides/metadata")
 
 # write estimate guide efficiencies
-print('writing estimated guide efficiencies')
+# if (!is.null(args$guide_disp)) {
+#     for (i in 1:length(est.efficiencies.list)) {
+#         cat(sprintf("writing est efficiencies with dispersion D = %d\n",i))
+#         h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
+#     }
+# }
+
 if (!is.null(args$guide_disp)) {
-    for (i in 1:length(est.efficiencies.list)) {
-        cat(sprintf("writing est efficiencies with dispersion D = %d\n",i))
-        h5write(est.efficiencies.list[[i]], h5.path, sprintf("guides/est_efficiency_D%d", args$guide_disp[i]))
-    }
+    print('writing estimated guide efficiencies')
+    h5write(noisy.df, h5.path, "guides/noisy_guide_efficiencies")
 }
 
 # write coeffs

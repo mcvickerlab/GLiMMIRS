@@ -12,15 +12,19 @@
 ### using counts simulated with continuous X1 values
 
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_4guides_cont-x1_cont-counts_targeting_v2
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_4guides_cont-x1_cont-counts_targeting_10-10-2022
 mkdir -p $outdir
 
 #h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous/sim.h5
-h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_26-09-2022/sim.h5
+h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_10-10-2022_4guides/sim.h5
 
-# if [ -f "$outdir/x1_with_D100_efficiencies.h5" ] ; then
-#     rm "$outdir/x1_with_D100_efficiencies.h5"
-# fi
+# if true, delete existing directory with same ename 
+override=true
+
+if [ override ]; then
+	rm -rf $outdir && mkdir -p $outdir
+fi
+
 
 Rscript $PWD/test_model_on_simulated_with_true_efficiency.R --h5 $h5 \
 --targeting --out $outdir --d 4 --x1 continuous --counts continuous
