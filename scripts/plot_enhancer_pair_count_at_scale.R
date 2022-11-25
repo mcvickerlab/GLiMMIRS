@@ -8,7 +8,7 @@ library(BoutrosLab.plotting.general)
 
 pair.counts <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count_nodups.csv')
 pair.counts <- pair.counts[, c('enhancer_1', 'enhancer_2', 'count')]
-pair.counts <- pair.counts[!duplicated(pair.counts), ]
+# pair.counts <- pair.counts[!duplicated(pair.counts), ]
 print(nrow(pair.counts))
 print(head(pair.counts))
 

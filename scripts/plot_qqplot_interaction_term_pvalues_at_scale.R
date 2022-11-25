@@ -21,7 +21,7 @@ interaction.pvalues$unif <- -log10(interaction.pvalues$unif)
 create.scatterplot(
     formula = interaction.pvalue ~ unif,
     data = interaction.pvalues,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/interaction_term_at_scale_qqplot.tiff',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/interaction_term_at_scale_qqplot.png',
     resolution = 200,
     add.xyline = TRUE,
     xlab.label = '-log10(expected pvalue)',

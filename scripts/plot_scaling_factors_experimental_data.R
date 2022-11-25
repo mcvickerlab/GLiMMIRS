@@ -15,7 +15,7 @@ scaling.factors <- colSums(gene.counts) / 1e6
 
 create.histogram(
     x = scaling.factors,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/scaling_factors_experimental_data.tiff',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/scaling_factors_experimental_data.png',
     resolution = 200,
     ylimits = c(0, 45),
     xlimits = c(0, 0.2),

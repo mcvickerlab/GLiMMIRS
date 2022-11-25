@@ -109,7 +109,8 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     indicator.vector <- indicator.vector.probs
 
     # get gene counts for gene
-    gene.counts <- counts.matrix[gene, ]
+    pseudocount <- 0.01
+    gene.counts <- counts.matrix[gene, ] + pseudocount
 
     # create dataframe for modeling
     model.df <- cbind(covariates, indicator.vector, gene.counts)
@@ -137,6 +138,6 @@ print('writing p-values to output file!')
 pvalue.table <- cbind(enhancer.list, gene.list, pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv',
     row.names = FALSE
 )
