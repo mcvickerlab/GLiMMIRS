@@ -165,15 +165,24 @@ for (i in 1:nrow(enhancer.pairs)) {
 
     counts.df <- rbind(enhancer.1.df, enhancer.2.df, enhancer.12.df, enhancer.none.df)
     print(min(counts.df$normalized.count))
+    print(head(counts.df))
     
-    create.violinplot(
+    create.boxplot(
         formula = normalized.count ~ group,
         data = counts.df, 
         filename = paste0('/iblm/netapp/home/karthik/crisprQTL/plots/', enhancer.1, 
-                          '_', enhancer.2, '_', gene, '_zoom_in.tiff'
+                          '_', enhancer.2, '_', gene, '_zoom_in_boxplot.tiff'
                         ),
         resolution = 200,
-        xaxis.cex = 0.8
+        xlab.label = NULL,
+        ylab.label = 'Normalized Count',
+        main = paste(enhancer.1, enhancer.2, gene, 'expression'),
+        main.cex = 1,
+        ylab.cex = 1.5,
+        yaxis.cex = 1,
+        xaxis.cex = 0.8,
+        add.stripplot = TRUE,
+        points.alpha = 0.5
     )
 }
 

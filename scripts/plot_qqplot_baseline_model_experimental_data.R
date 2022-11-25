@@ -52,7 +52,7 @@ create.scatterplot(
     alpha  = 0.5,
     key = list(
         text = list(
-            lab = c('Baseline','Gasperini','Mismatch Gene', 'Scrambled Guide'),
+            lab = c('Baseline','Gasperini','Mismatch Gene', 'Scrambled Perturbation'),
             cex = 1,
             col = 'black'
         ),
@@ -66,7 +66,7 @@ create.scatterplot(
         padding.text = 2
     ),
     add.xyline = TRUE,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot.tiff',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot.png',
     resolution = 200
 )
 

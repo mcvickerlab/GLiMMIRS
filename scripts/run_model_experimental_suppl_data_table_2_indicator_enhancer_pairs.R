@@ -70,9 +70,7 @@ print('computing scaling factors!')
 scaling.factors <- colSums(counts.matrix) / 1e6
 
 # read in enhancer-enhancer pairs
-enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count_nodups.csv')
-enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$count > 20, ]
-enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$gene %in% rownames(counts.matrix), ]
+enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_pairs_suppl_table_2.csv')
 
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
@@ -113,6 +111,7 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
     enhancer.1.indicator.probs <- 1 - enhancer.1.indicator.probs
     enhancer.1.indicator.vector <- enhancer.1.indicator.probs
+    enhancer.1.indicator.vector[enhancer.1.indicator.vector > 0] <- 1
 
     enhancer.2.indicator.probs <- rep(1, nrow(cell.guide.matrix))
 
@@ -126,10 +125,10 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
     enhancer.2.indicator.probs <- 1 - enhancer.2.indicator.probs
     enhancer.2.indicator.vector <- enhancer.2.indicator.probs
+    enhancer.2.indicator.vector[enhancer.2.indicator.vector > 0] <- 1
 
     # get gene counts for gene
-    pseudocount <- 0.01
-    gene.counts <- counts.matrix[gene, ] + pseudocount
+    gene.counts <- counts.matrix[gene, ]
 
     # create dataframe for modeling
     model.df <- cbind(covariates, enhancer.1.indicator.vector, enhancer.2.indicator.vector, gene.counts)
@@ -140,7 +139,6 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
         data = model.df
     )
 
-    print(summary(model)$coefficients)
     enhancer.1.list[i] <- enhancer.1
     enhancer.2.list[i] <- enhancer.2
     gene.list[i] <- gene
@@ -177,6 +175,6 @@ print('writing p-values to output file!')
 pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.pvalue.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_model_indicator.csv',
     row.names = FALSE
 )
