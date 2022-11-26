@@ -15,7 +15,7 @@ published.pvalues$unif <- seq(1, nrow(published.pvalues), length.out = nrow(publ
 published.pvalues$set <- 'Gasperini'
 
 # read in baseline model p-values
-baseline.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_model.csv')
+baseline.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv')
 colnames(baseline.pvalues) <- c('enhancer', 'gene', 'pvalue')
 baseline.pvalues <- baseline.pvalues[complete.cases(baseline.pvalues), ]
 baseline.pvalues <- baseline.pvalues[order(baseline.pvalues$pvalue), ]
