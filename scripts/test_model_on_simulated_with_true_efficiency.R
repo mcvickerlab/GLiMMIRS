@@ -33,6 +33,9 @@ parser$add_argument("--counts", action = "store", type = "character",
 parser$add_argument("--guide_disp", action = "store", type = "integer", 
                     default = NULL,
                     help = "dispersion value(s) to use when simulating estimated guide efficiencies")
+parser$add_argument("--pseudocount", action = "store", type = "double",
+					default = NULL,
+					help = "pseudocount to add when modeling")
 args <- parser$parse_args()
 
 ##############################################################
@@ -108,6 +111,11 @@ for (tg in genes.to.test) {
 		obs.counts <- counts.disc[tg,]
 	}
 
+	if (!is.null(args$pseudocount)) {
+		cat(sprintf("adding pseudocount of %.2f\n", args$pseudocount))
+		obs.counts <- obs.counts + args$pseudocount
+	}
+	
 	print("initializing vector of X1 for gene")
 	# initialize x1 for this gene as vector of zeros (assume it is not affected by any gRNAs in library) 	
 	x1 <- numeric(args$cells)
@@ -137,52 +145,18 @@ for (tg in genes.to.test) {
         # x1.mtx[i,] <- x1
         x1.mtx[tg,] <- x1
     }
-	# # determine if x1 needs to be re-calculated orn ot
-	# if (args$d != nrow(guides.metadata)/length(unique(guides.metadata$target.gene))) {
- #   		cat(sprintf("reevaluating x1 values based on %d gRNAs per target\n", args$d))
-
-	#     cat(sprintf("checking if enhancer of gene %s is targeted by any gRNAs in library\n", tg))
-	#     # check if enhancer of gene is targeted by any gRNAs
-	#     if (tg %in% guides.metadata$target.gene) {
-	#     	cat(sprintf("gene %s is a target gene\n", tg))
-	#     	guides.for.gene <- which(guides.metadata$target.gene==tg)
-	#     	temp.mtx <- t(guides.metadata$efficiency[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
-	#         # temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
-	#         if (args$x1 == "continuous") {
-	#         	print("calculating continuous X1")
-	#         	x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
-	#         } else if (args$x1 == "discrete") {
-	#         	print("calculating discrete X1 (Bernoulli sampling)")
-	#         	x1 <- apply(temp.mtx, 1, function(x) {rbinom(args$cells,1,1-prod(1-x))})
-	#         } else {
-	#         	# get onehot encoding of cells that contain any guides for this gene
-	#         	print("using indicator value as X1")
-	#         	onehot.gene <- onehot.guides[,guides.for.gene]
-	#         	x1 <- as.integer(apply(onehot.gene, 1, function(x) any(x!=0)))
-	#         }
-
-	#         cat(sprintf("x1 total = %.3f\n", sum(x1)))
-	#         x1.mtx[i,] <- x1
-	#     }
-	# } else {
-	# 	print("getting x1 values from h5 file")
-	# 	if (args$x1=="continuous") {
-	# 		print("getting continuous X1 values")
-	# 		x1 <- as.numeric(h5read(args$h5, "x/x1_continuous", index = list(tg, 1:args$cells)))
-	# 	} else {
-	# 		print("getting discrete X1 values")
-	# 		x1 <- as.integer(h5read(args$h5, "x/x1_discrete", index = list(tg, 1:args$cells)))
-	# 	}
-	# }
 
     # compile df 
 	gene.data <- data.frame(guide.eff = x1,
 						s.score = cell.cycle.scores$s.scores,
 						g2m.score = cell.cycle.scores$g2m.scores,
                         percent.mito = percent.mito,
-                        counts = as.integer(obs.counts),
+                        # counts = as.integer(obs.counts),
+                        counts = as.numeric(obs.counts),
                         scaling.factor = scaling.factors)
 
+	print('showing dataframe for modeling')
+	print(head(gene.data))
 	### fit alt model 
 	alt <- glm.nb(counts ~ guide.eff + s.score + g2m.score + percent.mito + offset(log(scaling.factor)), 
 		data = gene.data)

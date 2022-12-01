@@ -12,10 +12,10 @@
 ### using counts simulated with continuous X1 values
 
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_2guides_indic-x1_cont-counts_targeting
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_2guides_indic-x1_cont-counts_targeting_pseudocount
 mkdir -p $outdir
 
-h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous_10-10-2022_4guides/sim.h5
+h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_2guides_discrete_and_continuous_10-10-2022/sim.h5
 
 # if true, delete existing directory with same ename 
 override=true
@@ -25,7 +25,7 @@ if [ override ]; then
 fi
 
 Rscript $PWD/test_model_on_simulated_with_true_efficiency.R --h5 $h5 \
---targeting --out $outdir --d 2 --x1 indicator --counts continuous
+--targeting --out $outdir --d 2 --x1 indicator --counts continuous --pseudocount 0.1
 
 # message the user on slack if possible
 exit_code="$?"

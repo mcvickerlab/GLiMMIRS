@@ -12,7 +12,7 @@
 ### using counts simulated with continuous X1 values
 
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_2guides_cont-x1_cont-counts_targeting_pseudocount
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/sim_performance_true_efficiency_2guides_cont-x1_cont-counts_targeting
 mkdir -p $outdir
 
 #h5=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_4guides_discrete_and_continuous/sim.h5
@@ -27,7 +27,7 @@ fi
 
 
 Rscript $PWD/test_model_on_simulated_with_true_efficiency.R --h5 $h5 \
---targeting --out $outdir --d 2 --x1 continuous --counts continuous --pseudocount 0.1
+--targeting --out $outdir --d 2 --x1 continuous --counts continuous
 
 # message the user on slack if possible
 exit_code="$?"

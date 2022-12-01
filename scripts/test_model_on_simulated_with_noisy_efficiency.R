@@ -33,6 +33,9 @@ parser$add_argument("--counts", action = "store", type = "character",
 parser$add_argument("--guide_disp", action = "store", type = "integer", 
                     default = NULL,
                     help = "dispersion value(s) to use when simulating estimated guide efficiencies")
+parser$add_argument("--pseudocount", action = "store", type = "double",
+					default = NULL,
+					help = "pseudocount to add when modeling")
 args <- parser$parse_args()
 
 ##############################################################
@@ -99,6 +102,10 @@ for (tg in genes.to.test) {
 			name = "counts/discrete", index = list(tg, 1:args$cells))
 	}
 
+	if (!is.null(args$pseudocount)) {
+		obs.counts <- obs.counts + args$pseudocount
+	}
+	
 	print("initializing vector of X1 for gene")
 	# initialize x1 for this gene as vector of zeros (assume it is not affected by any gRNAs in library) 	
 	x1 <- numeric(args$cells)
@@ -128,12 +135,29 @@ for (tg in genes.to.test) {
     }
 
     # compile df 
+
+    print("size x1 vector")
+    print(length(x1))
+    print("s score length")
+    print(length(cell.cycle.scores$s.scores))
+    print("g2m score length")
+    print(length(cell.cycle.scores$g2m.scores))
+    print("counts size")
+    print(length(obs.counts))
+    print("scaling factors length")
+    print(length(scaling.factors))
+
 	gene.data <- data.frame(guide.eff = x1,
 						s.score = cell.cycle.scores$s.scores,
 						g2m.score = cell.cycle.scores$g2m.scores,
                         percent.mito = percent.mito,
-                        counts = as.integer(obs.counts),
+                        counts = as.numeric(obs.counts),
                         scaling.factor = scaling.factors)
+
+	print('preview gene.data')
+	print(tail(gene.data))
+
+	saveRDS(gene.data, "/iblm/netapp/data1/jezhou/out/gene_data_df.rds")
 
 	### fit alt model 
 	alt <- tryCatch({
@@ -146,11 +170,6 @@ for (tg in genes.to.test) {
 
 	print('storing output of alt model to list')
 	alt.list[[i]] <- alt
-
-	# alt <- glm.nb(counts ~ guide.eff + s.score + g2m.score + percent.mito + offset(log(scaling.factor)), 
-	# 	data = gene.data)
-	# alt.list[[i]] <- alt
-	print(alt)
 
 	# store estimated coeffs in data frame 
 	if (!is.na(alt)) {
@@ -173,16 +192,18 @@ for (tg in genes.to.test) {
 
 
 	### fit null model
+	print('fitting null model')
 	if (!is.na(alt)) {
+		print('updating alt model')
 		null <- update(alt, . ~ . - guide.eff)
 		null.list[[i]] <- null
 	} else {
+		print('fitting new null model')
 		null <- glm.nb(counts ~ s.score + g2m.score + percent.mito + offset(log(scaling.factor)), 
 			data = gene.data)
 		null.list[[i]] <- null
 	}
 	
-
 	# store estimated coeffs in df 
 	print('saving null df')
 	null.coeff.dfs[[i]] <- bind_cols(tidy(null) %>% select(term, estimate), 
