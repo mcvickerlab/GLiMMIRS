@@ -76,7 +76,9 @@ enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/p
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 gene.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+enhancer.1.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.1.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+enhancer.2.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 interaction.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 interaction.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
@@ -144,18 +146,22 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
     gene.list[i] <- gene
 
     if ('enhancer.1.indicator.vector' %in% rownames(summary(model)$coefficients)){
+        enhancer.1.coeff.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Estimate']
         enhancer.1.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Pr(>|z|)']
 
     }
     else {
+        enhancer.1.coeff.list[i] <- NA
         enhancer.1.pvalue.list[i] <- NA
     }
 
     if ('enhancer.2.indicator.vector' %in% rownames(summary(model)$coefficients)){
+        enhancer.2.coeff.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Estimate']
         enhancer.2.pvalue.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Pr(>|z|)']
 
     }
     else {
+        enhancer.2.coeff.list[i] <- NA
         enhancer.2.pvalue.list[i] <- NA
     }
 
@@ -172,9 +178,9 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
 # write to output file
 print('writing p-values to output file!')
-pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.pvalue.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
+pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.coeff.list, enhancer.1.pvalue.list, enhancer.2.coeff.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_pseudocount_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_pseudocount_model_enhancer_effects.csv',
     row.names = FALSE
 )
