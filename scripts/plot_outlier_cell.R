@@ -51,12 +51,16 @@ housekeeping.genes <- c(
 
 # loop through housekeeping genes
 gene.plots <- vector(mode = 'list', length = length(housekeeping.genes))
+normalized.gene.plots <- vector(mode = 'list', length = length(housekeeping.genes))
 
 for (i in 1:length(housekeeping.genes)) {
 
     # get counts for gene and format in data frame for plotting
     gene.counts <- counts.matrix[housekeeping.genes[i], ]
     gene.counts <- data.frame(gene.counts)
+
+    normalized.gene.counts <- gene.counts * scaling.factors
+    normalized.gene.counts <- data.frame(normalized.gene.counts)
 
     # plotting tutorial: https://felixfan.github.io/ggplot2-remove-grid-background-margin/
     # plotting tutorial: http://www.sthda.com/english/wiki/ggplot2-histogram-plot-quick-start-guide-r-software-and-data-visualization 
@@ -82,6 +86,29 @@ for (i in 1:length(housekeeping.genes)) {
                  )
 
     gene.plots[[i]] <- gene.plot
+
+    normalized.gene.plot <- ggplot(normalized.gene.counts, aes(x=gene.counts)) + 
+                    geom_histogram(fill='black') +
+                    geom_vline(
+                        aes(xintercept=gene.counts[high.expression.cell]),
+                        color='red',
+                        linetype='dashed',
+                        size=1
+                    ) +
+                 ggtitle(housekeeping.genes.common.names[i]) +
+                 xlab('Gene Scaled Count') +
+                 ylab('Count') +
+                 theme_bw() +
+                 theme(
+                     plot.title=element_text(hjust=0.5, size=16),
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(),
+                     panel.background = element_blank(),
+                     panel.border = element_blank(),
+                     axis.line = element_line(colour='black'),
+                 )
+
+    normalized.gene.plots[[i]] <- normalized.gene.plot
 }
 
 combined.plot <- grid.arrange(grobs = gene.plots,
@@ -93,6 +120,20 @@ ggsave(
         paste0('/iblm/netapp/home/karthik/crisprQTL/plots/', 'outlier_cell_housekeeping_counts.tiff'),
         device = 'tiff',
         plot = combined.plot,
+        width = 12,
+        height = 12,
+        units = 'in'
+)
+
+normalized.combined.plot <- grid.arrange(grobs = normalized.gene.plots,
+             nrow = 3,
+             ncol = 4
+)
+
+ggsave(
+        paste0('/iblm/netapp/home/karthik/crisprQTL/plots/', 'outlier_cell_housekeeping_normalized_counts.tiff'),
+        device = 'tiff',
+        plot = normalized.combined.plot,
         width = 12,
         height = 12,
         units = 'in'
