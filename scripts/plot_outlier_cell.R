@@ -40,13 +40,16 @@ high.expression.cell <- 62383
 housekeeping.genes.common.names <- c(
     'C1orf43', 'CHMP2A', 'EMC7', 'GPI',
     'PSMB2', 'PSMB4', 'RAB7A', 'REEP5',
-    'SNRPD3', 'VCP', 'VPS29'
+    'SNRPD3', 'VCP', 'VPS29', 'H2BC11',
+    'H2BC12', 'H2AC11'
 )
 
 housekeeping.genes <- c(
     'ENSG00000143612', 'ENSG00000130724', 'ENSG00000134153', 'ENSG00000105220',
     'ENSG00000126067', 'ENSG00000159377', 'ENSG00000075785', 'ENSG00000129625',
-    'ENSG00000100028', 'ENSG00000165280', 'ENSG00000111237'
+    'ENSG00000100028', 'ENSG00000165280', 'ENSG00000111237', 'ENSG00000124635',
+    'ENSG00000197903', 'ENSG00000196787'
+
 )
 
 # loop through housekeeping genes
@@ -112,7 +115,7 @@ for (i in 1:length(housekeeping.genes)) {
 }
 
 combined.plot <- grid.arrange(grobs = gene.plots,
-             nrow = 3,
+             nrow = 4,
              ncol = 4
 )
 
@@ -126,7 +129,7 @@ ggsave(
 )
 
 normalized.combined.plot <- grid.arrange(grobs = normalized.gene.plots,
-             nrow = 3,
+             nrow = 4,
              ncol = 4
 )
 
