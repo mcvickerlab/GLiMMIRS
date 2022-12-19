@@ -6,9 +6,8 @@
 
 library(rhdf5)
 library(MASS)
-library(glmnet)
 
-# read in and sort covariates
+# read in covariates
 print('reading in covariates!')
 covariates <- h5read(
     file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',

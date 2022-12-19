@@ -18,9 +18,13 @@ print(sum(interaction.pvalues$adjusted < 0.1))
 interaction.pvalues$unif <- seq(1, nrow(interaction.pvalues), length.out = nrow(interaction.pvalues)) / nrow(interaction.pvalues)
 interaction.pvalues$interaction.pvalue <- -log10(interaction.pvalues$interaction.pvalue)
 interaction.pvalues$unif <- -log10(interaction.pvalues$unif)
+interaction.pvalues$color <- 'black'
+interaction.pvalues$color[interaction.pvalues$adjusted < 0.1] <- 'red'
+
 create.scatterplot(
     formula = interaction.pvalue ~ unif,
     data = interaction.pvalues,
+    col = interaction.pvalues$color,
     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/interaction_term_at_scale_qqplot.tiff',
     resolution = 300,
     add.xyline = TRUE,
