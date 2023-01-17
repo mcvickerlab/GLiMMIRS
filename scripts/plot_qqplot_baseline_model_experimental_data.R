@@ -15,21 +15,21 @@ published.pvalues$unif <- seq(1, nrow(published.pvalues), length.out = nrow(publ
 published.pvalues$set <- 'Gasperini'
 
 # read in baseline model p-values
-baseline.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv')
+baseline.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv')
 colnames(baseline.pvalues) <- c('enhancer', 'gene', 'pvalue')
 baseline.pvalues <- baseline.pvalues[complete.cases(baseline.pvalues), ]
 baseline.pvalues <- baseline.pvalues[order(baseline.pvalues$pvalue), ]
 baseline.pvalues$unif <- seq(1, nrow(baseline.pvalues), length.out = nrow(baseline.pvalues)) / nrow(baseline.pvalues)
 baseline.pvalues$set <- 'Baseline'
 
-baseline.pvalues.scrambled.guide <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_model_neg_scrambled_guides.csv')
+baseline.pvalues.scrambled.guide <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_scrambled_guides.csv')
 colnames(baseline.pvalues.scrambled.guide) <- c('enhancer', 'gene', 'pvalue')
 baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[complete.cases(baseline.pvalues.scrambled.guide), ]
 baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[order(baseline.pvalues.scrambled.guide$pvalue), ]
 baseline.pvalues.scrambled.guide$unif <- seq(1, nrow(baseline.pvalues.scrambled.guide), length.out = nrow(baseline.pvalues.scrambled.guide)) / nrow(baseline.pvalues.scrambled.guide)
 baseline.pvalues.scrambled.guide$set <- 'Scrambled Guide'
 
-baseline.pvalues.mismatch.gene <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_model_neg_mismatch_gene.csv')
+baseline.pvalues.mismatch.gene <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_mismatch_gene.csv')
 colnames(baseline.pvalues.mismatch.gene) <- c('enhancer', 'gene', 'pvalue')
 baseline.pvalues.mismatch.gene <- baseline.pvalues.mismatch.gene[complete.cases(baseline.pvalues.mismatch.gene), ]
 baseline.pvalues.mismatch.gene <- baseline.pvalues.mismatch.gene[order(baseline.pvalues.mismatch.gene$pvalue), ]
@@ -66,7 +66,7 @@ create.scatterplot(
         padding.text = 2
     ),
     add.xyline = TRUE,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot.png',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_baseline_model_experimental_data_qqplot.png',
     resolution = 200
 )
 
@@ -99,6 +99,6 @@ create.scatterplot(
         padding.text = 2
     ),
     add.xyline = TRUE,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/baseline_model_experimental_data_qqplot_neg_zoom_in.tiff',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_baseline_model_experimental_data_qqplot_neg_zoom_in.tiff',
     resolution = 200
 )
