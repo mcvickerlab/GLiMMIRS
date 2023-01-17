@@ -63,6 +63,10 @@ counts.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gas
 gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.names')
 rownames(counts.matrix) <- gene.names
 
+# add pseudocount to model
+pseudocount <- 0.01
+counts.matrix <- counts.matrix + pseudocount
+
 # compute scaling factors based on count matrix
 print('computing scaling factors!')
 scaling.factors <- colSums(counts.matrix) / 1e6
@@ -110,15 +114,14 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     indicator.vector <- indicator.vector.probs
 
     # get gene counts for gene
-    pseudocount <- 0.01
-    gene.counts <- counts.matrix[gene, ] + pseudocount
+    gene.counts <- counts.matrix[gene, ]
 
     # create dataframe for modeling
     model.df <- cbind(covariates, indicator.vector, gene.counts)
 
     # fit negative binomial GLM model
     model <- glm.nb(
-        formula = gene.counts ~ indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(scaling.factors),
+        formula = gene.counts ~ indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(log(scaling.factors)),
         data = model.df
     )
 
@@ -139,6 +142,6 @@ print('writing p-values to output file!')
 pvalue.table <- cbind(enhancer.list, gene.list, pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_mismatch_gene.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_mismatch_gene.csv',
     row.names = FALSE
 )
