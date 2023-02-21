@@ -147,7 +147,7 @@ for (i in 1:nrow(significant.interactions)) {
         
         # refit model with resampled cells
         bootstrap.model <- glm.nb(
-            formula = gene.counts ~ enhancer.1.indicator.vector * enhancer.2.indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(scaling.factors),
+            formula = gene.counts ~ enhancer.1.indicator.vector * enhancer.2.indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(log(scaling.factors)),
             data = bootstrap.df
         )
 
