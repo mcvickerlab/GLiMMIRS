@@ -14,7 +14,7 @@ print(head(pair.counts))
 
 create.histogram(
     x = pair.counts$count,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/enhancer_enhancer_at_scale_counts.tiff',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_02_21_enhancer_enhancer_at_scale_counts.pdf',
     resolution = 200,
     type = 'count',
     xlab.label = 'Number of cells',

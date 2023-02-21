@@ -8,7 +8,7 @@ guidescan.guide.info <- read.csv('/iblm/netapp/home/karthik/GuideScan/Gasperini2
 
 create.histogram(
     x = guidescan.guide.info[, c('Cutting.Efficiency')],
-    filename = file.path('/iblm/netapp/home/karthik/crisprQTL/plots/guide_efficiency_distribution.png'),
+    filename = file.path('/iblm/netapp/home/karthik/crisprQTL/plots/23_02_21_guide_efficiency_distribution.pdf'),
     resolution = 200,
     xlab.label = 'Guide Efficiency',
     ylab.label = 'Percent of guides',

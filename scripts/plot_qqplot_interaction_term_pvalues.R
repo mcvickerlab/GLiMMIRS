@@ -23,7 +23,7 @@ create.scatterplot(
     formula = interaction.pvalue ~ unif,
     data = interaction.pvalues,
     col = interaction.pvalues$color,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_interaction_term_qqplot.tiff',
+    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_02_21_interaction_term_qqplot.pdf',
     resolution = 300,
     add.xyline = TRUE,
     xlab.label = '-log10(expected pvalue)',
