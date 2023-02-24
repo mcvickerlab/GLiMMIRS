@@ -37,12 +37,11 @@ parser$add_argument("--lambda", action = "store", type = "double", nargs = "+",
 parser$add_argument("--effect", action = "store", type = "double", nargs = "+",
                     default = c(0.5, 1, 3, 5, 7),
                     help = "effect size of interaction terms (fixed value)")
+parser$add_argument("--neg_effect", action = "store_true", 
+                    help = "if true, use negative values for effect sizes")
 parser$add_argument("--guide_disp", action = "store", type = "integer", nargs = "+",
                     default = NULL,
                     help = "dispersion value(s) to use when simulating estimated guide efficiencies")
-# parser$add_argument("--pct", action = "store", type = "double",
-#                     help = "pick percent of targets to define as true interactions",
-#                     default = 0.5)
 parser$add_argument("--npairs", action = "store", type = "integer",
                     default = 500,
                     help = "number of ground truth pairs with interaction effects")
@@ -66,16 +65,6 @@ args <- parser$parse_args()
 ##################################å############################
 print('writing parameters of simulation job to file')
 print(args)
-
-# args.df <- data.frame(args)
-# args.df$date <- Sys.Date()
-
-# print(args.df)
-
-# print(data.frame(t(args.df)))
-
-# write.csv(data.frame(t(args.df)), file.path(args$out, "simulation_params.csv"),
-#     row.names = TRUE, col.names = FALSE, quote = FALSE)
 
 ##############################################################
 #  simulated baseline (beta0)
@@ -115,7 +104,7 @@ num.guides = args$d * args$targets
 cat(sprintf("%d unique gRNAs with %d gRNAs per target (%d total targets)\n",
     num.guides, args$d, args$targets))
 
-# get nr of gRNAs per cell
+# get nr of gRNAs per cell - different set for each value of lambda
 guides.per.cell.list <- lapply(args$lambda, function(x) {rpois(args$cells, x)})
 
 ### visualize 
@@ -315,10 +304,10 @@ write.csv(noisy.df, file.path(args$out, "noisy_guide_efficiencies.csv"),
 #  target sites = putative enhancers
 ####################################################
 # determine total number of target sites
-targets <- 1:args$targets
 cat(sprintf("number of target sites = %d\n", args$targets))
 
 # total possible target pairs
+targets <- 1:args$targets
 possible.target.pairs <- combn(targets,2)
 cat(sprintf("total possible target pairs = %d\n", dim(possible.target.pairs)[2]))
 
@@ -712,6 +701,7 @@ h5createGroup(h5.path, "guides/one_hot")
 
 # initialize X_A, X_B, X_AB as zero 
 # one matrix per value of lambda
+print('initializing matrices for XA, XB, XAB')
 xa.mtx.list <- replicate(length(args$lambda),
                         matrix(0,args$genes, args$cells), simplify = FALSE)
 xb.mtx.list <- replicate(length(args$lambda),
@@ -719,17 +709,41 @@ xb.mtx.list <- replicate(length(args$lambda),
 xab.mtx.list <- replicate(length(args$lambda),
                         matrix(0,args$genes, args$cells), simplify = FALSE)
 
+
 # initialize counts matrices list
 # one matrix per value of lambda and interaction size
 # total = length(lambda)*length(effect sizes)
-sim.counts.list <- replicate(length(args$lambda)*length(args$effect),
-                            matrix(0,args$genes, args$cells), simplify = FALSE)
+# sim.counts.list <- replicate(length(args$lambda)*length(args$effect),
+#                             matrix(0,args$genes, args$cells), simplify = FALSE)
+# sim.counts.list <- lapply(1:length(args$lambda), function(x) {
+#         lapply(1:length(args$effect), function(x) {
+#                 matrix(0, args$genes, args$cells)
+#             })
+#     })
+print('initializing simulated counts matrices')
+sim.counts.list <- replicate(length(args$lambda), 
+                            replicate(length(args$effect), 
+                                matrix(0,args$genes, args$cells), 
+                                simplify = FALSE), 
+                            simplify = FALSE)
 
 # initialize matrix lists for storing LP/mu
-lp.mtx.list <- replicate(length(args$lambda)*length(args$effect),
-                         matrix(0,args$genes, args$cells), simplify = FALSE)
-mu.mtx.list <- replicate(length(args$lambda)*length(args$effect),
-                         matrix(0,args$genes, args$cells), simplify = FALSE)
+# lp.mtx.list <- replicate(length(args$lambda)*length(args$effect),
+#                          matrix(0,args$genes, args$cells), simplify = FALSE)
+print('initializing LP matrices')
+lp.mtx.list <- replicate(length(args$lambda), 
+                            replicate(length(args$effect), 
+                                matrix(0,args$genes, args$cells), 
+                                simplify = FALSE), 
+                            simplify = FALSE)
+# mu.mtx.list <- replicate(length(args$lambda)*length(args$effect),
+#                          matrix(0,args$genes, args$cells), simplify = FALSE)
+print('initializing mu matrices')
+mu.mtx.list <- replicate(length(args$lambda), 
+                            replicate(length(args$effect), 
+                                matrix(0,args$genes, args$cells), 
+                                simplify = FALSE), 
+                            simplify = FALSE)
 
 
 ### test with genes targeted by pair with interaction term
@@ -738,7 +752,7 @@ pos.test.genes <- sample(ts.pairs$target.genes, 10, replace = FALSE)
 # iterate through genes
 for (gene in 1:args$genes) {
 # for (gene in pos.test.genes) {
-    cat(sprintf("test gene = %d\n", gene))
+    cat(sprintf("simulating counts for gene %d\n", gene))
     
     # get coeffs 
     b0 <- baselines[gene]
@@ -755,7 +769,7 @@ for (gene in 1:args$genes) {
     x.g2m <- g2m.scores
     x.mito <- percent.mito
     
-    # check if gene is targeted by any gRNAs
+    # check if gene is targeted by any gRNAs (is it in pos/neg pair)
     if (gene %in% all.ts.pairs$target.genes) {
         cat(sprintf("gene %d is targeted by gRNAs in this design\n", gene))
         
@@ -771,8 +785,9 @@ for (gene in 1:args$genes) {
         # calculate X_A and X_B for different values of lambda
         for (i in 1:length(args$lambda)) {
             l <- args$lambda[i]
-            cat(sprintf("lambda = %d\n", l))
+            cat(sprintf("calculating X_A and X_B for lambda = %d\n", l))
             
+            # calculate X_A (probability of tsA perturbation)
             temp.mtx.a <- t(efficiencies[guides.A]*t(onehot.matrices.list[[i]][,guides.A]))
             xa <- apply(temp.mtx.a, 1, function(x) {1-prod(1-x)})
 
@@ -786,24 +801,30 @@ for (gene in 1:args$genes) {
             xab <- xa*xb
             xab.mtx.list[[i]][gene,] <- xab
             
-            # check if gene is targeted by an interaction effect
+            # check if gene is targeted by an interaction effect (pos pair)
             if (gene %in% ts.pairs$target.genes) {
                 print('gene has interaction effect')
                 for (j in 1:length(args$effect)) {
                     size <- args$effect[j]
+                    if (args$neg_effect) {
+                        size <- -1*size
+                    }
                     cat(sprintf("interaction size = %.2f\n", size))
                     beta.ab <- size
                     # calculate lp and mu 
                     lp <- b0 + beta.a*xa + beta.b*xb + beta.ab*xab + 
                                 beta.s.score*x.s + beta.g2m.score*x.g2m + beta.mito*x.mito + 
                                 log(scaling.factors)
-                    lp.mtx.list[[i*j]][gene,] <- lp
+                    # lp.mtx.list[[i*j]][gene,] <- lp
+                    lp.mtx.list[[i]][[j]][gene,] <- lp
                     mu <- exp(lp)
-                    mu.mtx.list[[i*j]][gene,] <- mu
+                    # mu.mtx.list[[i*j]][gene,] <- mu
+                    mu.mtx.list[[i]][[j]][gene,] <- mu
 
                     # use rnbinom to generate counts for gene for each cell and update counts matrix 
                     counts <- rnbinom(length(mu), mu = mu, size = 1.5)
-                    sim.counts.list[[i*j]][gene,] <- counts
+                    # sim.counts.list[[i*j]][gene,] <- counts
+                    sim.counts.list[[i]][[j]][gene,] <- counts
                 }
             } else { 
                 # gene is not targeted by interaction effect (neg ctrl pair)
@@ -818,9 +839,13 @@ for (gene in 1:args$genes) {
                 counts <- rnbinom(length(mu), mu = mu, size = 1.5)
                 
                 for (j in 1:length(args$effect)) {
-                    lp.mtx.list[[i*j]][gene,] <- lp
-                    mu.mtx.list[[i*j]][gene,] <- mu
-                    sim.counts.list[[i*j]][gene,] <- counts
+                    # lp.mtx.list[[i*j]][gene,] <- lp
+                    # mu.mtx.list[[i*j]][gene,] <- mu
+                    # sim.counts.list[[i*j]][gene,] <- counts
+
+                    lp.mtx.list[[i]][[j]][gene,] <- lp
+                    mu.mtx.list[[i]][[j]][gene,] <- mu
+                    sim.counts.list[[i]][[j]][gene,] <- counts
                 } 
             }
         }
@@ -833,9 +858,12 @@ for (gene in 1:args$genes) {
         counts <- rnbinom(length(mu), mu = mu, size = 1.5)
         for (i in 1:length(args$lambda)) {
             for (j in 1:length(args$effect)) {
-                lp.mtx.list[[i*j]][gene,] <- lp
-                mu.mtx.list[[i*j]][gene,] <- mu
-                sim.counts.list[[i*j]][gene,] <- counts
+                # lp.mtx.list[[i*j]][gene,] <- lp
+                # mu.mtx.list[[i*j]][gene,] <- mu
+                # sim.counts.list[[i*j]][gene,] <- counts
+                lp.mtx.list[[i]][[j]][gene,] <- lp
+                mu.mtx.list[[i]][[j]][gene,] <- mu
+                sim.counts.list[[i]][[j]][gene,] <- counts
             }
         }
     }
@@ -872,26 +900,33 @@ for (i in 1:length(args$lambda)) {
     for (j in 1:length(args$effect)) {
         size <- args$effect[j]
         set.name <- paste0("lambda",l, "_size", size)
+        if (args$neg_effect) {
+            set.name <- paste0("lambda",l,"_size-NEG", size)
+        }
         print(set.name)
         
         # write counts and relevant info for this set of params to h5
         print(paste('writing to h5 simulations for', set.name))
         print('writing counts, chunked')
         h5createDataset(h5.path, paste0("counts/", set.name), 
-                        dim(sim.counts.list[[i*j]]), 
+                        dim(sim.counts.list[[i]][[j]]), 
                         storage.mode = "integer", chunk = c(1000,10000), level = 5)
-        h5write(sim.counts.list[[i*j]], h5.path, paste0("counts/",set.name))
+        # h5write(sim.counts.list[[i*j]], h5.path, paste0("counts/",set.name))
+        h5write(sim.counts.list[[i]][[j]], h5.path, paste0("counts/",set.name))
+
         
         print('writing LP')
         h5createDataset(h5.path, paste0("linear_predictor/", set.name), 
-                        dim(lp.mtx.list[[i*j]]),
+                        dim(lp.mtx.list[[i]][[j]]),
                         storage.mode = "double", chunk=c(1000, 10000), level=5)
-        h5write(lp.mtx.list[[i*j]], h5.path, paste0("linear_predictor/", set.name))
+        # h5write(lp.mtx.list[[i*j]], h5.path, paste0("linear_predictor/", set.name))
+        h5write(lp.mtx.list[[i]][[j]], h5.path, paste0("linear_predictor/", set.name))
         
         print('writing mu')
-        h5createDataset(h5.path, paste0("mu/", set.name), dim(mu.mtx.list[[i*j]]),
+        h5createDataset(h5.path, paste0("mu/", set.name), dim(mu.mtx.list[[i]][[j]]),
                         storage.mode = "double", chunk=c(1000, 10000), level=5)
-        h5write(mu.mtx.list[[i*j]], h5.path, paste0("mu/", set.name))
+        # h5write(mu.mtx.list[[i*j]], h5.path, paste0("mu/", set.name))
+        h5write(mu.mtx.list[[i]][[j]], h5.path, paste0("mu/", set.name))
         
 
     }
