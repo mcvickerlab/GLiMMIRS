@@ -23,9 +23,9 @@ parser$add_argument("--out", action = "store", type = "character",
 	                help = "where to save outputs")
 parser$add_argument("--targeting", action = "store_true",
 					help = "if true, only fit models for targeted genes (where beta1 != 0)")
-# parser$add_argument("--d", action = "store", type = "integer",
-# 	                default = 2,
-# 	                help = "number of gRNAs for each target site (candidate enhancer)")
+parser$add_argument("--d", action = "store", type = "integer",
+	                default = 2,
+	                help = "number of gRNAs for each target site (candidate enhancer) to evaluate")
 parser$add_argument("--guide_disp", action = "store", type = "integer", 
                     default = NULL,
                     help = "dispersion value(s) to use when simulating estimated guide efficiencies")
@@ -35,46 +35,34 @@ args <- parser$parse_args()
 #  define a function for calculating X1 (different values for each gene) 
 ############################################################################ 
 
-combined_prob <- function(cell, gene, efficiencies, guide.gene.map, onehot, verbose = FALSE) {
-    # calculate X1 as a combined probability 
-    if (verbose) {
-        cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
-    }
+# combined_prob <- function(cell, gene, efficiencies, guide.gene.map, onehot, verbose = FALSE) {
+#     # calculate X1 as a combined probability 
+#     if (verbose) {
+#         cat(sprintf("calculating value of X1 for gene %d in cell %d\n", gene, cell))
+#     }
 
-    # identify which gRNAs in our design target this gene
-    guides <- which(guide.gene.map==gene)
+#     # identify which gRNAs in our design target this gene
+#     guides <- which(guide.gene.map==gene)
     
-    # check if any of these gRNAs are present in cell
-    # if (sum(onehot.guides[cell, guides]) > 0) {
-    # if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides))) > 0) {
-    #     terms <- numeric(length(guides))
-    #     for (i in 1:length(guides)) {
-    #         # if (onehot.guides[cell,guides[i]]!=0) {
-    #         if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides[i])))!=0) {
-    #             terms[i] <- efficiencies[guides[i]]
-    #         }
-    #     }
-    #     x1 <- 1-prod(1-terms)
-    #     return(x1)
-    # } else {
-    #     return(0)
-    # }
-    terms <- numeric(length(guides))
-    for (i in 1:length(guides)) {
-        if (onehot[cell,guides[i]]!=0) {
-        # if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides[i])))!=0) {
-            terms[i] <- efficiencies[guides[i]]
-        }
-    }
-	x1 <- 1-prod(1-terms)
-    return(x1)
-}
+#     terms <- numeric(length(guides))
+#     for (i in 1:length(guides)) {
+#         if (onehot[cell,guides[i]]!=0) {
+#         # if (sum(h5read(args$h5, "guides/one_hot", index = list(cell, guides[i])))!=0) {
+#             terms[i] <- efficiencies[guides[i]]
+#         }
+#     }
+# 	x1 <- 1-prod(1-terms)
+#     return(x1)
+# }
 
 # load fixed values from h5
 coeffs <- h5read(file = args$h5, name = "coeffs")
 cell.cycle.scores <- h5read(args$h5, "x/cell_cycle_scores")
 scaling.factors <- h5read(file = args$h5, name = "scaling_factors")
-guides.metadata <- h5read(file = args$h5, name = "guides/metadata")
+guides.metadata <- h5read(file = args$h5, name ƒ= "guides/metadata") %>% 
+								group_by(target.gene) %>% 
+								slice_head(n=args$d) %>% 
+								select(target.gene)
 percent.mito <- h5read(file = args$h5, name = "x/percent_mito")
 guide.efficiencies <- h5read(args$h5, sprintf("guides/est_efficiency_D%d", args$guide_disp))
 onehot.guides <- h5read(args$h5, name = "guides/one_hot")
@@ -117,19 +105,18 @@ for (tg in genes.to.test) {
     # check if enhancer of gene is targeted by any gRNAs
     if (tg %in% guides.metadata$target.gene) {
     	cat(sprintf("gene %s is a target gene\n", tg))
-        for (j in 1:args$cells) {
-        	cat(sprintf("j = %d\n", j))
-            x1[j] <- combined_prob(j, tg, efficiencies = guide.efficiencies, 
-            						guide.gene.map = guides.metadata$target.gene,
-            						onehot = onehot.guides)
-        }
+    	guides.for.gene <- which(guide.gene.map==tg)
+    	temp.mtx <- t(efficiencies[guides.for.gene]*t(onehot.guides[,guides.for.gene]))
+        x1 <- apply(temp.mtx, 1, function(x) {1-prod(1-x)})
+        # for (j in 1:args$cells) {
+        #     x1[j] <- combined_prob(j, tg, efficiencies = guide.efficiencies, 
+        #     						guide.gene.map = guides.metadata$target.gene,
+        #     						onehot = onehot.guides)
+        # }
+        cat(sprintf("x1 total = %.3f\n", sum(x1)))
+
+        x1.mtx[i,] <- x1
     }
-
-    print('printing sum of X1 for gene')
-    print(sum(x1))
-
-    # x1.mtx[tg,] <- x1
-    x1.mtx[i,] <- x1
 
     # compile df 
 	gene.data <- data.frame(guide.eff = x1,
@@ -194,6 +181,7 @@ write.csv(alt.coeffs, file.path(args$out, "alt_coeffs.csv"), quote = FALSE, row.
 write.csv(null.coeffs, file.path(args$out, "null_coeffs.csv"), quote = FALSE, row.names = FALSE)
 
 # write x1
+print('writing x1 values to file ')
 h5.path <- file.path(args$out, sprintf("x1_with_D%d_efficiencies.h5", args$guide_disp))
 h5createFile(h5.path)
 h5createGroup(h5.path, "x")
