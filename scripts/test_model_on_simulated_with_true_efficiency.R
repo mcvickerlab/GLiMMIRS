@@ -94,7 +94,7 @@ if (args$targeting) {
 	genes.to.test <- unique(guides.metadata$target.gene)
 }
 
-for (tg in genes.to.test) {
+for (tg in genes.to.test[1:5]) {
 # for (tg in 1:10) {
 	cat(sprintf("modeling target gene %d\n", tg))
 

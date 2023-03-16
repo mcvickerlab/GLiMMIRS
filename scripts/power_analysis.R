@@ -34,6 +34,11 @@ parser$add_argument("--neg_effect", action = "store_true",
 					help = "if true, interaction effect sizes are negative")
 parser$add_argument('--test', action = 'store_true',
 					help = "if true, just test five genes")
+# parser$add_argument("--linear", action = "store_true",
+# 					help = "if true, use linear identity function")
+parser$add_argument("--link", action = "store", type = "character",
+					default = "log",
+					help = "link function to use with glm.nb (default: log)")
 args <- parser$parse_args()
 
 print(args)
@@ -132,7 +137,7 @@ if (!is.null(args$lambda)) {
 	                       scaling.factor = scaling.factors)
 	        
 	        alt <- glm.nb(counts ~ tsA * tsB + s.score + g2m.score + percent.mito + offset(log(scaling.factor)),
-	                      data = gene.data)
+	                      data = gene.data, link = args$link)
 	        
 	        alt.brm <- broom::tidy(alt)
 	        alt.brm$gene <- tg
