@@ -12,7 +12,7 @@ library(MASS)
 
 # read in output results from at-scale enhancer-enhancer analysis
 at.scale.results <- read.csv(
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv'
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv'
 )
 at.scale.results <- at.scale.results[complete.cases(at.scale.results), ]
 
@@ -157,5 +157,5 @@ for (i in 1:nrow(significant.interactions)) {
     }
 
     # write coefficient estimates to output file
-    write.csv(interaction.coefficient.estimates, paste0('/iblm/netapp/data1/external/Gasperini2019/processed/', '22_12_21_', enhancer.1, '_', enhancer.2, '_', gene, '_bootstrap_coefficient_estimates.csv'), row.names = FALSE)
+    write.csv(interaction.coefficient.estimates, paste0('/iblm/netapp/data1/external/Gasperini2019/processed/', '23_02_23_', enhancer.1, '_', enhancer.2, '_', gene, '_bootstrap_coefficient_estimates.csv'), row.names = FALSE)
 }
