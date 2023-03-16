@@ -12,9 +12,13 @@ notebooks/.ipynb_checkpoints
 *.h5
 *.csv
 
+# ignore all rds files
+*.rds
+
 # ignore all ipynb checkpoints
 .ipynb_checkpoints
 
 # ignore all plots
 *.tiff
 *.png
+*.pdf
