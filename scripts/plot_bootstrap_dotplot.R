@@ -9,7 +9,7 @@ library(gridExtra)
 
 # read in output results from at-scale enhancer-enhancer analysis
 at.scale.results <- read.csv(
-    '/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv'
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv'
 )
 at.scale.results <- at.scale.results[complete.cases(at.scale.results), ]
 
@@ -60,11 +60,11 @@ for (i in 1:nrow(significant.interactions)) {
 
 combined.plot <- grid.arrange(grobs = bootstrap.plots,
              nrow = 2,
-             ncol = 3
+             ncol = 2
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/crisprQTL/plots/', 'bootstrap_dotplot.tiff'),
+        paste0('/iblm/netapp/home/karthik/crisprQTL/plots/', '23_02_24_bootstrap_dotplot.tiff'),
         device = 'tiff',
         plot = combined.plot,
         width = 12,
