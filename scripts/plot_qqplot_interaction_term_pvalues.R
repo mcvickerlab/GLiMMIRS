@@ -6,7 +6,6 @@
 library(stats)
 library(ggplot2)
 library(RColorBrewer)
-# library(BoutrosLab.plotting.general)
 
 # read in interaction term p-values
 enhancer.enhancer.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_pairs_suppl_table_2_pseudocount_model_enhancer_effects.csv')
