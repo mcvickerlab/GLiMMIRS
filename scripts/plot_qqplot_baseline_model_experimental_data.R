@@ -3,7 +3,9 @@
 # This program was written by Karthik Guruvayurappan.
 
 library(stats);
-library(BoutrosLab.plotting.general)
+# library(BoutrosLab.plotting.general)
+library(ggplot2)
+library(RColorBrewer)
 
 # read in Gasperini paper p-values
 published.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/gasperini_enhancer_gene_pairs_suppl_table_2.csv')
@@ -41,64 +43,90 @@ plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
 plot.df$unif <- -log10(plot.df$unif)
 plot.df$pvalue <- -log10(plot.df$pvalue)
 
+qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) + 
+    geom_point() +
+    geom_abline(slope = 1, intercept = 0) +
+    scale_x_continuous(expand = c(0.02, 0)) +
+    scale_y_continuous(expand = c(0.02, 0)) +
+    xlab(bquote(Expected -log[10](italic(p)))) + 
+    ylab(bquote(Observed -log[10](italic(p)))) +
+    theme_classic() +
+    theme(
+        axis.line = element_blank(),
+        axis.title.x = element_text(size = 20, color = 'black'),
+        axis.title.y = element_text(size = 20, color = 'black'),
+        axis.text = element_text(size = 20, color = 'black'),
+        axis.ticks = element_line(color = 'black', linewidth = 1),
+        axis.ticks.length = unit(2, 'mm'),
+        panel.background = element_rect(color = 'black', linewidth = 1.5),
+        legend.title = element_blank(),
+        legend.position = c(0.23, 0.89),
+        legend.text = element_text(size = 16, color = 'black')
+    ) +
+    scale_colour_brewer(palette = 'Set1')
 
-create.scatterplot(
-    formula = pvalue ~ unif,
-    data = plot.df,
-    groups = plot.df$set,
-    col = default.colours(4),
-    xlab.label = '-log10(expected pvalue)',
-    ylab.label = '-log10(observed pvalue)',
-    alpha  = 0.5,
-    key = list(
-        text = list(
-            lab = c('Baseline','Gasperini','Mismatch Gene', 'Scrambled Perturbation'),
-            cex = 1,
-            col = 'black'
-        ),
-        points = list(
-            pch = 19,
-            col = default.colours(4),
-            cex = 1
-        ),
-        x = 0.04,
-        y = 0.95,
-        padding.text = 2
-    ),
-    add.xyline = TRUE,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_baseline_model_experimental_data_qqplot.png',
-    resolution = 200
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_23_baseline_model_experimental_data_qqplot.tiff',
+    device = 'tiff',
+    plot = qq.plot
 )
+# create.scatterplot(
+#     formula = pvalue ~ unif,
+#     data = plot.df,
+#     groups = plot.df$set,
+#     col = default.colours(4),
+#     xlab.label = '-log10(expected pvalue)',
+#     ylab.label = '-log10(observed pvalue)',
+#     alpha  = 0.5,
+#     key = list(
+#         text = list(
+#             lab = c('Baseline','Gasperini','Mismatch Gene', 'Scrambled Perturbation'),
+#             cex = 1,
+#             col = 'black'
+#         ),
+#         points = list(
+#             pch = 19,
+#             col = default.colours(4),
+#             cex = 1
+#         ),
+#         x = 0.04,
+#         y = 0.95,
+#         padding.text = 2
+#     ),
+#     add.xyline = TRUE,
+#     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_baseline_model_experimental_data_qqplot.png',
+#     resolution = 200
+# )
 
-plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene)
-plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
-plot.df$unif <- -log10(plot.df$unif)
-plot.df$pvalue <- -log10(plot.df$pvalue)
+# plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene)
+# plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
+# plot.df$unif <- -log10(plot.df$unif)
+# plot.df$pvalue <- -log10(plot.df$pvalue)
 
-create.scatterplot(
-    formula = pvalue ~ unif,
-    data = plot.df,
-    groups = plot.df$set,
-    col = default.colours(2),
-    xlab.label = '-log10(expected pvalue)',
-    ylab.label = '-log10(observed pvalue)',
-    alpha  = 0.5,
-    key = list(
-        text = list(
-            lab = c('Mismatch Gene', 'Scrambled Guide'),
-            cex = 1,
-            col = 'black'
-        ),
-        points = list(
-            pch = 19,
-            col = default.colours(2),
-            cex = 1
-        ),
-        x = 0.04,
-        y = 0.95,
-        padding.text = 2
-    ),
-    add.xyline = TRUE,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_baseline_model_experimental_data_qqplot_neg_zoom_in.tiff',
-    resolution = 200
-)
+# create.scatterplot(
+#     formula = pvalue ~ unif,
+#     data = plot.df,
+#     groups = plot.df$set,
+#     col = default.colours(2),
+#     xlab.label = '-log10(expected pvalue)',
+#     ylab.label = '-log10(observed pvalue)',
+#     alpha  = 0.5,
+#     key = list(
+#         text = list(
+#             lab = c('Mismatch Gene', 'Scrambled Guide'),
+#             cex = 1,
+#             col = 'black'
+#         ),
+#         points = list(
+#             pch = 19,
+#             col = default.colours(2),
+#             cex = 1
+#         ),
+#         x = 0.04,
+#         y = 0.95,
+#         padding.text = 2
+#     ),
+#     add.xyline = TRUE,
+#     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_01_13_baseline_model_experimental_data_qqplot_neg_zoom_in.tiff',
+#     resolution = 200
+# )
