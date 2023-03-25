@@ -118,7 +118,7 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     # create dataframe for modeling
     model.df <- cbind(covariates, indicator.vector, gene.counts)
 
-    # fit negative binomial GLM model
+    # fit negative binomial GLM mode
     model <- glm.nb(
         formula = gene.counts ~ indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(log(scaling.factors)),
         data = model.df
