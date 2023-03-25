@@ -64,7 +64,7 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_23_baseline_model_experimental_data_qqplot.tiff',
-    device = 'tiff',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_baseline_model_experimental_data_qqplot.pdf',
+    device = 'pdf',
     plot = qq.plot
 )
