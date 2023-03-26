@@ -32,7 +32,7 @@ for (i in 1:nrow(significant.interactions)) {
     gene <- significant.interactions[i, 'gene']
 
     # read in bootstrap interaction coefficient estimates
-    bootstrap.estimates.filename <- paste0('/iblm/netapp/data1/external/Gasperini2019/processed/22_12_21_', enhancer.1, '_', enhancer.2, '_', gene, '_bootstrap_coefficient_estimates.csv')
+    bootstrap.estimates.filename <- paste0('/iblm/netapp/data1/external/Gasperini2019/processed/23_02_23_', enhancer.1, '_', enhancer.2, '_', gene, '_bootstrap_coefficient_estimates.csv')
     bootstrap.interaction.estimates <- read.csv(
         bootstrap.estimates.filename
     )
@@ -40,17 +40,19 @@ for (i in 1:nrow(significant.interactions)) {
     bootstrap.interaction.estimates$name <- ''
 
     bootstrap.dotplot <- ggplot(bootstrap.interaction.estimates, aes(x=name, y=coefficient)) +
-                         geom_dotplot(binaxis='y', stackdir='center') +
-                         theme_bw() +
+                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.7, color = 'black', fill = 'black') +
+                         theme_classic() +
                          theme(
-                             plot.title=element_text(hjust=0.5, size=11),
-                             panel.grid.major = element_blank(),
-                             panel.grid.minor = element_blank(),
-                             panel.background = element_blank(),
-                             panel.border = element_blank(),
-                             axis.line = element_line(colour='black'),
-                         ) + 
-                         stat_summary(fun.data=mean_sdl, fun.args = list(mult=2), geom="pointrange", color="blue") +
+                            axis.line = element_line(linewidth = 1),
+                            axis.title.x = element_text(size = 20, color = 'black'),
+                            axis.title.y = element_text(size = 20, color = 'black'),
+                            axis.text = element_text(size = 20, color = 'black'),
+                            axis.ticks = element_line(color = 'black', linewidth = 1),
+                            axis.ticks.length = unit(2, 'mm'),
+                            plot.margin = rep(unit(10, 'mm'), 4),
+                            plot.title = element_text(size = 18, hjust = 0.5)
+                        ) + 
+                         stat_summary(fun.data=mean_sdl, fun.args = list(mult=2), geom="pointrange", color="red", size = 1, linewidth = 1.2) +
                          ggtitle(paste(enhancer.1, enhancer.2, gene)) +
                          xlab('') +
                          ylab('Interaction Coefficient')
@@ -64,8 +66,8 @@ combined.plot <- grid.arrange(grobs = bootstrap.plots,
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/crisprQTL/plots/', '23_02_24_bootstrap_dotplot.tiff'),
-        device = 'tiff',
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_25_bootstrap_dotplot.pdf'),
+        device = 'pdf',
         plot = combined.plot,
         width = 12,
         height = 12,
