@@ -28,7 +28,7 @@ colnames(baseline.pvalues.scrambled.guide) <- c('enhancer', 'gene', 'pvalue')
 baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[complete.cases(baseline.pvalues.scrambled.guide), ]
 baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[order(baseline.pvalues.scrambled.guide$pvalue), ]
 baseline.pvalues.scrambled.guide$unif <- seq(1, nrow(baseline.pvalues.scrambled.guide), length.out = nrow(baseline.pvalues.scrambled.guide)) / nrow(baseline.pvalues.scrambled.guide)
-baseline.pvalues.scrambled.guide$set <- 'Scrambled Guide'
+baseline.pvalues.scrambled.guide$set <- 'Shuffled Guides'
 
 baseline.pvalues.mismatch.gene <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_mismatch_gene.csv')
 colnames(baseline.pvalues.mismatch.gene) <- c('enhancer', 'gene', 'pvalue')
