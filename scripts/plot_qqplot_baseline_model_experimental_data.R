@@ -28,7 +28,7 @@ colnames(baseline.pvalues.scrambled.guide) <- c('enhancer', 'gene', 'pvalue')
 baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[complete.cases(baseline.pvalues.scrambled.guide), ]
 baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[order(baseline.pvalues.scrambled.guide$pvalue), ]
 baseline.pvalues.scrambled.guide$unif <- seq(1, nrow(baseline.pvalues.scrambled.guide), length.out = nrow(baseline.pvalues.scrambled.guide)) / nrow(baseline.pvalues.scrambled.guide)
-baseline.pvalues.scrambled.guide$set <- 'Scrambled Guide'
+baseline.pvalues.scrambled.guide$set <- 'Shuffled Guides'
 
 baseline.pvalues.mismatch.gene <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_mismatch_gene.csv')
 colnames(baseline.pvalues.mismatch.gene) <- c('enhancer', 'gene', 'pvalue')
@@ -59,12 +59,13 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
         axis.ticks.length = unit(2, 'mm'),
         legend.title = element_blank(),
         legend.position = c(0.23, 0.89),
-        legend.text = element_text(size = 16, color = 'black')
+        legend.text = element_text(size = 16, color = 'black'),
+        plot.margin = rep(unit(10, 'mm'), 4),
     ) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_23_baseline_model_experimental_data_qqplot.tiff',
-    device = 'tiff',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_baseline_model_experimental_data_qqplot.pdf',
+    device = 'pdf',
     plot = qq.plot
 )

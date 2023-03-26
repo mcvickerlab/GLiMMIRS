@@ -41,7 +41,7 @@ qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue)) +
     scale_color_manual(values = c('black', 'red'))
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot_at_scale.tiff',
-    device = 'tiff',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot_at_scale.pdf',
+    device = 'pdf',
     plot = qq.plot
 )

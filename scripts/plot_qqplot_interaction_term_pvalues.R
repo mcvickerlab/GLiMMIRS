@@ -39,7 +39,7 @@ qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue)) +
     )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot.tiff',
-    device = 'tiff',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot.pdf',
+    device = 'pdf',
     plot = qq.plot
 )
