@@ -6,7 +6,6 @@
 library(stats)
 library(ggplot2)
 library(RColorBrewer)
-# library(BoutrosLab.plotting.general)
 
 # read in interaction term p-values
 enhancer.enhancer.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv')
@@ -20,7 +19,7 @@ interaction.pvalues$dot.color <- 'black'
 interaction.pvalues$dot.color[interaction.pvalues$adjusted.pvalue < 0.1] <- 'red'
 interaction.pvalues <- interaction.pvalues[complete.cases(interaction.pvalues$coeff), ]
 
-qq.plot <- ggplot(interaction.pvalues, aes(x = coeff, y = scaled.pvalue)) +
+volcano.plot <- ggplot(interaction.pvalues, aes(x = coeff, y = scaled.pvalue)) +
     geom_point(aes(color = dot.color)) +
     scale_x_continuous(expand = c(0.02, 0)) +
     scale_y_continuous(expand = c(0.02, 0)) +
@@ -42,18 +41,5 @@ qq.plot <- ggplot(interaction.pvalues, aes(x = coeff, y = scaled.pvalue)) +
 ggsave(
     filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_at_scale_interaction_volcano_plot.pdf',
     device = 'pdf',
-    plot = qq.plot
+    plot = volcano.plot
 )
-
-# create.scatterplot(
-#     formula = scaled.pvalue ~ coeff,
-#     data = interaction.pvalues,
-#     filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_02_21_at_scale_interaction_volcano_plot.pdf',
-#     resolution = 300,
-#     xlimits = c(-15, 15),
-#     col = interaction.pvalues$dot.color,
-#     xlab.label = 'Interaction',
-#     ylab.label = '-log10(pvalue)'
-# )
-
-
