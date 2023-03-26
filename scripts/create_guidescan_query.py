@@ -1,3 +1,9 @@
+# This script reads in the guide RNA spacer sequences from supplementary table
+# 2 of the Gasperini et al. paper and creates a CSV file that can be used with
+# the GuideScan 2.0 gRNA sequence search tool.
+#
+# Author: Karthik Guruvayurappan
+
 import pandas as pd
 
 # read in file containing guide spacer sequences from Gasperini 2019 paper
