@@ -59,12 +59,13 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
         axis.ticks.length = unit(2, 'mm'),
         legend.title = element_blank(),
         legend.position = c(0.23, 0.89),
-        legend.text = element_text(size = 16, color = 'black')
+        legend.text = element_text(size = 16, color = 'black'),
+        plot.margin = rep(unit(10, 'mm'), 4),
     ) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_baseline_model_experimental_data_qqplot.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_baseline_model_experimental_data_qqplot.pdf',
     device = 'pdf',
     plot = qq.plot
 )
