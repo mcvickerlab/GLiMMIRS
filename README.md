@@ -3,5 +3,5 @@ Modeling enhancer-enhancer interactions using Generalized Linear Models (GLMMs)
 
 ```create_guidescan_query.py```: appends 'NGG' to guide RNA spacer sequences from Supplementary Table 2 and outputs file ready to input into GuideScan 2.0 gRNA Sequence Search Tool
 
-
+```explore_guidescan_guide_efficiency_missingness.ipynb```: Jupyter Notebook to explore missingness in GuideScan 2.0 outputs for guide RNA sequences from the at-scale screen previously published by Gasperini et al.
 
