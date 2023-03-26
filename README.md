@@ -13,3 +13,5 @@ Modeling enhancer-enhancer interactions using Generalized Linear Models (GLMMs)
 
 ```compute_cell_cycle_scores.R```: computes cell cycle scores using Seurat single-cell RNA-sequencing package and generates PCA plot that shows cells separating based on cell cycle score
 
+```plot_cell_cycle_score_distributions.R```: Plots distributions of S and G2M cell cycle scores from at-scale screen as histograms
+

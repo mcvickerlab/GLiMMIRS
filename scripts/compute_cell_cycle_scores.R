@@ -66,7 +66,7 @@ cell.cycle.pca <- DimPlot(gene.expression)
 
 # save plot
 ggsave(
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/23_03_26_cell_cycle_pca.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_26_cell_cycle_pca.pdf',
     plot = cell.cycle.pca,
     device = 'pdf'
 )
@@ -75,5 +75,5 @@ ggsave(
 s.scores <- gene.expression[[]]['S.Score']
 g2m.scores <- gene.expression[[]]['G2M.Score']
 
-write.csv(s.scores, '/iblm/netapp/home/karthik/crisprQTL/gasperini_data/s_scores.csv')
-write.csv(g2m.scores, '/iblm/netapp/home/karthik/crisprQTL/gasperini_data/g2m_scores.csv')
+write.csv(s.scores, '/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/s_scores.csv')
+write.csv(g2m.scores, '/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/g2m_scores.csv')
