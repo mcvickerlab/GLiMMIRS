@@ -9,3 +9,9 @@ Modeling enhancer-enhancer interactions using Generalized Linear Models (GLMMs)
 
 ```plot_guide_efficiency_distribution.R```: plots distribution of enhancer-targeting guide RNA efficiencies as a histogram
 
+```explore_cell_cycle_scores.ipynb```: Jupyter notebook that runs cell cycle scoring functions and produces a PCA that separates cells in the at-scale screen based on cell cycle score
+
+```compute_cell_cycle_scores.R```: computes cell cycle scores using Seurat single-cell RNA-sequencing package and generates PCA plot that shows cells separating based on cell cycle score
+
+```plot_cell_cycle_score_distributions.R```: Plots distributions of S and G2M cell cycle scores from at-scale screen as histograms
+
