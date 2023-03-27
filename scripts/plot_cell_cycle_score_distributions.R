@@ -8,6 +8,7 @@ library(RColorBrewer)
 
 s.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/s_scores.csv')$S.Score
 g2m.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/g2m_scores.csv')$G2M.Score
+cell.cycle.scores <- data.frame(cbind(s.scores, g2m.scores))
 
 plot <- ggplot(cell.cycle.scores, aes(x = s.scores)) +
     geom_histogram(color = 'black') +
