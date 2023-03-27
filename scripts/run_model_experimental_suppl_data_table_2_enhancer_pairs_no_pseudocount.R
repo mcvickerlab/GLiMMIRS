@@ -66,8 +66,8 @@ gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasper
 rownames(counts.matrix) <- gene.names
 
 # add pseudocount to count data
-pseudocount <- 0.01
-counts.matrix <- counts.matrix + pseudocount
+# pseudocount <- 0.01
+# counts.matrix <- counts.matrix + pseudocount
 
 # compute scaling factors based on count matrix
 print('computing scaling factors!')
@@ -183,6 +183,6 @@ print('writing p-values to output file!')
 pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.coeff.list, enhancer.1.pvalue.list, enhancer.2.coeff.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/23_03_27_enhancer_enhancer_pairs_suppl_table_2_pseudocount_model_enhancer_effects.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_03_27_enhancer_enhancer_pairs_suppl_table_2_no_pseudocount_model_enhancer_effects.csv',
     row.names = FALSE
 )

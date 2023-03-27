@@ -15,3 +15,8 @@ Modeling enhancer-enhancer interactions using Generalized Linear Models (GLMMs)
 
 ```plot_cell_cycle_score_distributions.R```: Plots distributions of S and G2M cell cycle scores from at-scale screen as histograms
 
+```run_model_experimental_suppl_data_table_2_enhancer_pairs.R```: Runs model for testing interactions between enhancer pairs on target gene expression for 330 enhancer pairs determined from the 664 previously published enhancer-gene pairs.
+
+```run_model_experimental_suppl_data_table_2_enhancer_pairs_no_pseudocount.R```: Runs model for testing interactions between enhancer pairs on 330 enhancer pairs, but runs the model without a pseudocount to demonstrate coefficient inflation.
+
+```plot_pseudocount_coefficients.R```: plots a scatterplot of the interaction coefficients obtained from running the model with and without a pseudocount to demonstrate how the inclusion of a pseudocount reduces coefficient inflation. 
