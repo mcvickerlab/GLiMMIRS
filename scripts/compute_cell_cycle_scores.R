@@ -25,7 +25,8 @@ genes <- genes$V1
 rownames(expression.matrix) <- genes
 
 # code snippet adapted from: https://stackoverflow.com/questions/28543517/how-can-i-convert-ensembl-id-to-gene-symbol-in-r
-mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+mart <- useMart('ensembl')
+mart <- useDataset("hsapiens_gene_ensembl", mart)
 gene.symbols <- getBM(
     filters = "ensembl_gene_id",
     attributes = c("ensembl_gene_id", "hgnc_symbol"),

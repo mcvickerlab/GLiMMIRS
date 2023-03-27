@@ -25,7 +25,7 @@ plot <- ggplot(cell.cycle.scores, aes(x = s.scores)) +
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4),
-    )
+)
     
 ggsave(
     filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_26_cell_cycle_s_scores.pdf',
@@ -48,7 +48,7 @@ plot <- ggplot(cell.cycle.scores, aes(x = g2m.scores)) +
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4),
-    )
+)
     
 ggsave(
     filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_26_cell_cycle_g2m_scores.pdf',
