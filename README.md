@@ -19,4 +19,12 @@ Modeling enhancer-enhancer interactions using Generalized Linear Models (GLMMs)
 
 ```run_model_experimental_suppl_data_table_2_enhancer_pairs_no_pseudocount.R```: Runs model for testing interactions between enhancer pairs on 330 enhancer pairs, but runs the model without a pseudocount to demonstrate coefficient inflation.
 
-```plot_pseudocount_coefficients.R```: plots a scatterplot of the interaction coefficients obtained from running the model with and without a pseudocount to demonstrate how the inclusion of a pseudocount reduces coefficient inflation. 
+```plot_pseudocount_coefficients.R```: plots a scatterplot of the interaction coefficients obtained from running the model with and without a pseudocount to demonstrate how the inclusion of a pseudocount reduces coefficient inflation.
+
+```run_model_at_scale_enhancer_pairs.R```: Runs model for testing interactions between enhancer pairs and target gene for 3,808 enhancer pairs derived by taking all enhancers within 1 MB of a gene, finding pairwise combinations, and using a threshold of 20 cells.
+
+```plot_qqplot_interaction_term_pvalues.R```: Plots a QQ-plot of the p-values associated with the interaction term coefficients for the 330 enhancer pair set.
+
+```plot_qqplot_interaction_term_pvalues_at_scale.R```: Plots a QQ-plot of the p-values associated with the interaction term coefficients for the 3,808 enhancer pair set. 
+
+```plot_volcano_interaction_coefficients.R```: Plots a volcano plot of the interaction term coefficient and its associated p-value to demonstrate that all significant interaction terms are positive coefficients.
