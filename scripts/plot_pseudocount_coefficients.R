@@ -2,35 +2,37 @@
 # the coefficients obtained when using a model without a pseudocount. 
 # This program was written by Karthik Guruvayurappan.
 
-library(BoutrosLab.plotting.general)
+library(ggplot2)
+library(RColorBrewer)
 
-no.pseudocount.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_model.csv')
-head(no.pseudocount.pvalues)
+no.pseudocount.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_03_27_enhancer_enhancer_pairs_suppl_table_2_no_pseudocount_model_enhancer_effects.csv')
 
-pseudocount.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_enhancer_pairs_suppl_table_2_pseudocount_model.csv')
-head(pseudocount.pvalues)
+pseudocount.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_03_27_enhancer_enhancer_pairs_suppl_table_2_pseudocount_model_enhancer_effects.csv')
 
 no.pseudocount.coefficients <- no.pseudocount.pvalues$interaction.coeff.list
 pseudocount.coefficients <- pseudocount.pvalues$interaction.coeff.list
 coefficient.df <- data.frame(cbind(pseudocount.coefficients, no.pseudocount.coefficients))
-head(coefficient.df)
 
-create.scatterplot(
-    formula = pseudocount.coefficients ~ no.pseudocount.coefficients,
-    data = coefficient.df,
-    resolution = 300,
-    filename = '/iblm/netapp/home/karthik/crisprQTL/plots/pseudocount_coefficient.tiff',
-    legend = list(
-        inside = list(
-            fun = draw.key,
-            args = list(
-                key = get.corr.key(
-                    x = coefficient.df$no.pseudocount.coefficients,
-                    y = coefficient.df$pseudocount.coefficients,
-                    alpha.background = 0,
-                    key.cex = 1
-                )
-            )
-        )
+qq.plot <- ggplot(coefficient.df, aes(x = no.pseudocount.coefficients, y = pseudocount.coefficients)) + 
+    geom_point(color = 'black') +
+    geom_abline(slope = 1, intercept = 0) +
+    scale_x_continuous(expand = c(0.02, 0)) +
+    scale_y_continuous(expand = c(0.02, 0)) +
+    xlab(bquote('No Pseudocount Interaction Coefficient')) + 
+    ylab(bquote('Pseudocount Interaction Coefficient')) +
+    theme_classic() +
+    theme(
+        axis.line = element_line(linewidth = 1),
+        axis.title.x = element_text(size = 20, color = 'black'),
+        axis.title.y = element_text(size = 20, color = 'black'),
+        axis.text = element_text(size = 20, color = 'black'),
+        axis.ticks = element_line(color = 'black', linewidth = 1),
+        axis.ticks.length = unit(2, 'mm'),
+        plot.margin = rep(unit(10, 'mm'), 4),
     )
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_27_pseudocount_no_pseudocount_interaction_coefficients.pdf',
+    device = 'pdf',
+    plot = qq.plot
 )
