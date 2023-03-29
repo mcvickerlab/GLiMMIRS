@@ -36,3 +36,9 @@ ggsave(
     device = 'pdf',
     plot = qq.plot
 )
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_27_pseudocount_no_pseudocount_interaction_coefficients.png',
+    device = 'png',
+    plot = qq.plot
+)

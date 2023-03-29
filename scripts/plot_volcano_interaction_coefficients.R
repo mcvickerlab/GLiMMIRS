@@ -43,3 +43,9 @@ ggsave(
     device = 'pdf',
     plot = volcano.plot
 )
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_at_scale_interaction_volcano_plot.png',
+    device = 'png',
+    plot = volcano.plot
+)
