@@ -133,15 +133,8 @@ for (i in 1:nrow(significant.interactions)) {
     pseudocount <- 0.01
     gene.counts <- counts.matrix[gene, ] + pseudocount
 
-    # shuffle guides to generate null distribution of interaction coefficients
-    perturbation.vectors <- cbind(enhancer.1.indicator.vector, enhancer.2.indicator.vector)
-    perturbation.vectors <- perturbation.vectors[sample(nrow(perturbation.vectors)), ]
-    enhancer.1.indicator.vector <- perturbation.vectors$enhancer.1.indicator.vector
-    enhancer.2.indicator.vector <- perturbation.vectors$enhancer.2.indicator.vector
-
     # create dataframe for modeling
     model.df <- cbind(covariates, enhancer.1.indicator.vector, enhancer.2.indicator.vector, gene.counts)
-    print(head(model.df))
 
     interaction.coefficient.estimates <- rep(NA, 100)
 
@@ -149,6 +142,15 @@ for (i in 1:nrow(significant.interactions)) {
 
         print(paste0('iteration ', j))
 
+        # shuffle guides to generate null distribution of interaction coefficients
+        model.df <- data.frame(model.df)
+        perturbation.vectors <- data.frame(cbind(model.df$enhancer.1.indicator.vector, model.df$enhancer.2.indicator.vector))
+        perturbation.vectors <- perturbation.vectors[sample(nrow(perturbation.vectors)), ]
+        enhancer.1.indicator.vector <- perturbation.vectors$enhancer.1.indicator.vector
+        enhancer.2.indicator.vector <- perturbation.vectors$enhancer.2.indicator.vector
+        model.df$enhancer.1.indicator.vector <- enhancer.1.indicator.vector
+        model.df$enhancer.2.indicator.vector <- enhancer.2.indicator.vector
+        
         # refit model with resampled cells
         shuffled.model <- glm.nb(
             formula = gene.counts ~ enhancer.1.indicator.vector * enhancer.2.indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(log(scaling.factors)),
