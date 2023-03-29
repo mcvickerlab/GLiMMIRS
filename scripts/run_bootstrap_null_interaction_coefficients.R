@@ -145,6 +145,7 @@ for (i in 1:nrow(significant.interactions)) {
         # shuffle guides to generate null distribution of interaction coefficients
         model.df <- data.frame(model.df)
         perturbation.vectors <- data.frame(cbind(model.df$enhancer.1.indicator.vector, model.df$enhancer.2.indicator.vector))
+        colnames(perturbation.vectors) <- c('enhancer.1.indicator.vector', 'enhancer.2.indicator.vector')
         perturbation.vectors <- perturbation.vectors[sample(nrow(perturbation.vectors)), ]
         enhancer.1.indicator.vector <- perturbation.vectors$enhancer.1.indicator.vector
         enhancer.2.indicator.vector <- perturbation.vectors$enhancer.2.indicator.vector
