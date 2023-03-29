@@ -29,3 +29,9 @@ ggsave(
     device = 'pdf',
     plot = plot
 )
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_guide_efficiency_distribution.png',
+    device = 'png',
+    plot = plot
+)

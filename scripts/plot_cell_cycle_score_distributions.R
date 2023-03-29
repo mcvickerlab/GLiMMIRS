@@ -33,6 +33,12 @@ ggsave(
     plot = plot
 )
 
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_26_cell_cycle_s_scores.png',
+    device = 'png',
+    plot = plot
+)
+
 plot <- ggplot(cell.cycle.scores, aes(x = g2m.scores)) +
     geom_histogram(color = 'black') +
     scale_x_continuous(expand = c(0, 0)) +
@@ -53,5 +59,11 @@ plot <- ggplot(cell.cycle.scores, aes(x = g2m.scores)) +
 ggsave(
     filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_26_cell_cycle_g2m_scores.pdf',
     device = 'pdf',
+    plot = plot
+)
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_26_cell_cycle_g2m_scores.png',
+    device = 'png',
     plot = plot
 )

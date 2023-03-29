@@ -32,3 +32,9 @@ ggsave(
     device = 'pdf',
     plot = plot
 )
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_enhancer_enhancer_at_scale_counts.png',
+    device = 'png',
+    plot = plot
+)

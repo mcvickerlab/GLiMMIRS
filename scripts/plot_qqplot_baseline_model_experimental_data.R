@@ -70,6 +70,12 @@ ggsave(
     plot = qq.plot
 )
 
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_28_baseline_model_experimental_data_qqplot.png',
+    device = 'png',
+    plot = qq.plot
+)
+
 zoom.in.published <- published.pvalues[published.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
 zoom.in.baseline <- baseline.pvalues[baseline.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
 plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene, zoom.in.published, zoom.in.baseline)
@@ -94,7 +100,7 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
         axis.ticks.length = unit(2, 'mm'),
         legend.title = element_blank(),
         legend.position = c(0.18, 0.89),
-        legend.text = element_text(size = 10, color = 'black'),
+        legend.text = element_text(size = 8, color = 'black'),
         plot.margin = rep(unit(10, 'mm'), 4),
     ) +
     scale_colour_brewer(palette = 'Set1')
@@ -102,5 +108,11 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
 ggsave(
     filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_28_baseline_model_experimental_data_neg_controls_qqplot.pdf',
     device = 'pdf',
+    plot = qq.plot
+)
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_28_baseline_model_experimental_data_neg_controls_qqplot.png',
+    device = 'png',
     plot = qq.plot
 )

@@ -74,3 +74,12 @@ ggsave(
         height = 12,
         units = 'in'
 )
+
+ggsave(
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_28_bootstrap_dotplot.png'),
+        device = 'png',
+        plot = combined.plot,
+        width = 12,
+        height = 12,
+        units = 'in'
+)

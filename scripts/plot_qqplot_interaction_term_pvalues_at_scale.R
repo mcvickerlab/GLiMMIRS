@@ -45,3 +45,9 @@ ggsave(
     device = 'pdf',
     plot = qq.plot
 )
+
+ggsave(
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot_at_scale.png',
+    device = 'png',
+    plot = qq.plot
+)
