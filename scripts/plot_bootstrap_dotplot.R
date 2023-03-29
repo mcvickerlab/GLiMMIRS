@@ -51,7 +51,8 @@ for (i in 1:nrow(significant.interactions)) {
                             axis.ticks.length = unit(2, 'mm'),
                             plot.margin = rep(unit(10, 'mm'), 4),
                             plot.title = element_text(size = 18, hjust = 0.5)
-                        ) + 
+                        ) +
+                         geom_hline(yintercept = 0) +
                          stat_summary(fun.data=mean_sdl, fun.args = list(mult=2), geom="pointrange", color="red", size = 1, linewidth = 1.2) +
                          ggtitle(paste(enhancer.1, enhancer.2, gene)) +
                          xlab('') +
@@ -66,7 +67,7 @@ combined.plot <- grid.arrange(grobs = bootstrap.plots,
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_25_bootstrap_dotplot.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_28_bootstrap_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
