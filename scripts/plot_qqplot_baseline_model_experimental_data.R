@@ -65,12 +65,14 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_baseline_model_experimental_data_qqplot.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_28_baseline_model_experimental_data_qqplot.pdf',
     device = 'pdf',
     plot = qq.plot
 )
 
-plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene)
+zoom.in.published <- published.pvalues[published.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
+zoom.in.baseline <- baseline.pvalues[baseline.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
+plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene, zoom.in.published, zoom.in.baseline)
 plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
 plot.df$unif <- -log10(plot.df$unif)
 plot.df$pvalue <- -log10(plot.df$pvalue)
@@ -91,14 +93,14 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
         axis.ticks = element_line(color = 'black', linewidth = 1),
         axis.ticks.length = unit(2, 'mm'),
         legend.title = element_blank(),
-        legend.position = c(0.23, 0.89),
-        legend.text = element_text(size = 16, color = 'black'),
+        legend.position = c(0.18, 0.89),
+        legend.text = element_text(size = 10, color = 'black'),
         plot.margin = rep(unit(10, 'mm'), 4),
     ) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_27_baseline_model_experimental_data_neg_controls_qqplot.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_28_baseline_model_experimental_data_neg_controls_qqplot.pdf',
     device = 'pdf',
     plot = qq.plot
 )
