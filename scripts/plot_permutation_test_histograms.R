@@ -48,6 +48,7 @@ for (i in 1:nrow(significant.interactions)) {
         scale_y_continuous(expand = c(0, 0)) +
         xlab(bquote("Interaction Coefficient")) + 
         ylab(bquote(Count)) +
+        ggtitle(paste(enhancer.1, enhancer.2, gene)) +
         theme_classic() +
         theme(
             axis.line = element_line(linewidth = 1),
