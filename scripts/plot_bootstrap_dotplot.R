@@ -38,6 +38,7 @@ for (i in 1:nrow(significant.interactions)) {
     )
     colnames(bootstrap.interaction.estimates) <- c('coefficient')
     bootstrap.interaction.estimates$name <- ''
+    print(quantile(bootstrap.interaction.estimates$coefficient, probs = c(0.005, 0.995)))
 
     bootstrap.dotplot <- ggplot(bootstrap.interaction.estimates, aes(x=name, y=coefficient)) +
                          geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.7, color = 'black', fill = 'black') +
