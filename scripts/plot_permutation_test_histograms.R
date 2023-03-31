@@ -40,6 +40,8 @@ for (i in 1:nrow(significant.interactions)) {
     null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_30_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
     colnames(null.coeffs) <- c('coeffs')
 
+    print(paste0('pvalue: ', mean(abs(null.coeffs) > interaction.coefficient)))
+
     # plot null distribution of coefficients as a histogram
     plot <- ggplot(null.coeffs, aes(x = coeffs)) +
         geom_histogram(color = 'black') +
