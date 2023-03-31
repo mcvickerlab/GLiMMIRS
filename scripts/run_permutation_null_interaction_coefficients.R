@@ -138,7 +138,7 @@ for (i in 1:nrow(significant.interactions)) {
 
     interaction.coefficient.estimates <- rep(NA, 100)
 
-    for (j in 1:100) {
+    for (j in 1:1000) {
 
         print(paste0('iteration ', j))
 
@@ -164,5 +164,5 @@ for (i in 1:nrow(significant.interactions)) {
     }
 
     # write coefficient estimates to output file
-    write.csv(interaction.coefficient.estimates, paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/', '23_03_29_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'), row.names = FALSE)
+    write.csv(interaction.coefficient.estimates, paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/', '23_03_30_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'), row.names = FALSE)
 }

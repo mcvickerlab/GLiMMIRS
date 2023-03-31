@@ -38,9 +38,23 @@ for (i in 1:nrow(significant.interactions)) {
     )
     colnames(bootstrap.interaction.estimates) <- c('coefficient')
     bootstrap.interaction.estimates$name <- ''
+    print(quantile(bootstrap.interaction.estimates$coefficient, probs = c(0.005, 0.995)))
+
+    low.percentile <- function(x) {
+        return(quantile(x, probs = c(0.005)))
+    }
+
+    high.percentile <- function(x) {
+        return(quantile(x, probs = c(0.995)))
+    }
+
+    mid.percentile <- function(x) {
+        return(quantile(x, probs = c(0.5)))
+    }
 
     bootstrap.dotplot <- ggplot(bootstrap.interaction.estimates, aes(x=name, y=coefficient)) +
                          geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.7, color = 'black', fill = 'black') +
+                         # geom_jitter() +
                          theme_classic() +
                          theme(
                             axis.line = element_line(linewidth = 1),
@@ -52,8 +66,8 @@ for (i in 1:nrow(significant.interactions)) {
                             plot.margin = rep(unit(10, 'mm'), 4),
                             plot.title = element_text(size = 18, hjust = 0.5)
                         ) +
-                         geom_hline(yintercept = 0) +
-                         stat_summary(fun.data=mean_sdl, fun.args = list(mult=2), geom="pointrange", color="red", size = 1, linewidth = 1.2) +
+                         geom_hline(yintercept = 0, linetype = 'dashed') +
+                         stat_summary(fun.min = low.percentile, fun = mid.percentile, fun.max = high.percentile, geom="pointrange", color="red", size = 1, linewidth = 1.2) +
                          ggtitle(paste(enhancer.1, enhancer.2, gene)) +
                          xlab('') +
                          ylab('Interaction Coefficient')
@@ -67,7 +81,7 @@ combined.plot <- grid.arrange(grobs = bootstrap.plots,
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_28_bootstrap_dotplot.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_30_bootstrap_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
@@ -76,7 +90,7 @@ ggsave(
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_28_bootstrap_dotplot.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_30_bootstrap_dotplot.png'),
         device = 'png',
         plot = combined.plot,
         width = 12,
