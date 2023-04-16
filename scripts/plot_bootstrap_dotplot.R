@@ -53,18 +53,18 @@ for (i in 1:nrow(significant.interactions)) {
     }
 
     bootstrap.dotplot <- ggplot(bootstrap.interaction.estimates, aes(x=name, y=coefficient)) +
-                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.7, color = 'black', fill = 'black') +
+                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.5, color = 'black', fill = 'black') +
                          # geom_jitter() +
                          theme_classic() +
                          theme(
                             axis.line = element_line(linewidth = 1),
-                            axis.title.x = element_text(size = 20, color = 'black'),
-                            axis.title.y = element_text(size = 20, color = 'black'),
-                            axis.text = element_text(size = 20, color = 'black'),
+                            axis.title.x = element_text(size = 14, color = 'black'),
+                            axis.title.y = element_text(size = 10, color = 'black'),
+                            axis.text = element_text(size = 14, color = 'black'),
                             axis.ticks = element_line(color = 'black', linewidth = 1),
                             axis.ticks.length = unit(2, 'mm'),
-                            plot.margin = rep(unit(10, 'mm'), 4),
-                            plot.title = element_text(size = 18, hjust = 0.5)
+                            plot.margin = rep(unit(7, 'mm'), 4),
+                            plot.title = element_text(size = 8.5, color = 'black', hjust = 0.5),
                         ) +
                          geom_hline(yintercept = 0, linetype = 'dashed') +
                          stat_summary(fun.min = low.percentile, fun = mid.percentile, fun.max = high.percentile, geom="pointrange", color="red", size = 1, linewidth = 1.2) +
@@ -76,24 +76,24 @@ for (i in 1:nrow(significant.interactions)) {
 }
 
 combined.plot <- grid.arrange(grobs = bootstrap.plots,
-             nrow = 2,
-             ncol = 2
+             nrow = 1,
+             ncol = 4
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_30_bootstrap_dotplot.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_bootstrap_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
-        height = 12,
+        height = 3,
         units = 'in'
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_30_bootstrap_dotplot.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_bootstrap_dotplot.png'),
         device = 'png',
         plot = combined.plot,
         width = 12,
-        height = 12,
+        height = 3,
         units = 'in'
 )
