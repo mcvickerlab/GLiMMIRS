@@ -148,13 +148,13 @@ for (i in 1:nrow(significant.interactions)) {
                          theme_classic() +
                          theme(
                             axis.line = element_line(linewidth = 1),
-                            axis.title.x = element_text(size = 20, color = 'black'),
-                            axis.title.y = element_text(size = 20, color = 'black'),
-                            axis.text = element_text(size = 20, color = 'black'),
+                            axis.title.x = element_text(size = 8, color = 'black'),
+                            axis.title.y = element_text(size = 10, color = 'black'),
+                            axis.text = element_text(size = 14, color = 'black'),
                             axis.ticks = element_line(color = 'black', linewidth = 1),
                             axis.ticks.length = unit(2, 'mm'),
                             plot.margin = rep(unit(10, 'mm'), 4),
-                            plot.title = element_text(size = 18, hjust = 0.5),
+                            plot.title = element_text(size = 8, hjust = 0.5),
                             legend.position = 'none'
                         ) + 
                          ggtitle(paste(enhancer.1, enhancer.2, gene)) +
@@ -166,24 +166,24 @@ for (i in 1:nrow(significant.interactions)) {
 }
 
 combined.plot <- grid.arrange(grobs = outlier.plots,
-             nrow = 2,
-             ncol = 2
+             nrow = 1,
+             ncol = 4
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_27_outlier_dotplot.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_outlier_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
-        height = 12,
+        height = 3,
         units = 'in'
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_27_outlier_dotplot.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_outlier_dotplot.png'),
         device = 'png',
         plot = combined.plot,
         width = 12,
-        height = 12,
+        height = 3,
         units = 'in'
 )

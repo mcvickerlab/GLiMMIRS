@@ -40,6 +40,8 @@ for (i in 1:nrow(significant.interactions)) {
     null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_30_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
     colnames(null.coeffs) <- c('coeffs')
 
+    print(paste0('pvalue: ', mean(abs(null.coeffs) > interaction.coefficient)))
+
     # plot null distribution of coefficients as a histogram
     plot <- ggplot(null.coeffs, aes(x = coeffs)) +
         geom_histogram(color = 'black') +
@@ -52,37 +54,38 @@ for (i in 1:nrow(significant.interactions)) {
         theme_classic() +
         theme(
             axis.line = element_line(linewidth = 1),
-            axis.title.x = element_text(size = 20, color = 'black'),
-            axis.title.y = element_text(size = 20, color = 'black'),
-            axis.text = element_text(size = 20, color = 'black'),
+            axis.title.x = element_text(size = 14, color = 'black'),
+            axis.title.y = element_text(size = 14, color = 'black'),
+            axis.text = element_text(size = 14, color = 'black'),
             axis.ticks = element_line(color = 'black', linewidth = 1),
             axis.ticks.length = unit(2, 'mm'),
             plot.margin = rep(unit(10, 'mm'), 4),
-            legend.position = 'none'
+            legend.position = 'none',
+            plot.title = element_text(size = 8.5, color = 'black', hjust = 0.5),
     )
 
     permutation.plots[[i]] <- plot
 }
 
 combined.plot <- grid.arrange(grobs = permutation.plots,
-             nrow = 2,
-             ncol = 2
+             nrow = 1,
+             ncol = 4
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_31_permutation_histograms.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_permutation_histograms.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
-        height = 12,
+        height = 3,
         units = 'in'
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_03_31_permutation_histograms.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_permutation_histograms.png'),
         device = 'png',
         plot = combined.plot,
         width = 12,
-        height = 12,
+        height = 3,
         units = 'in'
 )
