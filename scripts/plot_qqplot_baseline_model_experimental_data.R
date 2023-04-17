@@ -58,8 +58,8 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
         axis.ticks = element_line(color = 'black', linewidth = 1),
         axis.ticks.length = unit(2, 'mm'),
         legend.title = element_blank(),
-        legend.position = c(0.10, 0.89),
-        legend.text = element_text(size = 24, color = 'black'),
+        legend.position = c(0.15, 0.89),
+        legend.text = element_text(size = 32, color = 'black'),
         plot.margin = rep(unit(10, 'mm'), 4),
     ) +
     scale_colour_brewer(palette = 'Set1')
