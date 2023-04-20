@@ -17,11 +17,67 @@ interaction.pvalues$adjusted <- p.adjust(interaction.pvalues$interaction.pvalue,
 interaction.pvalues$unif <- seq(1, nrow(interaction.pvalues), length.out = nrow(interaction.pvalues)) / nrow(interaction.pvalues)
 interaction.pvalues$interaction.pvalue <- -log10(interaction.pvalues$interaction.pvalue)
 interaction.pvalues$unif <- -log10(interaction.pvalues$unif)
-interaction.pvalues$color <- 'black'
-interaction.pvalues$color[interaction.pvalues$adjusted < 0.1] <- 'red'
+interaction.pvalues$color <- '3,808 (insignificant)'
+interaction.pvalues$color[interaction.pvalues$adjusted < 0.1] <- '3,808 (significant)'
 
-qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue)) +
-    geom_point(aes(color = color)) +
+# read in smaller subset p-values
+enhancer.enhancer.pvalues.subset <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_pairs_suppl_table_2_pseudocount_model_enhancer_effects.csv')
+interaction.pvalues.subset <- enhancer.enhancer.pvalues.subset$interaction.pvalue.list
+interaction.pvalues.subset <- interaction.pvalues.subset[complete.cases(interaction.pvalues.subset)]
+interaction.pvalues.subset <- data.frame(interaction.pvalues.subset[order(interaction.pvalues.subset)])
+colnames(interaction.pvalues.subset) <- c('interaction.pvalue')
+interaction.pvalues.subset$adjusted <- p.adjust(interaction.pvalues.subset$interaction.pvalue, method = 'fdr')
+interaction.pvalues.subset$unif <- seq(1, nrow(interaction.pvalues.subset), length.out = nrow(interaction.pvalues.subset)) / nrow(interaction.pvalues.subset)
+interaction.pvalues.subset$interaction.pvalue <- -log10(interaction.pvalues.subset$interaction.pvalue)
+interaction.pvalues.subset$unif <- -log10(interaction.pvalues.subset$unif)
+interaction.pvalues.subset$color <- '330 (insignificant)'
+interaction.pvalues.subset$color[interaction.pvalues.subset$adjusted < 0.1] <- '330 (significant)'
+
+# read in output results from at-scale enhancer-enhancer analysis
+at.scale.results <- read.csv(
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv'
+)
+at.scale.results <- at.scale.results[complete.cases(at.scale.results), ]
+
+# add FDR adjusted p-values and filter for FDR < 0.1
+at.scale.results$adjusted.interaction.pvalue <- p.adjust(at.scale.results$interaction.pvalue.list, method = 'fdr')
+significant.interactions <- at.scale.results[at.scale.results$adjusted.interaction.pvalue < 0.1, ]
+# filter for necessary columns in significant interactions
+significant.interactions <- significant.interactions[, c('enhancer.1.list', 'enhancer.2.list', 'gene.list', 'interaction.coeff.list', 'interaction.pvalue.list')]
+colnames(significant.interactions) <- c('enhancer.1', 'enhancer.2', 'gene', 'interaction.coeff', 'interaction.pvalue')
+significant.interactions <- significant.interactions[order(significant.interactions$interaction.pvalue), ]
+
+# read in permutation p-values
+permutation.pvalues <- c()
+
+for (i in 1:nrow(significant.interactions)) {
+
+    # read in enhancer and gene names
+    enhancer.1 <- significant.interactions[i, 'enhancer.1']
+    enhancer.2 <- significant.interactions[i, 'enhancer.2']
+    gene <- significant.interactions[i, 'gene']
+    interaction.coefficient <- significant.interactions[i, 'interaction.coeff']
+    coeff.df <- data.frame(interaction.coefficient)
+    colnames(coeff.df) <- c('coeff')
+
+    # read in file with null distribution of interaction coefficients
+    null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_31_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
+    colnames(null.coeffs) <- c('coeffs')
+
+    pvalue <- mean(abs(null.coeffs) > interaction.coefficient)
+    permutation.pvalues <- c(permutation.pvalues, pvalue)
+}
+
+permutation.interactions <- interaction.pvalues[interaction.pvalues$color == '3,808 (significant)', ]
+print(permutation.interactions)
+permutation.interactions$interaction.pvalue <- -log10(permutation.pvalues)
+permutation.interactions$color <- 'Permutation'
+
+# merge two dataframes together
+interaction.pvalues <- rbind(interaction.pvalues, interaction.pvalues.subset, permutation.interactions)
+
+qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue, color = color)) +
+    geom_point() +
     geom_abline(slope = 1, intercept = 0) +
     scale_x_continuous(expand = c(0.02, 0)) +
     scale_y_continuous(expand = c(0.02, 0)) +
@@ -36,18 +92,20 @@ qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue)) +
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4),
-    legend.position = "none"
+    legend.title = element_blank(),
+    legend.position = c(0.28, 0.89),
+    legend.text = element_text(size = 16, color = 'black'),
     ) +
-    scale_color_manual(values = c('black', 'red'))
+    scale_color_manual(values = c('330 (insignificant)' = 'darkgray', '3,808 (insignificant)' = 'black', '3,808 (significant)' = 'red', 'Permutation' = 'blue'))
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot_at_scale.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_interaction_term_qqplot_at_scale.pdf',
     device = 'pdf',
     plot = qq.plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_24_interaction_term_qqplot_at_scale.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_interaction_term_qqplot_at_scale.png',
     device = 'png',
     plot = qq.plot
 )
