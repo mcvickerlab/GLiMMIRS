@@ -37,7 +37,7 @@ for (i in 1:nrow(significant.interactions)) {
     colnames(coeff.df) <- c('coeff')
 
     # read in file with null distribution of interaction coefficients
-    null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_30_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
+    null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_31_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
     colnames(null.coeffs) <- c('coeffs')
 
     print(paste0('pvalue: ', mean(abs(null.coeffs) > interaction.coefficient)))
@@ -73,7 +73,7 @@ combined.plot <- grid.arrange(grobs = permutation.plots,
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_permutation_histograms.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_permutation_histograms.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
@@ -82,7 +82,7 @@ ggsave(
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_permutation_histograms.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_permutation_histograms.png'),
         device = 'png',
         plot = combined.plot,
         width = 12,
