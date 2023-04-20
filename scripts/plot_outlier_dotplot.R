@@ -143,8 +143,8 @@ for (i in 1:nrow(significant.interactions)) {
     interaction.counts$dot.color <- 'black'
     interaction.counts$dot.color[which(interaction.counts$count == max(interaction.counts$count))] <- 'red'
 
-    outlier.dotplot <- ggplot(interaction.counts, aes(x=name, y=count, fill = dot.color)) +
-                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.7) +
+    outlier.dotplot <- ggplot(interaction.counts, aes(x=name, y=count, fill = dot.color, color = dot.color)) +
+                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 1.75) +
                          theme_classic() +
                          theme(
                             axis.line = element_line(linewidth = 1),
@@ -160,7 +160,8 @@ for (i in 1:nrow(significant.interactions)) {
                          ggtitle(paste(enhancer.1, enhancer.2, gene)) +
                          xlab('') +
                          ylab('Gene Expression Count') +
-                         scale_fill_manual(values = c('black' = 'black', 'red' = 'red'))
+                         scale_fill_manual(values = c('black' = 'black', 'red' = 'red')) +
+                         scale_color_manual(values = c('black' = 'black', 'red' = 'red'))
 
     outlier.plots[[i]] <- outlier.dotplot
 }
@@ -171,7 +172,7 @@ combined.plot <- grid.arrange(grobs = outlier.plots,
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_outlier_dotplot.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_outlier_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 12,
@@ -180,7 +181,7 @@ ggsave(
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_outlier_dotplot.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_outlier_dotplot.png'),
         device = 'png',
         plot = combined.plot,
         width = 12,
