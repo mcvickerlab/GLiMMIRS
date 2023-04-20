@@ -87,12 +87,16 @@ scaling.factors <- colSums(counts.matrix) / 1e6
 # keep vector of outlier plots
 outlier.plots <- vector(mode = 'list', length = nrow(significant.interactions))
 
+significant.interactions$gene.hgnc <- c('EXOC8', 'BABAM2', 'H2BC12', 'ZBED9')
+
+
 for (i in 1:nrow(significant.interactions)) {
 
     # define enhancers and gene
     enhancer.1 <- significant.interactions[i, 'enhancer.1']
     enhancer.2 <- significant.interactions[i, 'enhancer.2']
     gene <- significant.interactions[i, 'gene']
+    gene.hgnc <- significant.interactions[i, 'gene.hgnc']
 
     enhancer.1.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.1, ]$spacer.sequence
     enhancer.2.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.2, ]$spacer.sequence
@@ -144,7 +148,7 @@ for (i in 1:nrow(significant.interactions)) {
     interaction.counts$dot.color[which(interaction.counts$count == max(interaction.counts$count))] <- 'red'
 
     outlier.dotplot <- ggplot(interaction.counts, aes(x=name, y=count, fill = dot.color, color = dot.color)) +
-                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 1.75) +
+                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 1.6) +
                          theme_classic() +
                          theme(
                             axis.line = element_line(linewidth = 1),
@@ -153,11 +157,11 @@ for (i in 1:nrow(significant.interactions)) {
                             axis.text = element_text(size = 14, color = 'black'),
                             axis.ticks = element_line(color = 'black', linewidth = 1),
                             axis.ticks.length = unit(2, 'mm'),
-                            plot.margin = rep(unit(10, 'mm'), 4),
-                            plot.title = element_text(size = 8, hjust = 0.5),
+                            plot.margin = rep(unit(5, 'mm'), 4),
+                            plot.title = element_text(size = 10, hjust = 0.5),
                             legend.position = 'none'
                         ) + 
-                         ggtitle(paste(enhancer.1, enhancer.2, gene)) +
+                         ggtitle(paste(enhancer.1, enhancer.2, gene.hgnc)) +
                          xlab('') +
                          ylab('Gene Expression Count') +
                          scale_fill_manual(values = c('black' = 'black', 'red' = 'red')) +
@@ -167,16 +171,16 @@ for (i in 1:nrow(significant.interactions)) {
 }
 
 combined.plot <- grid.arrange(grobs = outlier.plots,
-             nrow = 1,
-             ncol = 4
+             nrow = 2,
+             ncol = 2
 )
 
 ggsave(
         paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_outlier_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
-        width = 12,
-        height = 3,
+        width = 6,
+        height = 6,
         units = 'in'
 )
 
@@ -184,7 +188,7 @@ ggsave(
         paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_outlier_dotplot.png'),
         device = 'png',
         plot = combined.plot,
-        width = 12,
-        height = 3,
+        width = 6,
+        height = 6,
         units = 'in'
 )
