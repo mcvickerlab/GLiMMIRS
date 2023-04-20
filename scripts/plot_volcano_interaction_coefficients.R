@@ -20,7 +20,7 @@ interaction.pvalues$dot.color[interaction.pvalues$adjusted.pvalue < 0.1] <- 'red
 interaction.pvalues <- interaction.pvalues[complete.cases(interaction.pvalues$coeff), ]
 
 volcano.plot <- ggplot(interaction.pvalues, aes(x = coeff, y = scaled.pvalue)) +
-    geom_point(aes(color = dot.color)) +
+    geom_point(aes(color = dot.color), size = 3) +
     scale_x_continuous(expand = c(0.02, 0)) +
     scale_y_continuous(expand = c(0.02, 0)) +
     xlab(bquote(Coefficient)) + 
@@ -39,13 +39,13 @@ volcano.plot <- ggplot(interaction.pvalues, aes(x = coeff, y = scaled.pvalue)) +
     scale_color_manual(values = c('black', 'red'))
     
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_at_scale_interaction_volcano_plot.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_at_scale_interaction_volcano_plot.pdf',
     device = 'pdf',
     plot = volcano.plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_03_25_at_scale_interaction_volcano_plot.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_at_scale_interaction_volcano_plot.png',
     device = 'png',
     plot = volcano.plot
 )
