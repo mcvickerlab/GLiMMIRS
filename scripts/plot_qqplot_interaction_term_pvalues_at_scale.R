@@ -77,8 +77,9 @@ permutation.interactions$color <- 'Permutation'
 interaction.pvalues <- rbind(interaction.pvalues, interaction.pvalues.subset, permutation.interactions)
 
 qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue, color = color)) +
-    geom_point() +
     geom_abline(slope = 1, intercept = 0) +
+    geom_point(size = 3) +
+    # geom_abline(slope = 1, intercept = 0) +
     scale_x_continuous(expand = c(0.02, 0)) +
     scale_y_continuous(expand = c(0.02, 0)) +
     xlab(bquote(Expected -log[10](italic(p)))) + 
@@ -99,13 +100,13 @@ qq.plot <- ggplot(interaction.pvalues, aes(x = unif, y = interaction.pvalue, col
     scale_color_manual(values = c('330 (insignificant)' = 'darkgray', '3,808 (insignificant)' = 'black', '3,808 (significant)' = 'red', 'Permutation' = 'blue'))
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_interaction_term_qqplot_at_scale.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_interaction_term_qqplot_at_scale.pdf',
     device = 'pdf',
     plot = qq.plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_interaction_term_qqplot_at_scale.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_interaction_term_qqplot_at_scale.png',
     device = 'png',
     plot = qq.plot
 )
