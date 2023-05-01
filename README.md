@@ -1,5 +1,5 @@
 # GLiMMIRS (**G**eneralized **Li**near **M**odels for **M**easuring **I**nteractions between **R**egulatory **S**equences) :star2:
-Modeling enhancer-enhancer interactions using Generalized Linear Models (GLMMs)
+Our paper is now available as a preprint on [Biorxiv](https://www.biorxiv.org/content/10.1101/2023.04.26.538501v1)! Check it out!
 
 ```create_guidescan_query.py```: appends 'NGG' to guide RNA spacer sequences from Supplementary Table 2 and outputs file ready to input into GuideScan 2.0 gRNA Sequence Search Tool
 
