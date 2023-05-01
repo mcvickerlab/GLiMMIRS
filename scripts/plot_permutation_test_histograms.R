@@ -37,7 +37,7 @@ for (i in 1:nrow(significant.interactions)) {
     colnames(coeff.df) <- c('coeff')
 
     # read in file with null distribution of interaction coefficients
-    null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_30_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
+    null.coeffs <- read.csv(paste0('/iblm/netapp/home/karthik/GLiMMIRS/gasperini_data/23_03_31_', enhancer.1, '_', enhancer.2, '_', gene, '_null_interaction_coefficient_estimates.csv'))
     colnames(null.coeffs) <- c('coeffs')
 
     print(paste0('pvalue: ', mean(abs(null.coeffs) > interaction.coefficient)))
@@ -56,7 +56,7 @@ for (i in 1:nrow(significant.interactions)) {
             axis.line = element_line(linewidth = 1),
             axis.title.x = element_text(size = 14, color = 'black'),
             axis.title.y = element_text(size = 14, color = 'black'),
-            axis.text = element_text(size = 14, color = 'black'),
+            axis.text = element_text(size = 10, color = 'black'),
             axis.ticks = element_line(color = 'black', linewidth = 1),
             axis.ticks.length = unit(2, 'mm'),
             plot.margin = rep(unit(10, 'mm'), 4),
@@ -68,24 +68,24 @@ for (i in 1:nrow(significant.interactions)) {
 }
 
 combined.plot <- grid.arrange(grobs = permutation.plots,
-             nrow = 1,
-             ncol = 4
+             nrow = 2,
+             ncol = 2
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_permutation_histograms.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_24_permutation_histograms.pdf'),
         device = 'pdf',
         plot = combined.plot,
-        width = 12,
-        height = 3,
+        width = 6,
+        height = 6,
         units = 'in'
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_11_permutation_histograms.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_24_permutation_histograms.png'),
         device = 'png',
         plot = combined.plot,
-        width = 12,
-        height = 3,
+        width = 6,
+        height = 6,
         units = 'in'
 )
