@@ -63,12 +63,12 @@ for (i in 1:nrow(significant.interactions)) {
                          theme(
                             axis.line = element_line(linewidth = 1),
                             axis.title.x = element_text(size = 14, color = 'black'),
-                            axis.title.y = element_text(size = 10, color = 'black'),
-                            axis.text = element_text(size = 14, color = 'black'),
+                            axis.title.y = element_text(size = 13, color = 'black'),
+                            axis.text = element_text(size = 13, color = 'black'),
                             axis.ticks = element_line(color = 'black', linewidth = 1),
                             axis.ticks.length = unit(2, 'mm'),
                             plot.margin = rep(unit(5, 'mm'), 4),
-                            plot.title = element_text(size = 10, color = 'black', hjust = 0.5),
+                            plot.title = element_text(size = 13, color = 'black', hjust = 0.75),
                         ) +
                          geom_hline(yintercept = 0, linetype = 'dashed') +
                          stat_summary(fun.min = low.percentile, fun = mid.percentile, fun.max = high.percentile, geom="pointrange", color="red", size = 0.75, linewidth = 1.2) +
@@ -85,7 +85,7 @@ combined.plot <- grid.arrange(grobs = bootstrap.plots,
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_bootstrap_dotplot.pdf'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_26_bootstrap_dotplot.pdf'),
         device = 'pdf',
         plot = combined.plot,
         width = 6,
@@ -94,7 +94,7 @@ ggsave(
 )
 
 ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_20_bootstrap_dotplot.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/plots/', '23_04_26_bootstrap_dotplot.png'),
         device = 'png',
         plot = combined.plot,
         width = 6,

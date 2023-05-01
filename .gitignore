@@ -3,9 +3,6 @@ simulated_data/
 scripts/*sh.e*
 scripts/*sh.o*
 
-# ignore experimental data
-gasperini_data/
-
 # ignore ipynb checkpoints
 notebooks/.ipynb_checkpoints
 

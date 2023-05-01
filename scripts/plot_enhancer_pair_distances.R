@@ -7,7 +7,7 @@ library(ggplot2)
 library(RColorBrewer)
 
 # read in 330 enhancer pair distances
-enhancer.distances <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_distance_330_pairs.csv')
+enhancer.distances <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_04_25_enhancer_distance_330_pairs.csv')
 
 plot <- ggplot(enhancer.distances, aes(x = distance)) +
     geom_histogram(color = 'black') +
@@ -27,19 +27,19 @@ plot <- ggplot(enhancer.distances, aes(x = distance)) +
     )
     
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_330_enhancer_distance.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_25_330_enhancer_distance.pdf',
     device = 'pdf',
     plot = plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_330_enhancer_distance.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_25_330_enhancer_distance.png',
     device = 'png',
     plot = plot
 )
 
 # read in 3,808 enhancer distances
-enhancer.distances <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_distance_at_scale_pairs.csv')
+enhancer.distances <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_04_25_enhancer_distance_3808_pairs.csv')
 
 plot <- ggplot(enhancer.distances, aes(x = distance)) +
     geom_histogram(color = 'black') +
@@ -59,13 +59,13 @@ plot <- ggplot(enhancer.distances, aes(x = distance)) +
     )
     
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_3808_enhancer_distance.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_25_3808_enhancer_distance.pdf',
     device = 'pdf',
     plot = plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_3808_enhancer_distance.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_25_3808_enhancer_distance.png',
     device = 'png',
     plot = plot
 )
