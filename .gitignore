@@ -14,3 +14,7 @@ scripts/*sh.o*
 
 # ignore all ipynb checkpoints
 .ipynb_checkpoints
+
+# ignore all plots
+*.pdf
+*.png
