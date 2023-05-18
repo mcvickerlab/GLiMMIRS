@@ -5,8 +5,8 @@ Our paper **Genome-wide analysis of CRISPR perturbations indicates that enhancer
 This repo contains scripts that demonstrate the data simulation and model fitting functionalities of GLiMMIRS. We have provided tutorials for running our scripts as well as Jupyter notebooks that visualize simulated data and walk the user through the outputs of our scripts and how to interact with them. 
 
 In this repository, you will find two directories:
-- `[src/](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src)`: contains scripts used for dealing with experimental (`[src/experimental](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src/experimental)` and simulated (`[src/simulations](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src/simulations)`) data. 
-- `[notebooks/](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/notebooks)`: contains Jupyter notebooks that demonstrate how to interact with outputs of scripts and visualize data
+- `[src/]`(https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src): contains scripts used for dealing with experimental (`[src/experimental]`(https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src/experimental) and simulated (`[src/simulations]`(https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src/simulations)) data. 
+- `[notebooks/]`(https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/notebooks): contains Jupyter notebooks that demonstrate how to interact with outputs of scripts and visualize data
 
 Please refer to README files in each directory for further details on scripts and notebooks. 
 
