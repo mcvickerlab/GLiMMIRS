@@ -72,3 +72,7 @@ src/
     │   └── run_GLiMMIRS-int_power_analysis.sh
     └── README.md
 ```
+
+If you have any questions, please feel free to reach out to one of the creators. We will be happy to do what we can to help! 
+- Karthik Guruvayurappan: kag4019 [at] med [dot] cornell [dot] edu
+- Jessica Zhou: jlz014 [at] eng [dot] ucsd [dot] edu
