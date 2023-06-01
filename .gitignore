@@ -20,4 +20,4 @@ scripts/*sh.o*
 *.png
 
 # ignore data directory
-data/
+/data/
