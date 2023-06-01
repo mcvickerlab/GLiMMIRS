@@ -17,16 +17,16 @@ This script simulates data for GLiMMIRS-base. It generates data resembling a mul
 - `--guide_disp`: provide one or more dispersion values ($D$, refer to Methods section of manuscript) to use when simulating estimated guide efficiencies. Smaller values of $D$ yield more noisy estimates of dispersion. Default: NULL (no noisy guide efficiencies estimated)
 - `--out`: provide path for saving outputs
 
-Example run: 
+Example run (from root directory): 
 ```bash
 Rscript src/simulations/data/sim_counts.R \
---out [outdir] \
---genes 13000 \
---cells 50000 \
---targets 1000 \
---lambda 15 \
---guide_disp 1 10 100 \
---d 2
+--out [outdir] \ # specify where simulated data is saved
+--genes 13000 \ # 13000 genes in simulation
+--cells 50000 \ # 50000 cells in simulation
+--targets 1000 \ # 1000 candidate enhancers targeted in CRISPRi experiment
+--lambda 15 \ # defines Poisson distribution for simulating number of gRNAs per cell
+--guide_disp 1 10 100 \ # simulate noisy guide efficiencies at D=1,10,100
+--d 2 # 2 gRNAs targeting each site
 ```
 
 
