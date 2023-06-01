@@ -39,7 +39,7 @@ This script will produce an h5 file (`sim.h5`) that contains all of the simulate
 ###### Notes:
 - line 149 contains hardcoded path to `/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5`, from which the cell cycle scores corresponding to the experimental data is located. We fit a distribution to the observed cell cycle scores and use it to generated simulated cell cycle scores resembling the empirical data. 
 
-Throughout this script, we have hardcoded values to define the distributions from which coefficients and variables are sampled. These values have been determined via maximum likelihood estimation of the experimental data from Gasperini et al. 2019. Therefore, this script is designed to simulate data resembling the pilot experiment from that paper. In order to simulate data resembling another CRISPR regulatory screen, the user may need to modify the script to define the sampling distributions differently, or use different statistical distributions altogether as appropriate. 
+Throughout this script, we have hardcoded values to define the distributions from which coefficients and variables are sampled. These values have been determined via maximum likelihood estimation of the experimental data from Gasperini et al. 2019. Therefore, this script is designed to simulate data resembling the pilot experiment from that paper. In order to simulate data resembling another CRISPR regulatory screen, the user may need to modify the script to define the sampling distributions differently, or use different statistical distributions altogether as appropriate. Here are some of the places in the script where you might want to change: 
 
 Here is a comprehensive overview of the directory structure:
 ```
