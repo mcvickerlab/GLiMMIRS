@@ -21,3 +21,6 @@ scripts/*sh.o*
 
 # ignore data directory
 /data/
+
+# ignore output directory
+/out/
