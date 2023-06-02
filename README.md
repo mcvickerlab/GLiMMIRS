@@ -16,7 +16,7 @@ In this repository, you will find two directories:
 - 50000 cells (`--cells 50000`)
 - 1000 target sites, or putative enhancers ('--targets 1000`)
 - 2 gRNAs per target site (`--d 2`)
-- Sampling number of unique gRNAs per cells from a Poisson distribution parameterized by $\lambda=15$ (https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L14) (`--lambda 15`)
+- Sampling number of unique gRNAs per cells from a Poisson distribution parameterized by $\lambda=15$ (`--lambda 15`)
 - Generating corresponding noisy gRNA efficiency estimates at values of $D=1, 10, 100$ (`--guide_disp 1 10 100`)
 - saving outputs to `data/simulated/base` (`--out data/simulated/base`)
 
