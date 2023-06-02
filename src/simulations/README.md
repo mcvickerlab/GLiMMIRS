@@ -34,6 +34,8 @@ Rscript src/simulations/data/sim_counts.R \
 --guide_disp 1 10 100 \ # simulate noisy guide efficiencies at D=1,10,100
 --d 2 # 2 gRNAs targeting each site
 ```
+
+The script [`run_sim_counts.sh`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh) in the root directory also runs this script. You can run that script with the command: `bash run_sim_counts.sh`. 
 ##### Outputs
 This script will produce an h5 file (`sim.h5`) that contains all of the simulated data and relevant metadata for evaluating the performance of GLiMMIRS-base applied to this simulated dataset. 
 ###### Notes:
