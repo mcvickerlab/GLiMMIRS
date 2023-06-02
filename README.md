@@ -12,13 +12,13 @@ In this repository, you will find two directories:
 ### Generating simulated data 
 ##### For GLiMMIRS-base
 [`https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh) is example shell script for generating simulated data for GLiMMIRS-base, which evaluates the effect of single enhancers acting on a single gene. This example runs [`sim_counts.R`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/src/simulations/data/sim_counts.R) with the following parameters:
-- [13000 genes](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L11) (`--genes 13000`)
-- [50000 cells](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L13) (`--cells 50000`)
-- [1000 target sites, or putative enhancers](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L12) ('--targets 1000`)
-- [2 gRNAs per target site](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L10) (`--d 2`)
+- 13000 genes (`--genes 13000`)
+- 50000 cells (`--cells 50000`)
+- 1000 target sites, or putative enhancers ('--targets 1000`)
+- 2 gRNAs per target site (`--d 2`)
 - Sampling number of unique gRNAs per cells from a Poisson distribution parameterized by $\lambda=15$ (https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L14) (`--lambda 15`)
-- [Generating corresponding noisy gRNA efficiency estimates at values of $D=1, 10, 100$](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L15) (`--guide_disp 1 10 100`)
-- [saving outputs to `data/simulated/base`](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L9) (`--out data/simulated/base`)
+- Generating corresponding noisy gRNA efficiency estimates at values of $D=1, 10, 100$ (`--guide_disp 1 10 100`)
+- saving outputs to `data/simulated/base` (`--out data/simulated/base`)
 
 
 Please refer to README files in each directory for further details on scripts and notebooks. 
