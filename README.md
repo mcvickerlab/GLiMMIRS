@@ -9,6 +9,8 @@ In this repository, you will find two directories:
 - [`notebooks/`](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/notebooks): contains Jupyter notebooks that demonstrate how to interact with outputs of scripts and visualize data
 
 ## Tutorial 
+In the root directory, you will find some scripts that will run some of the fundamental scripts that belong to the GLiMMIRS framework. 
+
 ### Generating simulated data 
 ##### For GLiMMIRS-base
 [`run_sim_counts.sh`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh) is example shell script for generating simulated data for GLiMMIRS-base, which evaluates the effect of single enhancers acting on a single gene. This example runs [`sim_counts.R`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/src/simulations/data/sim_counts.R) with the following parameters:
