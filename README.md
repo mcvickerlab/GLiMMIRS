@@ -8,9 +8,22 @@ In this repository, you will find two directories:
 - [`src/`](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src): contains scripts used for dealing with experimental ([`src/experimental`](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src/experimental)) and simulated ([`src/simulations`](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/src/simulations)) data. 
 - [`notebooks/`](https://github.com/mcvickerlab/GLiMMIRS/tree/simulations/notebooks): contains Jupyter notebooks that demonstrate how to interact with outputs of scripts and visualize data
 
+## Tutorial 
+### Generating simulated data 
+##### For GLiMMIRS-base
+[`https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh) is example shell script for generating simulated data for GLiMMIRS-base, which evaluates the effect of single enhancers acting on a single gene. This example runs [`sim_counts.R`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/src/simulations/data/sim_counts.R) with the following parameters:
+- [13000 genes](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L11) (`--genes 13000`)
+- [50000 cells](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L13) (`--cells 50000`)
+- [1000 target sites, or putative enhancers](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L12) ('--targets 1000`)
+- [2 gRNAs per target site](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L10) (`--d 2`)
+- [Sampling number of unique gRNAs per cells from a Poisson distribution parameterized by $\lambda=15$](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L14) (`--lambda 15`)
+- [Generating corresponding noisy gRNA efficiency estimates at values of $D=1, 10, 100$](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L15) (`--guide_disp 1 10 100`)
+- [saving outputs to `data/simulated/base`](https://github.com/mcvickerlab/GLiMMIRS/blob/e9ee30714f1caa88806069b0ee3c7172bc0bb4db/run_sim_counts.sh#L9) (`--out data/simulated/base`)
+
+
 Please refer to README files in each directory for further details on scripts and notebooks. 
 
-Here is a comprehensive overview of the directory structure:
+<!-- Here is a comprehensive overview of the directory structure:
 ```
 notebooks/
 ├── experimental
@@ -72,7 +85,7 @@ src/
     │   └── run_GLiMMIRS-int_power_analysis.sh
     └── README.md
 ```
-
+ -->
 If you have any questions, please feel free to reach out to one of the creators. We will be happy to do what we can to help! 
 - Karthik Guruvayurappan: kag4019 [at] med [dot] cornell [dot] edu
 - Jessica Zhou: jlz014 [at] eng [dot] ucsd [dot] edu
