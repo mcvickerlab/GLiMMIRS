@@ -11,7 +11,7 @@ In this repository, you will find two directories:
 ## Tutorial 
 ### Generating simulated data 
 ##### For GLiMMIRS-base
-[`https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh) is example shell script for generating simulated data for GLiMMIRS-base, which evaluates the effect of single enhancers acting on a single gene. This example runs [`sim_counts.R`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/src/simulations/data/sim_counts.R) with the following parameters:
+[`run_sim_counts.sh`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/run_sim_counts.sh) is example shell script for generating simulated data for GLiMMIRS-base, which evaluates the effect of single enhancers acting on a single gene. This example runs [`sim_counts.R`](https://github.com/mcvickerlab/GLiMMIRS/blob/simulations/src/simulations/data/sim_counts.R) with the following parameters:
 - 13000 genes (`--genes 13000`)
 - 50000 cells (`--cells 50000`)
 - 1000 target sites, or putative enhancers ('--targets 1000`)
