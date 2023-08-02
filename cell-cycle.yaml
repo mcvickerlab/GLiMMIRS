@@ -206,6 +206,9 @@ dependencies:
   - r-progressr=0.13.0=r43hc72bb7e_1
   - r-promises=1.2.0.1=r43ha503ecb_2
   - r-purrr=1.0.1=r43h57805ef_1
+  - r-r.methodss3=1.8.2=r43hc72bb7e_2
+  - r-r.oo=1.25.0=r43hc72bb7e_2
+  - r-r.utils=2.12.2=r43hc72bb7e_1
   - r-r6=2.5.1=r43hc72bb7e_2
   - r-rann=2.6.1=r43ha503ecb_4
   - r-rappdirs=0.3.3=r43h57805ef_2
