@@ -18,3 +18,9 @@ scripts/*sh.o*
 # ignore all plots
 *.pdf
 *.png
+
+# ignore data directory
+/data/
+
+# ignore output directory
+/out/
