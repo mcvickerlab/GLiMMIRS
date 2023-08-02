@@ -1,3 +1,4 @@
+#/bin/bash
 # This script downloads the dataset from the Gasperini et al. (2019) paper,
 # which can be found publicly on GEO, or from their paper website.
 #
