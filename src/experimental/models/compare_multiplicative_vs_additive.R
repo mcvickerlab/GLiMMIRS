@@ -231,26 +231,46 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
                         method = "Nelder-Mead",
                         control = list(maxit = args$maxiter))
 
-        # check if additive model converged
-        if (id.mod$convergence == 0) {
-            print('additive model converged!')
+        # check if both additive and multiplicative model converged
+        if ((id.mod$convergence == 0) & (log.mod$converged)) {
+            print('additive and multiplicative model converged for gene')
 
             # calculate AIC for additive model
             aic.additive <- 2*id.mod$value + 2*length(id.mod$par)
 
             # store AIC for additive and multiplicative models
-            aic.log.record[ix] <- log.mod$aic
+            aic.log.record[ix] <- log.mod$aic 
             aic.add.record[ix] <- aic.additive
 
             # store corresponding target gene + enhancer pair info
             genes.record[ix] <- gene
-            enhancer1.record[ix] <- enhancer.1
+            enhancer1.record[ix] <- enhancer.1 
             enhancer2.record[ix] <- enhancer.2
 
-            # update record ix
+            # update record ix 
             ix <- ix + 1
-
         }
+        
+        # # check if additive model converged
+        # if (id.mod$convergence == 0) {
+        #     print('additive model converged!')
+
+        #     # calculate AIC for additive model
+        #     aic.additive <- 2*id.mod$value + 2*length(id.mod$par)
+
+        #     # store AIC for additive and multiplicative models
+        #     aic.log.record[ix] <- log.mod$aic
+        #     aic.add.record[ix] <- aic.additive
+
+        #     # store corresponding target gene + enhancer pair info
+        #     genes.record[ix] <- gene
+        #     enhancer1.record[ix] <- enhancer.1
+        #     enhancer2.record[ix] <- enhancer.2
+
+        #     # update record ix
+        #     ix <- ix + 1
+
+        # }
 
         # store fitted models as list of R objects; will save to RDS file 
         log.mods.list[[i]] <- log.mod
