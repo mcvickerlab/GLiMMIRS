@@ -27,7 +27,7 @@ cell.guide.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed
 guide.spacers <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'guide.spacers')
 colnames(cell.guide.matrix) <- guide.spacers
 
-enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs.csv')
+enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count_nodups.csv')
 enhancer.enhancer.pairs$enhancer_1 <- sapply(enhancer.enhancer.pairs$enhancer_1, FUN = function(x) {
     if (startsWith(x, 'chr')) {
         return (strsplit(x, '_')[[1]][1])
@@ -48,6 +48,8 @@ head(enhancer.enhancer.pairs)
 
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+enhancer.1.count.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+enhancer.2.count.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 count.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 
 for (i in 1:nrow(enhancer.enhancer.pairs)) {
@@ -88,13 +90,16 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
     both.target.count <- sum((enhancer.1.indicator.vector + enhancer.2.indicator.vector) == 2)
     count.list[i] <- both.target.count
+
+    enhancer.1.count.list[i] <- sum(enhancer.1.indicator.vector == 1)
+    enhancer.2.count.list[i] <- sum(enhancer.2.indicator.vector == 1)
 }
 
 # write to output file
 print('writing counts to output file!')
-count.table <- cbind(enhancer.1.list, enhancer.2.list, count.list)
+count.table <- cbind(enhancer.1.list, enhancer.2.list, enhancer.1.count.list, enhancer.2.count.list, count.list)
 write.csv(
     count.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_08_01_at_scale_enhancer_enhancer_pairs_cells_counts.csv',
     row.names = FALSE
 )
