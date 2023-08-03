@@ -6,8 +6,16 @@
 
 import pandas as pd
 
-# read in file containing guide spacer sequences from Gasperini 2019 paper
-guide_sequences = pd.read_csv('/iblm/netapp/data1/external/Gasperini2019/gasperini_2019_suppl_table_2.csv')
+RAW_DATA_PATH = 'data/experimental/raw/'
+INTERIM_DATA_PATH = 'data/experimental/interim/'
 
+# read in file containing guide spacer sequences from Gasperini 2019 paper
+guide_sequences = pd.read_excel(RAW_DATA_PATH + 'suppl_table_2.xlsx',
+                                sheet_name = 1)
+
+# append 'NGG' PAM to guidescan query sequences (for compatiblity)
 guide_sequences['Spacer'] = guide_sequences['Spacer'] + 'NGG'
-guide_sequences['Spacer'].to_csv('/iblm/netapp/home/karthik/GuideScan/Gasperini2019/guide_sequences.csv', index = False)
+
+# save spacer column to output dataframe
+guide_sequences['Spacer'].to_csv(INTERIM_DATA_PATH + 'guide_sequences.csv',
+                                 index = False)
