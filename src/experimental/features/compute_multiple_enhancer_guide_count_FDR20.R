@@ -1,5 +1,6 @@
-# This program computes the number of cells which contains guides for both enhancers in the
-# at-scale enhancer pairs determined from the Gasperini et al. dataset (roughly 1M)
+# This script computes the enhancer perturbation counts for all of the enhancer
+# pairs derived from the Gasperini et al. at-scale analysis which had an FDR
+# below 20%
 #
 # Author: Karthik Guruvayurappan
 
@@ -27,7 +28,12 @@ cell.guide.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed
 guide.spacers <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'guide.spacers')
 colnames(cell.guide.matrix) <- guide.spacers
 
-enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs.csv')
+enhancer.enhancer.pairs <- read.csv('data/experimental/interim/enhancer_pairs_FDR20.csv')
+enhancer.enhancer.pairs$enhancer_1 <- gsub('CHR', 'chr', enhancer.enhancer.pairs$enhancer_1)
+enhancer.enhancer.pairs$enhancer_2 <- gsub('CHR', 'chr', enhancer.enhancer.pairs$enhancer_2)
+enhancer.enhancer.pairs$enhancer_1 <- gsub('TOP_TWO', 'top_two', enhancer.enhancer.pairs$enhancer_1)
+enhancer.enhancer.pairs$enhancer_2 <- gsub('TOP_TWO', 'top_two', enhancer.enhancer.pairs$enhancer_2)
+
 enhancer.enhancer.pairs$enhancer_1 <- sapply(enhancer.enhancer.pairs$enhancer_1, FUN = function(x) {
     if (startsWith(x, 'chr')) {
         return (strsplit(x, '_')[[1]][1])
@@ -45,13 +51,6 @@ enhancer.enhancer.pairs$enhancer_2 <- sapply(enhancer.enhancer.pairs$enhancer_2,
     }
 })
 
-# drop duplicates from enhancer pairs
-enhancer.enhancer.pairs <- enhancer.enhancer.pairs[!duplicated(enhancer.enhancer.pairs), ]
-
-# filter for enhancer-enhancer pairs with gene expression info
-gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.names')
-enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$gene %in% gene.names, ]
-
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.1.count.list <- rep(NA, nrow(enhancer.enhancer.pairs))
@@ -64,6 +63,8 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
     enhancer.1 <- enhancer.enhancer.pairs[i, 'enhancer_1']
     enhancer.2 <- enhancer.enhancer.pairs[i, 'enhancer_2']
 
+    print(enhancer.1)
+    print(enhancer.2)
     enhancer.1.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.1, ]$spacer.sequence
     enhancer.2.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.2, ]$spacer.sequence
 
@@ -107,6 +108,6 @@ print('writing counts to output file!')
 count.table <- cbind(enhancer.1.list, enhancer.2.list, enhancer.1.count.list, enhancer.2.count.list, count.list)
 write.csv(
     count.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/23_08_03_at_scale_enhancer_enhancer_pairs_cells_counts.csv',
+    'data/experimental/processed/enhancer_pair_perturbation_counts_FDR20.csv',
     row.names = FALSE
 )

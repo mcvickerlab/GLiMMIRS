@@ -14,9 +14,12 @@ print(nrow(pair.counts))
 pair.counts <- pair.counts[pair.counts$gene %in% gene.names, ]
 pair.counts <- pair.counts[, c('enhancer_1', 'enhancer_2', 'count')]
 print(nrow(pair.counts))
+pair.counts$color <- 'black'
+pair.counts$color[pair.counts$count > 10] <- 'red'
+bins <- seq(min(pair.counts$count), max(pair.counts$count), by = 1)
 
-plot <- ggplot(pair.counts, aes(x = count)) +
-    geom_histogram(color = 'black') +
+plot <- ggplot(pair.counts, aes(x = count, fill = color)) +
+    geom_histogram(breaks = bins) +
     scale_x_continuous(expand = c(0, 0)) +
     scale_y_continuous(expand = c(0, 0)) +
     xlab(bquote("Number of Cells")) + 
@@ -30,16 +33,19 @@ plot <- ggplot(pair.counts, aes(x = count)) +
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4),
-    )
+    legend.position = 'none'
+    ) +
+    scale_fill_manual(values = c('gray' = 'gray', 'red' = 'red'))
+    
     
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_03_25_enhancer_enhancer_at_scale_counts.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_08_18_enhancer_enhancer_at_scale_counts.pdf',
     device = 'pdf',
     plot = plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_03_25_enhancer_enhancer_at_scale_counts.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_08_18_enhancer_enhancer_at_scale_counts.png',
     device = 'png',
     plot = plot
 )
@@ -49,7 +55,7 @@ print(nrow(pair.counts))
 
 plot <- ggplot(pair.counts, aes(x = count)) +
     geom_histogram(color = 'black') +
-    scale_x_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0), limits = c(0, 55)) +
     scale_y_continuous(expand = c(0, 0)) +
     xlab(bquote("Number of Cells")) + 
     ylab(bquote("Count of Enhancer Pairs")) +
@@ -65,13 +71,13 @@ plot <- ggplot(pair.counts, aes(x = count)) +
     )
     
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_08_01_enhancer_enhancer_at_scale_counts_20min.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_08_16_enhancer_enhancer_at_scale_counts_20min.pdf',
     device = 'pdf',
     plot = plot
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_08_01_enhancer_enhancer_at_scale_counts_20min.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_08_16_enhancer_enhancer_at_scale_counts_20min.png',
     device = 'png',
     plot = plot
 )
