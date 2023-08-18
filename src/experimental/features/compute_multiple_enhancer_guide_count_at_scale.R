@@ -60,7 +60,6 @@ count.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 
 for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
-    print(i)
     # get name of enhancers and gene
     enhancer.1 <- enhancer.enhancer.pairs[i, 'enhancer_1']
     enhancer.2 <- enhancer.enhancer.pairs[i, 'enhancer_2']
