@@ -15,9 +15,8 @@ pair.counts <- pair.counts[pair.counts$gene %in% gene.names, ]
 pair.counts <- pair.counts[, c('enhancer_1', 'enhancer_2', 'count')]
 print(nrow(pair.counts))
 pair.counts$color <- 'black'
-pair.counts$color[pair.counts$count > 20] <- 'red'
+pair.counts$color[pair.counts$count > 10] <- 'red'
 bins <- seq(min(pair.counts$count), max(pair.counts$count), by = 1)
-colors <- ifelse(bins > 20, 'red', 'gray')
 
 plot <- ggplot(pair.counts, aes(x = count, fill = color)) +
     geom_histogram(breaks = bins) +
