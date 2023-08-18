@@ -22,3 +22,6 @@ wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120861/suppl/GSE120861
 
 # download at-scale phenodata for covariate information
 wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120861/suppl/GSE120861_at_scale_screen.phenoData.txt.gz -P data/experimental/raw/
+
+# download the DEG results from the at-scale analysis (for determining candidate enhancer pairs)
+wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120861/suppl/GSE120861_all_deg_results.at_scale.txt.gz -P data/experimental/raw/
