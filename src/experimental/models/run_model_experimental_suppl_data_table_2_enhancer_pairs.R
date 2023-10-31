@@ -76,6 +76,8 @@ scaling.factors <- colSums(counts.matrix) / 1e6
 # read in enhancer-enhancer pairs
 enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_pairs_suppl_table_2.csv')
 
+intercept.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+intercept.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 gene.list <- rep(NA, nrow(enhancer.enhancer.pairs))
@@ -156,7 +158,15 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
     enhancer.1.list[i] <- enhancer.1
     enhancer.2.list[i] <- enhancer.2
     gene.list[i] <- gene
+    if ('(Intercept)' %in% rownames(summary(model)$coefficients)){
+        intercept.coeff.list[i] <- summary(model)$coefficients['(Intercept)', 'Estimate']
+        intercept.pvalue.list[i] <- summary(model)$coefficients['(Intercept)', 'Pr(>|z|)']
 
+    }
+    else {
+        intercept.coeff.list[i] <- NA
+        intercept.pvalue.list[i] <- NA
+    }
     if ('enhancer.1.indicator.vector' %in% rownames(summary(model)$coefficients)){
         enhancer.1.coeff.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Estimate']
         enhancer.1.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Pr(>|z|)']
@@ -241,6 +251,7 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
 # write to output file
 print('writing p-values to output file!')
 pvalue.table <- cbind(
+    intercept.coeff.list, intercept.pvalue.list,
     enhancer.1.list, enhancer.2.list, gene.list,
     enhancer.1.coeff.list, enhancer.1.pvalue.list,
     enhancer.2.coeff.list, 

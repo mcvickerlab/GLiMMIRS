@@ -28,3 +28,22 @@ grna <- Read10X(
         D = '/iblm/netapp/data1/external/Morris_2023_STING_seq/GDO/D'
     )
 )
+grna <- grna[[2]]
+
+# remove '-1' from end of each cell barcode
+colnames(grna) <- substr(colnames(grna), 1, nchar(colnames(grna)) - 2)
+
+# read in supplementary table S3C
+table.s3c <- read.csv(
+    '/iblm/netapp/data1/external/Morris_2023_STING_seq/sting_seq_suppl_table_s3c.csv'
+)
+
+# filter for cells that were included in STING-seq DE analysis
+rna <- rna[, colnames(rna) %in% table.s3c$Cell.Barcode]
+grna <- grna[, colnames(grna) %in% table.s3c$Cell.Barcode]
+
+# isolate PTPRC expression
+ptprc <- rna['PTPRC', ]
+
+
+
