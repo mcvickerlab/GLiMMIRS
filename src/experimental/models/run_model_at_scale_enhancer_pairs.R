@@ -81,10 +81,22 @@ enhancer.enhancer.pairs <- enhancer.enhancer.pairs[enhancer.enhancer.pairs$gene 
 enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 gene.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+enhancer.1.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.1.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+enhancer.2.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 enhancer.2.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 interaction.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 interaction.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+prep.batch.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+prep.batch.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+guide.count.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+guide.count.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+percent.mito.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+percent.mito.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+s.score.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+s.score.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+g2m.score.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+g2m.score.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
 
 for (i in 1:nrow(enhancer.enhancer.pairs)) {
 
@@ -149,18 +161,22 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
     gene.list[i] <- gene
 
     if ('enhancer.1.indicator.vector' %in% rownames(summary(model)$coefficients)){
+        enhancer.1.coeff.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Estimate']
         enhancer.1.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Pr(>|z|)']
 
     }
     else {
+        enhancer.1.coeff.list[i] <- NA
         enhancer.1.pvalue.list[i] <- NA
     }
 
     if ('enhancer.2.indicator.vector' %in% rownames(summary(model)$coefficients)){
+        enhancer.2.coeff.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Estimate']
         enhancer.2.pvalue.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Pr(>|z|)']
 
     }
     else {
+        enhancer.2.coeff.list[i] <- NA
         enhancer.2.pvalue.list[i] <- NA
     }
 
@@ -173,13 +189,73 @@ for (i in 1:nrow(enhancer.enhancer.pairs)) {
         interaction.coeff.list[i] <- NA
         interaction.pvalue.list[i] <- NA
     }
+
+    if ('prep_batch' %in% rownames(summary(model)$coefficients)){
+        prep.batch.coeff.list[i] <- summary(model)$coefficients['prep_batch', 'Estimate']
+        prep.batch.pvalue.list[i] <- summary(model)$coefficients['prep_batch', 'Pr(>|z|)']
+
+    }
+    else {
+        prep.batch.coeff.list[i] <- NA
+        prep.batch.pvalue.list[i] <- NA
+    }
+
+    if ('guide_count' %in% rownames(summary(model)$coefficients)){
+        guide.count.coeff.list[i] <- summary(model)$coefficients['guide_count', 'Estimate']
+        guide.count.pvalue.list[i] <- summary(model)$coefficients['guide_count', 'Pr(>|z|)']
+
+    }
+    else {
+        guide.count.coeff.list[i] <- NA
+        guide.count.pvalue.list[i] <- NA
+    }
+
+    if ('percent.mito' %in% rownames(summary(model)$coefficients)){
+        percent.mito.coeff.list[i] <- summary(model)$coefficients['percent.mito', 'Estimate']
+        percent.mito.pvalue.list[i] <- summary(model)$coefficients['percent.mito', 'Pr(>|z|)']
+
+    }
+    else {
+        percent.mito.coeff.list[i] <- NA
+        percent.mito.pvalue.list[i] <- NA
+    }
+
+    if ('s.score' %in% rownames(summary(model)$coefficients)){
+        s.score.coeff.list[i] <- summary(model)$coefficients['s.score', 'Estimate']
+        s.score.pvalue.list[i] <- summary(model)$coefficients['s.score', 'Pr(>|z|)']
+
+    }
+    else {
+        s.score.coeff.list[i] <- NA
+        s.score.pvalue.list[i] <- NA
+    }
+
+    if ('g2m.score' %in% rownames(summary(model)$coefficients)){
+        g2m.score.coeff.list[i] <- summary(model)$coefficients['g2m.score', 'Estimate']
+        g2m.score.pvalue.list[i] <- summary(model)$coefficients['g2m.score', 'Pr(>|z|)']
+
+    }
+    else {
+        g2m.score.coeff.list[i] <- NA
+        g2m.score.pvalue.list[i] <- NA
+    }
 }
 
 # write to output file
 print('writing p-values to output file!')
-pvalue.table <- cbind(enhancer.1.list, enhancer.2.list, gene.list, enhancer.1.pvalue.list, enhancer.2.pvalue.list, interaction.coeff.list, interaction.pvalue.list)
+pvalue.table <- cbind(
+    enhancer.1.list, enhancer.2.list, gene.list,
+    enhancer.1.coeff.list, enhancer.1.pvalue.list,
+    enhancer.2.coeff.list, 
+    enhancer.2.pvalue.list,
+    interaction.coeff.list, interaction.pvalue.list, 
+    prep.batch.coeff.list, prep.batch.pvalue.list,
+    guide.count.coeff.list, guide.count.pvalue.list,
+    percent.mito.coeff.list, percent.mito.pvalue.list,
+    s.score.coeff.list, s.score.pvalue.list,
+    g2m.score.coeff.list, g2m.score.pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_10_31_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv',
     row.names = FALSE
 )
