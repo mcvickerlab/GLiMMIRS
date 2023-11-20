@@ -8,12 +8,7 @@ library(ggplot2) # for plotting
 
 # read in STING-seq expression matrix (for all lanes)
 rna <- Read10X(
-    data.dir = c(
-        A = '/iblm/netapp/data1/external/Morris_2023_STING_seq/cDNA/A',
-        B = '/iblm/netapp/data1/external/Morris_2023_STING_seq/cDNA/B',
-        C = '/iblm/netapp/data1/external/Morris_2023_STING_seq/cDNA/C',
-        D = '/iblm/netapp/data1/external/Morris_2023_STING_seq/cDNA/D'
-    )
+    data.dir = '/iblm/netapp/data1/external/Morris_2023_STING_seq/cDNA_v1/'
 )
 
 # remove '-1' from end of each cell barcode
@@ -60,7 +55,7 @@ cell.cycle.pca <- DimPlot(rna, raster = FALSE)
 
 # save plot to output file
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_10_30_cell_cycle_pca.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_11_14_cell_cycle_pca_sting_seq_v1.png',
     plot = cell.cycle.pca,
     device = 'png',
     height = 7,
@@ -74,10 +69,10 @@ g2m.scores <- rna[[]]['G2M.Score']
 
 write.csv(
     s.scores,
-    '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_10_30_sting_seq_cell_cycle_s_scores.csv'
+    '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_11_14_sting_seq_v1_cell_cycle_s_scores.csv'
 )
 write.csv(
     g2m.scores,
-    '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_10_30_sting_seq_cell_cycle_g2m_scores.csv'
+    '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_11_14_sting_seq_v1_cell_cycle_g2m_scores.csv'
 )
 

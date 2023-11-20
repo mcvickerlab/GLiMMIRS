@@ -1,5 +1,6 @@
 # This program runs the baseline GLM model on all 664 enhancer-gene pairs previously published by
 # Gasperini et al. in 2019. This program was written by Karthik Guruvayurappan.
+# mamba environment: modeling
 
 library(MASS)
 library(rhdf5)
@@ -79,6 +80,7 @@ enhancer.gene.pairs <- read.csv(
 enhancer.list <- rep(NA, nrow(enhancer.gene.pairs))
 gene.list <- rep(NA, nrow(enhancer.gene.pairs))
 pvalue.list <- rep(NA, nrow(enhancer.gene.pairs))
+enhancer.effect.list <- rep(NA, nrow(enhancer.gene.pairs))
 
 for (i in 1:nrow(enhancer.gene.pairs)) {
 
@@ -128,19 +130,21 @@ for (i in 1:nrow(enhancer.gene.pairs)) {
     gene.list[i] <- gene
 
     if ('indicator.vector' %in% rownames(summary(model)$coefficients)){
+        enhancer.effect.list[i] <- summary(model)$coefficients['indicator.vector', 'Estimate']
         pvalue.list[i] <- summary(model)$coefficients['indicator.vector', 'Pr(>|z|)']
 
     }
     else {
+        enhancer.effect.list[i] <- NA
         pvalue.list[i] <- NA
     }
 }
 
 # write to output file
 print('writing p-values to output file!')
-pvalue.table <- cbind(enhancer.list, gene.list, pvalue.list)
+pvalue.table <- cbind(enhancer.list, gene.list, enhancer.effect.list, pvalue.list)
 write.csv(
     pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv',
+    '/iblm/netapp/data1/external/Gasperini2019/processed/23_11_19_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv',
     row.names = FALSE
 )
