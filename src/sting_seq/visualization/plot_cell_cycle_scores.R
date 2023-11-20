@@ -7,8 +7,8 @@ library(ggplot2)
 library(RColorBrewer)
 
 # concatenate cell cycle scores into a dataframe
-s.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_10_30_sting_seq_cell_cycle_s_scores.csv')$S.Score
-g2m.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_10_30_sting_seq_cell_cycle_g2m_scores.csv')$G2M.Score
+s.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_11_14_sting_seq_v1_cell_cycle_s_scores.csv')$S.Score
+g2m.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_11_14_sting_seq_v1_cell_cycle_g2m_scores.csv')$G2M.Score
 cell.cycle.scores <- data.frame(cbind(s.scores, g2m.scores))
 
 # plot S Scores
@@ -30,7 +30,7 @@ plot <- ggplot(cell.cycle.scores, aes(x = s.scores)) +
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_10_30_sting_seq_cell_cycle_s_scores.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_11_14_sting_seq_v1_cell_cycle_s_scores.png',
     device = 'png',
     plot = plot
 )
@@ -54,7 +54,7 @@ plot <- ggplot(cell.cycle.scores, aes(x = g2m.scores)) +
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_10_30_sting_seq_cell_cycle_g2m_scores.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/23_11_14_sting_seq_v1_cell_cycle_g2m_scores.png',
     device = 'png',
     plot = plot
 )
