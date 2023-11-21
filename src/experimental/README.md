@@ -9,3 +9,6 @@ The script for downloading the data can be found in this folder at ```data/downl
 The data for the Gasperini et al. analysis was downloaded from two sources: GEO and the website of the paper. The covariates, gene expression matrix, and at-scale differential expression analysis results were downloaded from [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120861). The high confidence enhancer-gene pairs from the Gasperini et al. analysis were analyzed using Supplementary Table 2, which can be downloaded from the Cell website. 
 
 Note: The file paths may need to be adjusted.
+
+### Step 2: Compute Cell Cycle Scores
+The cell cycle scores included in the GLiMMIRS model were computing using the CellCycleScoring() function in Seurat. 
