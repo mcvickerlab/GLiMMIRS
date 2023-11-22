@@ -1,4 +1,4 @@
--# This script computes the cell cycle scores for the at-scale screen using the
+# This script computes the cell cycle scores for the at-scale screen using the
 # Seurat single-cell RNA-sequencing analysis package.
 #
 # Author: Karthik Guruvayurappan
