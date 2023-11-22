@@ -11,4 +11,6 @@ The data for the Gasperini et al. analysis was downloaded from two sources: GEO 
 Note: The file paths may need to be adjusted.
 
 ### Step 2: Compute Cell Cycle Scores
-The cell cycle scores included in the GLiMMIRS model were computing using the CellCycleScoring() function in Seurat. 
+The script for computing the cell cycle scores can be found in this folder at ```features/compute_cell_cycle_scores.R```. The conda environment used to run the code can be found in this folder at ```envs/cell_cycle.yaml```.
+
+The cell cycle scores included in the GLiMMIRS model were computing using the CellCycleScoring() function in Seurat. The script first reads in the expression matrix from Gasperini et al, along with the corresponding cell barcodes and gene names. For compatibility with Seurat, the script then converts Ensembl gene IDs to HGNC gene IDs using the biomaRt R package. The script then computes the cell cycle scores for the cells in the expression matrix, closely following the [cell cycle scoring vignette](https://satijalab.org/seurat/articles/cell_cycle_vignette.html) from Seurat.
