@@ -3,7 +3,7 @@
 ### Summary
 This folder contains all of the scripts required to reproduce the GLiMMIRS analysis of the Gasperini et al. dataset.
 
-**Note**: All of the scripts assume that you are running them from the GLiMMIRS home directory. If this is not the case, then the file paths in the scripts will need to be adjusted appropriately.
+**Note**: All of the scripts assume that you are running them from the GLiMMIRS home directory. If this is not the case, then the file paths in the scripts will need to be adjusted appropriately. All of the outputs will appear in the ```data/``` folder in the GLiMMIRS home directory. 
 
 ### Step 1: Download Gasperini Data
 The script for downloading the data can be found in this folder at ```data/download_experimental_data.sh```
@@ -15,4 +15,4 @@ The script for computing the cell cycle scores can be found in this folder at ``
 
 The cell cycle scores included in the GLiMMIRS model were computing using the CellCycleScoring() function in Seurat. The script first reads in the expression matrix from Gasperini et al, along with the corresponding cell barcodes and gene names. For compatibility with Seurat, the script then converts Ensembl gene IDs to HGNC gene IDs using the biomaRt R package. The script then computes the cell cycle scores for the cells in the expression matrix, closely following the [cell cycle scoring vignette](https://satijalab.org/seurat/articles/cell_cycle_vignette.html) from Seurat.
 
-### Step 3: Compute guide RNA Efficiencies using GuideScan 2.0. gRNA Sequence Search Tool
+### Step 3: Compute Guide RNA Efficiencies using GuideScan 2.0. gRNA Sequence Search Tool
