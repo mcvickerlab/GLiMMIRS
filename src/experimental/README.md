@@ -36,7 +36,7 @@ This script reads in the output guide RNA efficiency file from GuideScan, remove
 ### Step 5: Create Cell-Guide Matrix
 Script: ```features/create_cell_guide_matrix.py``` 
 
-Conda Environment`: ``envs/guide_matrix.yaml```
+Conda Environment: ```envs/guide_matrix.yaml```
 
 The Gasperini et al. analysis did not publish a cell-guide matrix. This script uses the gRNA assignments from the phenodata file from the at-scale experiment to determine the guide RNAs present in each cell in the dataset and writes the cell-guide matrix as an output file.
 
