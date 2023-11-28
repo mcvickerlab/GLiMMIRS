@@ -1,38 +1,65 @@
-# import data analysis packages
+# This script create a cell-guide matrix for the at-scale screen using the
+# phenodata file available from GEO.
+#
+# Author: Karthik Guruvayurappan
+
 import numpy as np
 import pandas as pd
+from scipy.io import mmwrite
 
 # read in phenodata file
-print('reading in phenodata table')
-colnames = open('/iblm/netapp/data1/external/Gasperini2019/suppl/GSE120861_at_scale.phenoData.colnames.txt') \
-           .read().splitlines()
-phenodata_df = pd.read_csv('/iblm/netapp/home/karthik/gasperini_project/data/phenodata.txt', sep=' ', names=colnames)
+print('reading in phenodata!')
+phenodata = pd.read_csv(
+    'data/experimental/raw/GSE120861_at_scale_screen.phenoData.txt.gz',
+    sep=' '
+)
+phenodata.columns = [
+    'sample',
+    'cell',
+    'total_umis',
+    'size_factor',
+    'gene',
+    'all_gene',
+    'barcode',
+    'read_count',
+    'umi_count',
+    'proportion',
+    'guide_count',
+    'sample_directory',
+    'ko_barcode_file',
+    'id',
+    'prep_batch',
+    'within_batch_chip',
+    'within_chip_lane',
+    'percent.mito'
+]
 
 # get guide names and split guide sequences for each cell
-print('getting guide sequences')
-phenodata_df['barcode'] = phenodata_df['barcode'].fillna('')
-phenodata_df['sequences'] = phenodata_df['barcode'].str.split('_')
+phenodata['barcode'] = phenodata['barcode'].fillna('')
+phenodata['sequences'] = phenodata['barcode'].str.split('_')
 
 # select necessary columns from dataframe
-phenodata_df = phenodata_df[['cell', 'sequences']]
+phenodata = phenodata[['cell', 'sequences']]
 
 # get list of guide sequences and cell names (slow step)
-guide_sequences = pd.Series(phenodata_df['sequences'].sum()).unique()
-cell_names = phenodata_df['cell']
+guide_sequences = pd.Series(phenodata['sequences'].sum()).unique()
+cell_names = phenodata['cell']
 
 def guides_present(cell_guide_list):
-    '''helper function to determine which guides from guide sequence list are present in cell'''
-    
+    '''determine guides that are present in cell each'''
     return pd.Series(guide_sequences).isin(cell_guide_list).astype(np.int64)
 
 
 # generate cell guide matrix and transpose matrix so columns are cells
-print('determining guides present in each cell')
-cell_guide_matrix = phenodata_df['sequences'].apply(guides_present)
+print('building cell guide matrix!')
+cell_guide_matrix = phenodata['sequences'].apply(guides_present)
 cell_guide_matrix.index = cell_names
 cell_guide_matrix.columns = guide_sequences
 cell_guide_matrix = cell_guide_matrix.T
 
-# write output to h5 file (for storing large data)
-print('writing to h5')
-cell_guide_matrix.to_hdf('/iblm/netapp/data1/external/Gasperini2019/processed/cell_guide_matrix.h5', key = 'df')
+# write to output mtx file
+print('writing to output file!')
+mmwrite(
+    'data/experimental/interim/guide_matrix.mtx',
+    cell_guide_matrix
+)
