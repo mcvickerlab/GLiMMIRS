@@ -7,15 +7,24 @@
 import numpy as np
 import pandas as pd
 
-# load in output file from GuideScan and filter 'NGG' from end of each spacer sequence
-guidescan_output = pd.read_csv('/iblm/netapp/home/karthik/GuideScan/Gasperini2019/guidescan_output.csv')
-guidescan_output['guide_spacer'] = guidescan_output['gRNA'].apply(lambda x: x[:-3])
+# load in output file from GuideScan and filter 'NGG' from end of guides
+guidescan = pd.read_csv(
+    'data/experimental/interim/guidescan_results.csv'
+)
+guidescan['guide_spacer'] = guidescan['gRNA'].apply(lambda x: x[:-3])
 
 # load in guide RNA spacer sequences from supplementary table 2
-guide_sequences = pd.read_csv('/iblm/netapp/data1/external/Gasperini2019/gasperini_2019_suppl_table_2.csv')
+guide_sequences = pd.read_excel(
+    'data/experimental/raw/suppl_table_2.xlsx',
+    sheet_name = 1
+)
 
-# merge data frames together on spacer sequence to connect efficiency with guide metadata
-guide_sequences = guide_sequences.merge(guidescan_output, left_on = 'Spacer', right_on = 'guide_spacer')
+# merge suppl table 2 and GuideScan output together on spacer sequence
+guide_sequences = guide_sequences.merge(
+    guidescan,
+    left_on = 'Spacer',
+    right_on = 'guide_spacer'
+)
 
 # filter out TSS guides
 guide_sequences = guide_sequences[guide_sequences['Category'] != 'TSS']
@@ -24,8 +33,11 @@ guide_sequences = guide_sequences[guide_sequences['Category'] != 'TSS']
 guide_sequences = guide_sequences[guide_sequences['Category'] != 'NTC']
 
 # filter out globin locus targeting guides
-guide_sequences = guide_sequences[guide_sequences['Category'] != 'Positive_control_to_globin_locus']
+not_ctrl = guide_sequences['Category'] != 'Positive_control_to_globin_locus'
+guide_sequences = guide_sequences[not_ctrl]
 
 # write enhancer-targeting guide sequences to output file
-guide_sequences.to_csv('/iblm/netapp/home/karthik/GuideScan/Gasperini2019/enhancer_guidescan_output.csv', index = False)
-
+guide_sequences.to_csv(
+    'data/experimental/interim/enhancer_guide_info.csv',
+    index = False
+)
