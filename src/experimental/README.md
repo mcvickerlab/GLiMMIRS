@@ -26,7 +26,7 @@ Conda Environment: ```envs/guidescan.yaml```
 
 This script reads in the guide RNA sequences used in the Gasperini et al. at-scale experiment from Supplementary Table 2 of their paper. For compatibility with the GuideScan 2.0 gRNA Sequence Search Tool, 'NGG' is appended to each sequence. The sequences are then written as an output file. The sequences from the output file can then be inputted into the [GuideScan 2.0 gRNA Sequence Search tool](https://guidescan.com/grna). GuideScan 2.0 was run using the 'hg38' reference genome and the 'cas9' enzyme setting. The output CSV file from GuideScan should then be placed in the ```/data/experimental/interim``` folder for downstream processing.
 
-### Step 4: Filtering GuideScan 2.0 guide efficiency outputs
+### Step 4: Filtering GuideScan 2.0 Guide Efficiency Outputs
 Script: ```features/filter_guidescan_output.py```
 
 Conda Environment: ```envs/guidescan.yaml```
