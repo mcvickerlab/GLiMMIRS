@@ -5,6 +5,7 @@
 library(Matrix)
 library(Seurat)
 library(MASS)
+library(ggplot2)
 
 # read in RNA matrix
 # read in STING-seq expression matrix (for all lanes)
@@ -78,11 +79,15 @@ rownames(g2m.scores) <- g2m.scores$X
 s.scores <- s.scores$S.Score 
 g2m.scores <- g2m.scores$G2M.Score
 
+baseline.snps <- rep(NA, length(ptprc.snps))
+baseline.estimates <- rep(NA, length(ptprc.snps))
 baseline.p.values <- rep(NA, length(ptprc.snps))
 
 # run GLiMMIRS for each SNP (as QC)
 for (i in 1:length(ptprc.snps)) {
 
+    print(ptprc.snps[i])
+    baseline.snps[i] <- ptprc.snps[i]
     snp.guides <- ptprc.guides[ptprc.guides$Target == ptprc.snps[i], ]
     snp.guides <- snp.guides$gRNA.ID
 
@@ -101,16 +106,25 @@ for (i in 1:length(ptprc.snps)) {
 
     mdl <- glm.nb(ptprc ~ guide.vector + percent.mito + grna.counts + s.scores + g2m.scores + offset(log(scaling.factors)), data = model.df)
     baseline.p.values[i] <- summary(mdl)$coefficients['guide.vector', 'Pr(>|z|)']
+    baseline.estimates[i] <- summary(mdl)$coefficients['guide.vector', 'Estimate']
 }
 
-adjusted.baseline.pvalues <- p.adjust(baseline.p.values, method = 'fdr')
+baseline.fdr.pvalues <- p.adjust(baseline.p.values, method = 'fdr')
+baseline.bonferroni.pvalues <- p.adjust(baseline.p.values, method = 'bonferroni')
+baseline.df <- data.frame(cbind(baseline.snps, baseline.estimates, baseline.p.values, baseline.fdr.pvalues, baseline.bonferroni.pvalues))
+write.csv(baseline.df, '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/processed/sting_seq_baseline_models.csv', row.names = FALSE)
 
 # generate pairwise combinations of enhancers for PTPRC
 ptprc.pairs <- data.frame(t(combn(ptprc.snps, 2)))
 colnames(ptprc.pairs) <- c('snp.1', 'snp.2')
 
+snp.1.names <- rep(NA, length(ptprc.pairs))
+snp.2.names <- rep(NA, length(ptprc.pairs))
+enhancer.1.estimates <- rep(NA, length(ptprc.pairs))
 enhancer.1.pvalues <- rep(NA, length(ptprc.pairs))
+enhancer.2.estimates <- rep(NA, length(ptprc.pairs))
 enhancer.2.pvalues <- rep(NA, length(ptprc.pairs))
+interaction.estimates <- rep(NA, length(ptprc.pairs))
 interaction.pvalues <- rep(NA, length(ptprc.pairs))
 
 # run GLiMMIRS for each SNP pair
@@ -118,6 +132,9 @@ for (i in 1:nrow(ptprc.pairs)) {
 
     snp.1 <- ptprc.pairs$snp.1[i]
     snp.2 <- ptprc.pairs$snp.2[i]
+
+    snp.1.names[i] <- snp.1
+    snp.2.names[i] <- snp.2
 
     snp.1.guides <- ptprc.guides[ptprc.guides$Target == snp.1, ]$gRNA.ID 
     snp.2.guides <- ptprc.guides[ptprc.guides$Target == snp.2, ]$gRNA.ID 
@@ -146,12 +163,132 @@ for (i in 1:nrow(ptprc.pairs)) {
     model.df <- data.frame(model.df)
 
     mdl <- glm.nb(ptprc ~ snp.1.guide.vector * snp.2.guide.vector + percent.mito + grna.counts + s.scores + g2m.scores + offset(log(scaling.factors)), data = model.df)
+    
+    enhancer.1.estimates[i] <- summary(mdl)$coefficients['snp.1.guide.vector', 'Estimate']
+    enhancer.2.estimates[i] <- summary(mdl)$coefficients['snp.2.guide.vector', 'Estimate']
+    interaction.estimates[i] <- summary(mdl)$coefficients['snp.1.guide.vector:snp.2.guide.vector', 'Estimate']
+    
     enhancer.1.pvalues[i] <- summary(mdl)$coefficients['snp.1.guide.vector', 'Pr(>|z|)']
     enhancer.2.pvalues[i] <- summary(mdl)$coefficients['snp.2.guide.vector', 'Pr(>|z|)']
     interaction.pvalues[i] <- summary(mdl)$coefficients['snp.1.guide.vector:snp.2.guide.vector', 'Pr(>|z|)']
 }
 
-adjusted.interaction.pvalues <- p.adjust(interaction.pvalues, method = 'fdr')
+interaction.fdr.pvalues <- p.adjust(interaction.pvalues, method = 'fdr')
+interaction.bonferroni.pvalues <- p.adjust(interaction.pvalues, method = 'bonferroni')
+
+# write to output CSV file
+interaction.df <- data.frame(cbind(snp.1.names, snp.2.names, enhancer.1.estimates, enhancer.1.pvalues, enhancer.2.estimates, enhancer.2.pvalues, interaction.estimates, interaction.pvalues,
+                                   interaction.fdr.pvalues, interaction.bonferroni.pvalues))
+write.csv(
+    interaction.df,
+    '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/processed/sting_seq_interaction_models.csv'
+)
+
+# plot dotplots for significant interactions
+significant.interactions <- interaction.df[interaction.df$interaction.fdr.pvalues < 0.1, ]
+
+for (i in 1:nrow(significant.interactions)) {
+
+    snp.1 <- significant.interactions$snp.1.names[i]
+    snp.2 <- significant.interactions$snp.2.names[i]
+
+    snp.1.guides <- ptprc.guides[ptprc.guides$Target == snp.1, ]$gRNA.ID 
+    snp.2.guides <- ptprc.guides[ptprc.guides$Target == snp.2, ]$gRNA.ID 
+
+    snp.1.guide.vector <- rep(0, ncol(grna))
+
+    for (j in 1:length(snp.1.guides)) {
+        snp.guide <- snp.1.guides[j]
+        mod.snp.guide <- paste0(substr(snp.guide, 1, nchar(snp.guide) - 2), '_', substr(snp.guide, nchar(snp.guide), nchar(snp.guide)))
+        snp.1.guide.vector <- snp.1.guide.vector + grna[mod.snp.guide, ]
+    }
+
+    snp.1.guide.vector <- as.numeric(snp.1.guide.vector > 0)
+
+    snp.2.guide.vector <- rep(0, ncol(grna))
+
+    for (j in 1:length(snp.2.guides)) {
+        snp.guide <- snp.2.guides[j]
+        mod.snp.guide <- paste0(substr(snp.guide, 1, nchar(snp.guide) - 2), '_', substr(snp.guide, nchar(snp.guide), nchar(snp.guide)))
+        snp.2.guide.vector <- snp.2.guide.vector + grna[mod.snp.guide, ]
+    }
+
+    snp.2.guide.vector <- as.numeric(snp.2.guide.vector > 0)
+
+    interaction.vector <- snp.1.guide.vector * snp.2.guide.vector
+    print(sum(snp.1.guide.vector))
+    print(sum(snp.2.guide.vector))
+
+    interaction.counts <- ptprc[interaction.vector > 0]
+
+    snp.1.guide.vector[interaction.vector > 0] <- 0
+    snp.1.guide.counts <- ptprc[snp.1.guide.vector > 0]
+
+    snp.2.guide.vector[interaction.vector > 0] <- 0
+    snp.2.guide.counts <- ptprc[snp.2.guide.vector > 0]
+
+    dotplot.df <- data.frame(interaction.counts)
+    dotplot.df$x <- 'Test'
+
+    outlier.dotplot <- ggplot(dotplot.df, aes(x = x, y=interaction.counts)) +
+                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.6) +
+                         theme_classic() +
+                         theme(
+                            axis.line = element_line(linewidth = 1),
+                            axis.title.x = element_text(size = 8, color = 'black'),
+                            axis.title.y = element_text(size = 10, color = 'black'),
+                            axis.text = element_text(size = 14, color = 'black'),
+                            axis.ticks = element_line(color = 'black', linewidth = 1),
+                            axis.ticks.length = unit(2, 'mm'),
+                            plot.margin = rep(unit(5, 'mm'), 4),
+                            plot.title = element_text(size = 10, hjust = 0.5),
+                            legend.position = 'none'
+                        ) + 
+                         xlab('') +
+                         ylab('Gene Expression Count')
+    
+    ggsave(
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/23_11_29_', snp.1, '_', snp.2, '_dotplot.png'),
+        plot = outlier.dotplot,
+        device = 'png'
+    )
+
+    violin.df <- data.frame(interaction.counts)
+    colnames(violin.df) <- 'Count'
+    violin.df$Perturbation <- 'Guide 1 + Guide 2'
+    print(dim(violin.df))
+
+    temp.df <- data.frame(snp.1.guide.counts)
+    colnames(temp.df) <- 'Count'
+    temp.df$Perturbation <- 'Guide 1'
+    violin.df <- rbind(violin.df, temp.df)
+    print(dim(violin.df))
+
+    temp.df <- data.frame(snp.2.guide.counts)
+    colnames(temp.df) <- 'Count'
+    temp.df$Perturbation <- 'Guide 2'
+    violin.df <- rbind(violin.df, temp.df)
+    print(dim(violin.df))
+
+    any.perturbation <- snp.1.guide.vector + snp.2.guide.vector + interaction.vector
+    no.perturbation.counts <- ptprc[any.perturbation < 1]
+    temp.df <- data.frame(no.perturbation.counts)
+    colnames(temp.df) <- 'Count'
+    temp.df$Perturbation <- 'No Perturbation'
+    violin.df <- rbind(violin.df, temp.df)
+    print(dim(violin.df))
+    violin.df$Count <- log10(violin.df$Count)
+
+    
+    plot <- ggplot(violin.df, aes(x = Perturbation, y = Count)) +
+        geom_violin()
+
+    ggsave(
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_violin_plot.png'),
+        plot = plot,
+        device = 'png'
+    )
+}
 
 
 
