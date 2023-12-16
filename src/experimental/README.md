@@ -40,5 +40,5 @@ Conda Environment: ```envs/guide_matrix.yaml```
 
 The Gasperini et al. analysis did not publish a cell-guide matrix. This script uses the gRNA assignments from the phenodata file from the at-scale experiment to determine the guide RNAs present in each cell in the dataset and writes the cell-guide matrix as an output file.
 
-### Step 6: Create h5 File Combining Metadata, Guide Matrix, and Expression Matrix
+### Step 6: Create tables of enhancer-gene, and enhancer-enhancer pairs
 
