@@ -40,5 +40,10 @@ Conda Environment: ```envs/guide_matrix.yaml```
 
 The Gasperini et al. analysis did not publish a cell-guide matrix. This script uses the gRNA assignments from the phenodata file from the at-scale experiment to determine the guide RNAs present in each cell in the dataset and writes the cell-guide matrix as an output file.
 
-### Step 6: Create tables of enhancer-gene, and enhancer-enhancer pairs
+### Step 6: Create table of enhancer-enhancer pairs using the previously published 664 enhancer-gene pairs from Gasperini et al.
+Script: ```features/find_enhancer_pairs_suppl_table_2.py```
+
+Conda Environment: ```envs/pandas.yaml```
+
+This script computes the 330 enhancer-enhancer pairs using the 664 enhancer-gene pairs previously published in the Gasperini et al. paper. This script outputs the enhancer-enhancer pairs as a CSV file.
 
