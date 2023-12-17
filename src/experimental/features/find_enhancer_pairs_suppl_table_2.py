@@ -1,5 +1,5 @@
 # This script computes all the possible enhancer pairs using enhancer-gene
-# results from the Gasperini et al. paper below an FDR of 0.2.
+# pairs published in the Gasperini et al. paper.
 #
 # Author: Karthik Guruvayurappan
 
@@ -17,7 +17,7 @@ at_scale_deg = pd.read_csv(
 is_enhancer = (at_scale_deg['quality_rank_grna'] == 'top_two')
 enhancer_gene_tests = at_scale_deg[is_enhancer]
 
-# convert adjusted p-value measurements to float and filter for FDR < 0.2
+# convert adjusted p-value measurements to float and filter for FDR < 0.1
 valid_pvalue = (
     enhancer_gene_tests['pvalue.empirical.adjusted'] != 'not_applicable'
 )
@@ -25,10 +25,12 @@ enhancer_gene_tests = enhancer_gene_tests[valid_pvalue]
 enhancer_gene_tests['pvalue.empirical.adjusted'] = (
     enhancer_gene_tests['pvalue.empirical.adjusted'].astype(np.float64)
 )
-fdr_threshold = 0.2
+fdr_threshold = 0.1
 enhancer_gene_tests = enhancer_gene_tests[
     enhancer_gene_tests['pvalue.empirical.adjusted'] < fdr_threshold
 ]
+
+# data frame should have shape of 664 x 2
 
 # compute enhancer and gene columns using 'pairs4merge'
 enhancer_gene_tests['enhancer'] = (
@@ -71,17 +73,6 @@ enhancer_lists['enhancer_2'] = enhancer_lists['enhancer_pairs'].apply(
 # filter for only necessary columns and write to CSV file
 enhancer_lists = enhancer_lists[['gene', 'enhancer_1', 'enhancer_2']]
 enhancer_lists.to_csv(
-    'data/experimental/interim/enhancer_pairs_FDR20.csv',
+    'data/experimental/processed/enhancer_pairs_suppl_table_2.csv',
     index=False
 )
-
-
-
-
-
-
-
-
-
-
-

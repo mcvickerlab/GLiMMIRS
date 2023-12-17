@@ -6,6 +6,7 @@ library(Matrix)
 library(Seurat)
 library(MASS)
 library(ggplot2)
+library(dplyr)
 
 # read in RNA matrix
 # read in STING-seq expression matrix (for all lanes)
@@ -248,7 +249,7 @@ for (i in 1:nrow(significant.interactions)) {
                          ylab('Gene Expression Count')
     
     ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/23_11_29_', snp.1, '_', snp.2, '_dotplot.png'),
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/23_12_14_', snp.1, '_', snp.2, '_dotplot.png'),
         plot = outlier.dotplot,
         device = 'png'
     )
@@ -277,7 +278,6 @@ for (i in 1:nrow(significant.interactions)) {
     temp.df$Perturbation <- 'No Perturbation'
     violin.df <- rbind(violin.df, temp.df)
     print(dim(violin.df))
-    violin.df$Count <- log10(violin.df$Count)
 
     
     plot <- ggplot(violin.df, aes(x = Perturbation, y = Count)) +
@@ -285,6 +285,21 @@ for (i in 1:nrow(significant.interactions)) {
 
     ggsave(
         paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_violin_plot.png'),
+        plot = plot,
+        device = 'png'
+    )
+
+    dotplot.df <- violin.df %>% group_by(Perturbation) %>% summarize(avg = mean(Count), sd = sd(Count))
+    dotplot.df$upper <- dotplot.df$avg + 2 * dotplot.df$sd
+    dotplot.df$lower <- dotplot.df$avg - 2 * dotplot.df$sd
+
+    plot <- ggplot(dotplot.df, aes(x = Perturbation, y = avg)) +
+        geom_point() +
+        geom_errorbar(aes(ymin = lower, ymax = upper)) +
+        theme_classic()
+
+    ggsave(
+        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_perturbation_dotplot.png'),
         plot = plot,
         device = 'png'
     )
