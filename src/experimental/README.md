@@ -47,3 +47,11 @@ Conda Environment: ```envs/pandas.yaml```
 
 This script computes the 330 enhancer-enhancer pairs using the 664 enhancer-gene pairs previously published in the Gasperini et al. paper. This script outputs the enhancer-enhancer pairs as a CSV file.
 
+
+### Step 7: Create table of enhancer-enhancer pairs using the at-scale screen.
+Script: ```features/find_enhancer_pairs_at_scale.py```
+
+Conda Environment: ```envs/pandas.yaml```
+
+This script computes the 795,616 possible enhancer-enhancer pairs using all of the enhancer-gene tests performed in the Gasperini et al. at-scale screen. This script outputs the enhancer-enhancer pairs as a CSV file.
+
