@@ -55,3 +55,10 @@ Conda Environment: ```envs/pandas.yaml```
 
 This script computes the 795,616 possible enhancer-enhancer pairs using all of the enhancer-gene tests performed in the Gasperini et al. at-scale screen. This script outputs the enhancer-enhancer pairs as a CSV file.
 
+### Step 8: Create HDF5 file that contains all of the Gasperini data.
+Script: ```features/create_gasperini_h5.R```
+
+Conda Environment: ```envs/hdf5.yaml```
+
+There are a large collection of heterogenous data tables and matrices for the Gasperini analysis. To speed up reads from the data, we combined all of these data tables into a single HDF5 data structure that we use for downstream modeling analysis.
+
