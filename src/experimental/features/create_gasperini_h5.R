@@ -32,6 +32,32 @@ h5write(
 )
 
 # read in smaller subset of enhancer-enhancer pairs
+enhancer.enhancer.330 <- read.csv(
+    'data/experimental/processed/enhancer_pairs_suppl_table_2.csv'
+)
+
+# write to h5 structure
+h5write(
+    enhancer.enhancer.330,
+    h5.name,
+    'enhancer_enhancer_330'
+)
+
+# read in at-scale set of enhancer-enhancer pairs
+enhancer.enhancer.at.scale <- read.csv(
+    'data/experimental/processed/enhancer_pairs_at_scale.csv'
+)
+
+# write to h5 structure
+h5write(
+    enhancer.enhancer.at.scale,
+    h5.name,
+    'enhancer_enhancer_at_scale'
+)
+
+
+
+
 
 
 
