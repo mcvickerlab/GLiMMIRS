@@ -55,7 +55,77 @@ h5write(
     'enhancer_enhancer_at_scale'
 )
 
+# read in enhancer-guide table
+enhancer.guide <- read.table(
+    'data/experimental/raw/GSE120861_grna_groups.at_scale.txt.gz'
+)
+colnames(enhancer.guide) <- c('target.site', 'spacer')
 
+# write to h5 structure
+h5write(
+    enhancer.guide,
+    h5.name,
+    'enhancer_guide'
+)
+
+# read in guide-level metadata from GuideScan
+guide.info <- read.csv(
+    'data/experimental/interim/guidescan_results.csv'
+)
+
+# write to h5 structure
+h5write(
+    guide.info,
+    h5.name,
+    'grna/guide_info'
+)
+
+# read in phenodata file (for covariates)
+covariates <- read.table(
+    'data/experimental/raw/GSE120861_at_scale_screen.phenoData.txt.gz'
+)
+colnames(covariates) <- c(
+    'sample',
+    'cell',
+    'total_umis',
+    'size_factor',
+    'gene',
+    'all_gene',
+    'barcode',
+    'read_count',
+    'umi_count',
+    'proportion',
+    'guide_count',
+    'sample_directory',
+    'ko_barcode_file',
+    'id',
+    'prep_batch',
+    'within_batch_chip',
+    'within_chip_lane',
+    'percent.mito'
+)
+covariate.columns <- c('cell', 'guide_count', 'prep_batch', 'percent.mito')
+covariates <- covariates[, covariate.columns]
+
+# read in cell cycle scores and merge with covariates
+s.scores <- read.csv(
+    'data/experimental/interim/cell_cycle_s_scores.csv'
+)
+g2m.scores <- read.csv(
+    'data/experimental/interim/cell_cycle_g2m_scores.csv'
+)
+colnames(s.scores) <- c('cell', 's.score')
+colnames(g2m.scores) <- c('cell', 'g2m.score')
+
+covariates <- merge(covariates, s.scores)
+covariates <- merge(covariates, g2m.scores)
+
+# write to h5 structure
+h5write(
+    covariates,
+    h5.name,
+    'expr/cell_covariates'
+)
 
 
 
