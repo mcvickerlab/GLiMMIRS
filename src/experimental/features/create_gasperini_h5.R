@@ -5,3 +5,36 @@
 
 library(Matrix)
 library(rhdf5)
+library(readxl)
+
+# create an empty h5 file
+h5.name <- 'data/experimental/processed/gasperini_data.h5'
+h5createFile(h5.name)
+
+# create group for guide and expression matrix
+h5createGroup(h5.name, 'grna')
+h5createGroup(h5.name, 'expr')
+
+# read in enhancer-gene pairs (for baseline models)
+enhancer.gene <- read_excel(
+    'data/experimental/raw/suppl_table_2.xlsx',
+    sheet = 3
+)
+enhancer.gene <- data.frame(enhancer.gene)
+
+# data frame should have a shape of 664 x 11
+
+# write to h5 structure
+h5write(
+    enhancer.gene,
+    h5.name,
+    'enhancer_gene'
+)
+
+# read in smaller subset of enhancer-enhancer pairs
+
+
+
+
+
+
