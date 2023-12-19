@@ -28,3 +28,6 @@ wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120861/suppl/GSE120861
 
 # download the at-scale gene-gRNA group (enhancer) pairs from GEO
 wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120861/suppl/GSE120861%5Fgene%5FgRNAgroup%5Fpair%5Ftable.at%5Fscale.txt.gz -P data/experimental/raw/
+
+# download enhancer-guide assignments from GEO
+wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE120nnn/GSE120861/suppl/GSE120861%5Fgrna%5Fgroups.at%5Fscale.txt.gz -P data/experimental/raw/
