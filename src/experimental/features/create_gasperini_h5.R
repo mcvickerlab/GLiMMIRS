@@ -132,28 +132,37 @@ expr.matrix <- readMM(
     'data/experimental/raw/GSE120861_at_scale_screen.exprs.mtx.gz'
 )
 
-# add genes as rownames
-genes <- read.table(
-    'data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz'
-)
-genes <- genes$V1
-rownames(expr.matrix) <- genes
+# # add genes as rownames
+# genes <- read.table(
+#     'data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz'
+# )
+# genes <- genes$V1
+# rownames(expr.matrix) <- genes
 
-# add cell barcodes as column names
-barcodes <- read.table(
-    'data/experimental/raw/GSE120861_at_scale_screen.cells.txt.gz'
-)
-barcodes <- barcodes$V1
-colnames(expr.matrix) <- barcodes
+# # add cell barcodes as column names
+# barcodes <- read.table(
+#     'data/experimental/raw/GSE120861_at_scale_screen.cells.txt.gz'
+# )
+# barcodes <- barcodes$V1
+# colnames(expr.matrix) <- barcodes
 
 # convert to dense matrix representation (for h5)
 expr.matrix <- as.matrix(expr.matrix)
+
+# define data dimensionality and chunk size
+h5createDataset(
+    h5.name,
+    'expr/expr_matrix',
+    c(nrow(expr.matrix), ncol(expr.matrix)),
+    storage.mode = 'integer',
+    chunk = c(2000, ncol(expr.matrix))
+)
 
 # write to h5 file
 h5write(
     expr.matrix,
     h5.name,
-    'expr_matrix'
+    'expr/expr_matrix'
 )
 
 
@@ -163,7 +172,7 @@ h5closeAll(h5.name)
 # read test
 test.vector <- h5read(
     h5.name,
-    'expr_matrix',
+    'expr/expr_matrix',
     index = list(5, NULL)
 )
 
