@@ -59,6 +59,7 @@ cell_guide_matrix = cell_guide_matrix.T
 
 # write to output mtx file
 print('writing to output file!')
-cell_guide_matrix.to_csv(
-    'data/experimental/interim/guide_matrix.csv'   
+cell_guide_matrix.to_hdf(
+    'data/experimental/interim/guide_matrix.h5',
+    key = 'df'
 )
