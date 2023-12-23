@@ -82,6 +82,7 @@ dependencies:
   - r-cli=3.6.2=r43ha503ecb_0
   - r-cpp11=0.4.7=r43hc72bb7e_0
   - r-crayon=1.5.2=r43hc72bb7e_2
+  - r-data.table=1.14.10=r43h029312a_0
   - r-ellipsis=0.3.2=r43h57805ef_2
   - r-fansi=1.0.6=r43h57805ef_0
   - r-glue=1.6.2=r43h57805ef_2

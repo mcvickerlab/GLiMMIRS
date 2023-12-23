@@ -5,7 +5,7 @@
 
 import numpy as np
 import pandas as pd
-from scipy.io import mmwrite
+from scipy.io import mmwrite, mmread
 
 # read in phenodata file
 print('reading in phenodata!')
@@ -59,7 +59,6 @@ cell_guide_matrix = cell_guide_matrix.T
 
 # write to output mtx file
 print('writing to output file!')
-mmwrite(
-    'data/experimental/interim/guide_matrix.mtx',
-    cell_guide_matrix
+cell_guide_matrix.to_csv(
+    'data/experimental/interim/guide_matrix.csv'   
 )

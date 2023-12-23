@@ -6,6 +6,7 @@
 library(Matrix)
 library(rhdf5)
 library(readxl)
+library(data.table)
 
 # create an empty h5 file
 h5.name <- 'data/experimental/processed/gasperini_data.h5'
@@ -165,20 +166,26 @@ h5write(
     'expr/expr_matrix'
 )
 
-
-# close h5 file
-h5closeAll(h5.name)
-
-# read test
-test.vector <- h5read(
-    h5.name,
-    'expr/expr_matrix',
-    index = list(5, NULL)
+# read in guide matrix
+guide.matrix <- fread(
+    'data/experimental/interim/guide_matrix.csv'
 )
 
+# convert to matrix representation (for h5)
+guide.matrix <- as.matrix(guide.matrix)
 
+# define data dimensionality and chunk size
+h5createDataset(
+    h5.name,
+    'grna/guide_matrix',
+    c(nrow(guide.matrix), ncol(guide.matrix)),
+    storage.mode = 'integer',
+    chunk = c(2000, ncol(guide.matrix))
+)
 
-
-
-
-
+# create h5
+h5write(
+    guide.matrix,
+    h5.name,
+    'grna/guide_matrix'
+)
