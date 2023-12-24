@@ -63,3 +63,14 @@ cell_guide_matrix.to_hdf(
     'data/experimental/interim/guide_matrix.h5',
     key = 'df'
 )
+
+# write out rownames and column names (won't save by default)
+guide_rows = cell_guide_matrix.index
+guide_cols = cell_guide_matrix.columns
+
+guide_rows.to_csv(
+    'data/experimental/interim/guide_rows.csv'
+)
+guide_cols.to_csv(
+    'data/experimental/interim/guide_cols.csv'
+)
