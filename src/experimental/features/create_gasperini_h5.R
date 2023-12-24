@@ -175,27 +175,51 @@ h5write(
     'expr/cell_barcodes'
 )
 
+# read in guide matrix
+guide.matrix <- h5read(
+    'data/experimental/interim/guide_matrix.h5',
+    'df/block0_values'
+)
+guide.matrix <- as.matrix(guide.matrix)
+guide.matrix <- t(guide.matrix)
 
-# # read in guide matrix
-# guide.matrix <- fread(
-#     'data/experimental/interim/guide_matrix.csv'
-# )
+# define data dimensionality and chunk size
+h5createDataset(
+    h5.name,
+    'grna/guide_matrix',
+    c(nrow(guide.matrix), ncol(guide.matrix)),
+    storage.mode = 'integer',
+    chunk = c(2000, ncol(guide.matrix))
+)
 
-# # convert to matrix representation (for h5)
-# guide.matrix <- as.matrix(guide.matrix)
+# create h5
+h5write(
+    guide.matrix,
+    h5.name,
+    'grna/guide_matrix'
+)
 
-# # define data dimensionality and chunk size
-# h5createDataset(
-#     h5.name,
-#     'grna/guide_matrix',
-#     c(nrow(guide.matrix), ncol(guide.matrix)),
-#     storage.mode = 'integer',
-#     chunk = c(2000, ncol(guide.matrix))
-# )
+# read in guide matrix guide names
+guide.names <- h5read(
+    'data/experimental/interim/guide_matrix.h5',
+    'df/axis1'
+)
 
-# # create h5
-# h5write(
-#     guide.matrix,
-#     h5.name,
-#     'grna/guide_matrix'
-# )
+# write guide names to h5 structure
+h5write(
+    guide.names,
+    h5.name,
+    'grna/guide_names'
+)
+
+# read in guide matrix cell barcodes
+barcodes <- h5read(
+    'data/experimental/interim/guide_matrix.h5',
+    'df/axis0'
+)
+
+h5write(
+    barcodes,
+    h5.name,
+    'grna/cell_barcodes'
+)
