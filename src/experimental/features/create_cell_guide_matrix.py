@@ -5,15 +5,10 @@
 
 import numpy as np
 import pandas as pd
-from scipy.io import mmwrite
 
 # read in phenodata file
 print('reading in phenodata!')
-phenodata = pd.read_csv(
-    'data/experimental/raw/GSE120861_at_scale_screen.phenoData.txt.gz',
-    sep=' '
-)
-phenodata.columns = [
+phenodata_columns = [
     'sample',
     'cell',
     'total_umis',
@@ -33,6 +28,11 @@ phenodata.columns = [
     'within_chip_lane',
     'percent.mito'
 ]
+phenodata = pd.read_csv(
+    'data/experimental/raw/GSE120861_at_scale_screen.phenoData.txt.gz',
+    sep=' ',
+    names = phenodata_columns
+)
 
 # get guide names and split guide sequences for each cell
 phenodata['barcode'] = phenodata['barcode'].fillna('')
@@ -59,7 +59,7 @@ cell_guide_matrix = cell_guide_matrix.T
 
 # write to output mtx file
 print('writing to output file!')
-mmwrite(
-    'data/experimental/interim/guide_matrix.mtx',
-    cell_guide_matrix
+cell_guide_matrix.to_hdf(
+    'data/experimental/interim/guide_matrix.h5',
+    key = 'df'
 )

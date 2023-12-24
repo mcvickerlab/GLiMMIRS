@@ -1,4 +1,4 @@
-name: guide_matrix
+name: hdf5
 channels:
   - conda-forge
   - bioconda
@@ -8,14 +8,15 @@ dependencies:
   - _openmp_mutex=4.5=2_gnu
   - _r-mutex=1.0.1=anacondar_1
   - binutils_impl_linux-64=2.40=hf600244_0
-  - blosc=1.21.5=h0f2a231_0
+  - bioconductor-biocgenerics=0.48.1=r43hdfd78af_2
+  - bioconductor-rhdf5=2.46.1=r43hf17093f_0
+  - bioconductor-rhdf5filters=1.14.1=r43hf17093f_0
+  - bioconductor-rhdf5lib=1.24.0=r43ha9d7317_1
+  - bioconductor-s4vectors=0.40.2=r43ha9d7317_1
   - bwidget=1.9.14=ha770c72_1
   - bzip2=1.0.8=hd590300_5
   - c-ares=1.24.0=hd590300_0
-  - c-blosc2=2.11.3=hb4ffafa_0
   - ca-certificates=2023.11.17=hbcca054_0
-  - cached-property=1.5.2=hd8ed1ab_1
-  - cached_property=1.5.2=pyha770c72_1
   - cairo=1.18.0=h3faef2a_0
   - curl=8.5.0=hca28451_0
   - expat=2.5.0=hcb278e6_1
@@ -33,18 +34,14 @@ dependencies:
   - gfortran_impl_linux-64=13.2.0=h76e1118_3
   - graphite2=1.3.13=h58526e2_1001
   - gxx_impl_linux-64=13.2.0=h338b0a0_3
-  - h5py=3.10.0=nompi_py312h1b477d7_101
   - harfbuzz=8.3.0=h3d44ed6_0
-  - hdf5=1.14.3=nompi_h4f84152_100
   - icu=73.2=h59595ed_0
   - kernel-headers_linux-64=2.6.32=he073ed8_16
   - keyutils=1.6.1=h166bdaf_0
   - krb5=1.21.2=h659d440_0
   - ld_impl_linux-64=2.40=h41732ed_0
   - lerc=4.0.0=h27087fc_0
-  - libaec=1.1.2=h59595ed_1
   - libblas=3.9.0=20_linux64_openblas
-  - libcblas=3.9.0=20_linux64_openblas
   - libcurl=8.5.0=hca28451_0
   - libdeflate=1.19=hd590300_0
   - libedit=3.1.20191231=he28a2e2_2
@@ -61,11 +58,9 @@ dependencies:
   - libjpeg-turbo=3.0.0=hd590300_1
   - liblapack=3.9.0=20_linux64_openblas
   - libnghttp2=1.58.0=h47da74e_1
-  - libnsl=2.0.1=hd590300_0
   - libopenblas=0.3.25=pthreads_h413a1c8_0
   - libpng=1.6.39=h753d276_0
   - libsanitizer=13.2.0=h7e041cc_3
-  - libsqlite=3.44.2=h2797004_0
   - libssh2=1.11.0=h0841786_0
   - libstdcxx-devel_linux-64=13.2.0=ha9c7c90_103
   - libstdcxx-ng=13.2.0=h7e041cc_3
@@ -74,41 +69,44 @@ dependencies:
   - libwebp-base=1.3.2=hd590300_0
   - libxcb=1.15=h0b41bf4_0
   - libzlib=1.2.13=hd590300_5
-  - lz4-c=1.9.4=hcb278e6_0
-  - lzo=2.10=h516909a_1000
   - make=4.3=hd18ef5c_1
   - ncurses=6.4=h59595ed_2
-  - nomkl=1.0=h5ca1d4c_0
-  - numexpr=2.8.8=py312hed3a10b_100
-  - numpy=1.26.2=py312heda63a1_0
   - openssl=3.2.0=hd590300_1
-  - packaging=23.2=pyhd8ed1ab_0
-  - pandas=2.1.3=py312hfb8ada1_0
   - pango=1.50.14=ha41ecd1_2
   - pcre2=10.42=hcad00b1_0
-  - pip=23.3.1=pyhd8ed1ab_0
   - pixman=0.42.2=h59595ed_0
   - pthread-stubs=0.4=h36c2ea0_1001
-  - py-cpuinfo=9.0.0=pyhd8ed1ab_0
-  - pytables=3.9.2=py312h5531bb7_1
-  - python=3.12.0=hab00c5b_0_cpython
-  - python-dateutil=2.8.2=pyhd8ed1ab_0
-  - python-tzdata=2023.3=pyhd8ed1ab_0
-  - python_abi=3.12=4_cp312
-  - pytz=2023.3.post1=pyhd8ed1ab_0
+  - r-assertthat=0.2.1=r43hc72bb7e_4
   - r-base=4.3.2=hb8ee39d_1
+  - r-cellranger=1.1.0=r43hc72bb7e_1006
+  - r-cli=3.6.2=r43ha503ecb_0
+  - r-cpp11=0.4.7=r43hc72bb7e_0
+  - r-crayon=1.5.2=r43hc72bb7e_2
   - r-data.table=1.14.10=r43h029312a_0
+  - r-ellipsis=0.3.2=r43h57805ef_2
+  - r-fansi=1.0.6=r43h57805ef_0
+  - r-glue=1.6.2=r43h57805ef_2
+  - r-hms=1.1.3=r43hc72bb7e_1
+  - r-lattice=0.22_5=r43h57805ef_0
+  - r-lifecycle=1.0.4=r43hc72bb7e_0
+  - r-magrittr=2.0.3=r43h57805ef_2
+  - r-matrix=1.6_4=r43h316c678_0
+  - r-pillar=1.9.0=r43hc72bb7e_1
+  - r-pkgconfig=2.0.3=r43hc72bb7e_3
+  - r-prettyunits=1.2.0=r43hc72bb7e_0
+  - r-progress=1.2.3=r43hc72bb7e_0
+  - r-r6=2.5.1=r43hc72bb7e_2
+  - r-readxl=1.4.3=r43ha5c9fba_0
+  - r-rematch=2.0.0=r43hc72bb7e_0
+  - r-rlang=1.1.2=r43ha503ecb_0
+  - r-tibble=3.2.1=r43h57805ef_2
+  - r-utf8=1.2.4=r43h57805ef_0
+  - r-vctrs=0.6.5=r43ha503ecb_0
   - readline=8.2=h8228510_1
-  - scipy=1.11.4=py312heda63a1_0
   - sed=4.8=he412f7d_0
-  - setuptools=68.2.2=pyhd8ed1ab_0
-  - six=1.16.0=pyh6c4a22f_0
-  - snappy=1.1.10=h9fff704_0
   - sysroot_linux-64=2.12=he073ed8_16
   - tk=8.6.13=noxft_h4845f30_101
   - tktable=2.10=h0c5db8f_5
-  - tzdata=2023c=h71feb2d_0
-  - wheel=0.42.0=pyhd8ed1ab_0
   - xorg-kbproto=1.0.7=h7f98852_1002
   - xorg-libice=1.1.1=hd590300_0
   - xorg-libsm=1.2.4=h7391055_0
@@ -123,6 +121,5 @@ dependencies:
   - xorg-xproto=7.0.31=h7f98852_1007
   - xz=5.2.6=h166bdaf_0
   - zlib=1.2.13=hd590300_5
-  - zlib-ng=2.0.7=h0b41bf4_0
   - zstd=1.5.5=hfc55251_0
-prefix: /iblm/netapp/home/karthik/mambaforge/envs/guide_matrix
+prefix: /iblm/netapp/home/karthik/mambaforge/envs/hdf5
