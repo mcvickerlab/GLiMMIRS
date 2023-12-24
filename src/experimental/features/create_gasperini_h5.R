@@ -6,7 +6,6 @@
 library(Matrix)
 library(rhdf5)
 library(readxl)
-library(data.table)
 
 # create an empty h5 file
 h5.name <- 'data/experimental/processed/gasperini_data.h5'
@@ -133,20 +132,6 @@ expr.matrix <- readMM(
     'data/experimental/raw/GSE120861_at_scale_screen.exprs.mtx.gz'
 )
 
-# # add genes as rownames
-# genes <- read.table(
-#     'data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz'
-# )
-# genes <- genes$V1
-# rownames(expr.matrix) <- genes
-
-# # add cell barcodes as column names
-# barcodes <- read.table(
-#     'data/experimental/raw/GSE120861_at_scale_screen.cells.txt.gz'
-# )
-# barcodes <- barcodes$V1
-# colnames(expr.matrix) <- barcodes
-
 # convert to dense matrix representation (for h5)
 expr.matrix <- as.matrix(expr.matrix)
 
@@ -166,26 +151,51 @@ h5write(
     'expr/expr_matrix'
 )
 
-# read in guide matrix
-guide.matrix <- fread(
-    'data/experimental/interim/guide_matrix.csv'
+# write gene names to h5 structure
+genes <- read.table(
+    'data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz'
 )
+genes <- genes$V1
 
-# convert to matrix representation (for h5)
-guide.matrix <- as.matrix(guide.matrix)
-
-# define data dimensionality and chunk size
-h5createDataset(
-    h5.name,
-    'grna/guide_matrix',
-    c(nrow(guide.matrix), ncol(guide.matrix)),
-    storage.mode = 'integer',
-    chunk = c(2000, ncol(guide.matrix))
-)
-
-# create h5
 h5write(
-    guide.matrix,
+    genes,
     h5.name,
-    'grna/guide_matrix'
+    'expr/gene_names'
 )
+
+# write cell barcodes to h5 structure
+barcodes <- read.table(
+    'data/experimental/raw/GSE120861_at_scale_screen.cells.txt.gz'
+)
+barcodes <- barcodes$V1
+
+h5write(
+    barcodes,
+    h5.name,
+    'expr/cell_barcodes'
+)
+
+
+# # read in guide matrix
+# guide.matrix <- fread(
+#     'data/experimental/interim/guide_matrix.csv'
+# )
+
+# # convert to matrix representation (for h5)
+# guide.matrix <- as.matrix(guide.matrix)
+
+# # define data dimensionality and chunk size
+# h5createDataset(
+#     h5.name,
+#     'grna/guide_matrix',
+#     c(nrow(guide.matrix), ncol(guide.matrix)),
+#     storage.mode = 'integer',
+#     chunk = c(2000, ncol(guide.matrix))
+# )
+
+# # create h5
+# h5write(
+#     guide.matrix,
+#     h5.name,
+#     'grna/guide_matrix'
+# )
