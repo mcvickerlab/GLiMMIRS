@@ -62,3 +62,14 @@ Conda Environment: ```envs/hdf5.yaml```
 
 There are a large collection of heterogenous data tables and matrices for the Gasperini analysis. To speed up reads from the data, we combined all of these data tables into a single HDF5 data structure that we use for downstream modeling analysis.
 
+### Step 9: Compute frequency of paired perturbations
+Script: ```features/compute_paired_perturbation_count.R```
+
+Conda Environment: ```envs/modeling.yaml```
+
+A key metric for GLiMMIRS is the number of cells that recieve a perturbation to both enhancers in an enhancer-enhancer pair. For each enhancer-enhancer pair from the Gasperini data, this script computes the number of cells with both enhancers perturbed. This script computes these frequencies for both the smaller set of enhancer-enhancer pairs from supplementary table 2 and the larger at-scale enhancer-enhancer pairs. The outputs are stored in CSV files for downstream plotting scripts.
+
+
+
+
+
