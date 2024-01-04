@@ -354,6 +354,9 @@ for (i in 1:nrow(significant.interactions)) {
 
         true.interaction.estimates[j] <- summary(mdl)$coefficients['snp.1.guide.vector:snp.2.guide.vector', 'Estimate']
 
+        # remove cells with double perturbation
+        bootstrap.df <- bootstrap.df[bootstrap.df$snp.1.guide.vector * bootstrap.df$snp.2.guide.vector == 0, ]
+        print(dim(bootstrap.df))
         mdl <- glm.nb(ptprc ~ snp.1.guide.vector + snp.2.guide.vector + percent.mito + grna.counts + s.scores + g2m.scores + offset(log(scaling.factors)), data = bootstrap.df)
 
         true.enhancer.1.estimates[j] <- summary(mdl)$coefficients['snp.1.guide.vector', 'Estimate']
