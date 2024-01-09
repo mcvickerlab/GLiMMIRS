@@ -188,14 +188,140 @@ write.csv(
 # plot dotplots for significant interactions
 significant.interactions <- interaction.df[interaction.df$interaction.fdr.pvalues < 0.1, ]
 
-for (i in 1:nrow(significant.interactions)) {
+# for (i in 1:nrow(significant.interactions)) {
 
-    snp.1 <- significant.interactions$snp.1.names[i]
-    snp.2 <- significant.interactions$snp.2.names[i]
+#     snp.1 <- significant.interactions$snp.1.names[i]
+#     snp.2 <- significant.interactions$snp.2.names[i]
 
+#     snp.1.guides <- ptprc.guides[ptprc.guides$Target == snp.1, ]$gRNA.ID 
+#     snp.2.guides <- ptprc.guides[ptprc.guides$Target == snp.2, ]$gRNA.ID 
+
+#     snp.1.guide.vector <- rep(0, ncol(grna))
+
+#     for (j in 1:length(snp.1.guides)) {
+#         snp.guide <- snp.1.guides[j]
+#         mod.snp.guide <- paste0(substr(snp.guide, 1, nchar(snp.guide) - 2), '_', substr(snp.guide, nchar(snp.guide), nchar(snp.guide)))
+#         snp.1.guide.vector <- snp.1.guide.vector + grna[mod.snp.guide, ]
+#     }
+
+#     snp.1.guide.vector <- as.numeric(snp.1.guide.vector > 0)
+
+#     snp.2.guide.vector <- rep(0, ncol(grna))
+
+#     for (j in 1:length(snp.2.guides)) {
+#         snp.guide <- snp.2.guides[j]
+#         mod.snp.guide <- paste0(substr(snp.guide, 1, nchar(snp.guide) - 2), '_', substr(snp.guide, nchar(snp.guide), nchar(snp.guide)))
+#         snp.2.guide.vector <- snp.2.guide.vector + grna[mod.snp.guide, ]
+#     }
+
+#     snp.2.guide.vector <- as.numeric(snp.2.guide.vector > 0)
+
+#     interaction.vector <- snp.1.guide.vector * snp.2.guide.vector
+#     print(sum(snp.1.guide.vector))
+#     print(sum(snp.2.guide.vector))
+
+#     interaction.counts <- ptprc[interaction.vector > 0]
+
+#     snp.1.guide.vector[interaction.vector > 0] <- 0
+#     snp.1.guide.counts <- ptprc[snp.1.guide.vector > 0]
+
+#     snp.2.guide.vector[interaction.vector > 0] <- 0
+#     snp.2.guide.counts <- ptprc[snp.2.guide.vector > 0]
+
+#     dotplot.df <- data.frame(interaction.counts)
+#     dotplot.df$x <- 'Test'
+
+#     outlier.dotplot <- ggplot(dotplot.df, aes(x = x, y=interaction.counts)) +
+#                          geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.6) +
+#                          theme_classic() +
+#                          theme(
+#                             axis.line = element_line(linewidth = 1),
+#                             axis.title.x = element_text(size = 8, color = 'black'),
+#                             axis.title.y = element_text(size = 10, color = 'black'),
+#                             axis.text = element_text(size = 14, color = 'black'),
+#                             axis.ticks = element_line(color = 'black', linewidth = 1),
+#                             axis.ticks.length = unit(2, 'mm'),
+#                             plot.margin = rep(unit(5, 'mm'), 4),
+#                             plot.title = element_text(size = 10, hjust = 0.5),
+#                             legend.position = 'none'
+#                         ) + 
+#                          xlab('') +
+#                          ylab('Gene Expression Count')
+    
+#     ggsave(
+#         paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/23_12_14_', snp.1, '_', snp.2, '_dotplot.png'),
+#         plot = outlier.dotplot,
+#         device = 'png'
+#     )
+
+#     violin.df <- data.frame(interaction.counts)
+#     colnames(violin.df) <- 'Count'
+#     violin.df$Perturbation <- 'Guide 1 + Guide 2'
+#     print(dim(violin.df))
+
+#     temp.df <- data.frame(snp.1.guide.counts)
+#     colnames(temp.df) <- 'Count'
+#     temp.df$Perturbation <- 'Guide 1'
+#     violin.df <- rbind(violin.df, temp.df)
+#     print(dim(violin.df))
+
+#     temp.df <- data.frame(snp.2.guide.counts)
+#     colnames(temp.df) <- 'Count'
+#     temp.df$Perturbation <- 'Guide 2'
+#     violin.df <- rbind(violin.df, temp.df)
+#     print(dim(violin.df))
+
+#     any.perturbation <- snp.1.guide.vector + snp.2.guide.vector + interaction.vector
+#     no.perturbation.counts <- ptprc[any.perturbation < 1]
+#     temp.df <- data.frame(no.perturbation.counts)
+#     colnames(temp.df) <- 'Count'
+#     temp.df$Perturbation <- 'No Perturbation'
+#     violin.df <- rbind(violin.df, temp.df)
+#     print(dim(violin.df))
+
+    
+#     plot <- ggplot(violin.df, aes(x = Perturbation, y = Count)) +
+#         geom_violin()
+
+#     ggsave(
+#         paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_violin_plot.png'),
+#         plot = plot,
+#         device = 'png'
+#     )
+
+#     dotplot.df <- violin.df %>% group_by(Perturbation) %>% summarize(avg = mean(Count), sd = sd(Count))
+#     dotplot.df$upper <- dotplot.df$avg + 2 * dotplot.df$sd
+#     dotplot.df$lower <- dotplot.df$avg - 2 * dotplot.df$sd
+
+#     plot <- ggplot(dotplot.df, aes(x = Perturbation, y = avg)) +
+#         geom_point() +
+#         geom_errorbar(aes(ymin = lower, ymax = upper)) +
+#         theme_classic()
+
+#     ggsave(
+#         paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_perturbation_dotplot.png'),
+#         plot = plot,
+#         device = 'png'
+#     )
+# }
+
+for (i in 1:nrow(ptprc.pairs)) {
+    
+    # create vectors to hold estimate outputs
+    true.interaction.estimates <- rep(NA, 1000)
+    true.enhancer.1.estimates <- rep(NA, 1000)
+    true.enhancer.2.estimates <- rep(NA, 1000)
+    true.null.estimates <- rep(NA, 1000)
+
+    # get SNP 1 and SNP 2 from significant interaction
+    snp.1 <- ptprc.pairs$snp.1[i]
+    snp.2 <- ptprc.pairs$snp.2[i]
+
+    # get gRNAs corresponding to SNP 1 and SNP 2
     snp.1.guides <- ptprc.guides[ptprc.guides$Target == snp.1, ]$gRNA.ID 
-    snp.2.guides <- ptprc.guides[ptprc.guides$Target == snp.2, ]$gRNA.ID 
+    snp.2.guides <- ptprc.guides[ptprc.guides$Target == snp.2, ]$gRNA.ID
 
+    # create guide vectors for SNP 1 and SNP 2
     snp.1.guide.vector <- rep(0, ncol(grna))
 
     for (j in 1:length(snp.1.guides)) {
@@ -216,95 +342,48 @@ for (i in 1:nrow(significant.interactions)) {
 
     snp.2.guide.vector <- as.numeric(snp.2.guide.vector > 0)
 
-    interaction.vector <- snp.1.guide.vector * snp.2.guide.vector
-    print(sum(snp.1.guide.vector))
-    print(sum(snp.2.guide.vector))
+    # create model data frame
+    model.df <- cbind(snp.1.guide.vector, snp.2.guide.vector, percent.mito, scaling.factors, grna.counts, s.scores, g2m.scores, ptprc)
+    model.df <- data.frame(model.df)
 
-    interaction.counts <- ptprc[interaction.vector > 0]
+    # perform bootstrapping to obtain 100 estimates for interaction term
+    for (j in 1:1000) {
+        print(paste0('bootstrap iteration: ', j))
+        bootstrap.df <- model.df[sample(1:nrow(model.df), size = nrow(model.df), replace = TRUE), ]
+        mdl <- glm.nb(ptprc ~ snp.1.guide.vector * snp.2.guide.vector + percent.mito + grna.counts + s.scores + g2m.scores + offset(log(scaling.factors)), data = bootstrap.df)
 
-    snp.1.guide.vector[interaction.vector > 0] <- 0
-    snp.1.guide.counts <- ptprc[snp.1.guide.vector > 0]
+        true.interaction.estimates[j] <- summary(mdl)$coefficients['snp.1.guide.vector:snp.2.guide.vector', 'Estimate']
 
-    snp.2.guide.vector[interaction.vector > 0] <- 0
-    snp.2.guide.counts <- ptprc[snp.2.guide.vector > 0]
+        # remove cells with double perturbation
+        bootstrap.df <- bootstrap.df[bootstrap.df$snp.1.guide.vector * bootstrap.df$snp.2.guide.vector == 0, ]
+        print(dim(bootstrap.df))
+        mdl <- glm.nb(ptprc ~ snp.1.guide.vector + snp.2.guide.vector + percent.mito + grna.counts + s.scores + g2m.scores + offset(log(scaling.factors)), data = bootstrap.df)
 
-    dotplot.df <- data.frame(interaction.counts)
-    dotplot.df$x <- 'Test'
+        true.enhancer.1.estimates[j] <- summary(mdl)$coefficients['snp.1.guide.vector', 'Estimate']
+        true.enhancer.2.estimates[j] <- summary(mdl)$coefficients['snp.2.guide.vector', 'Estimate']
+        true.null.estimates[j] <- summary(mdl)$coefficients['(Intercept)', 'Estimate']
+    }
 
-    outlier.dotplot <- ggplot(dotplot.df, aes(x = x, y=interaction.counts)) +
-                         geom_dotplot(binaxis='y', stackdir='center', dotsize = 0.6) +
-                         theme_classic() +
-                         theme(
-                            axis.line = element_line(linewidth = 1),
-                            axis.title.x = element_text(size = 8, color = 'black'),
-                            axis.title.y = element_text(size = 10, color = 'black'),
-                            axis.text = element_text(size = 14, color = 'black'),
-                            axis.ticks = element_line(color = 'black', linewidth = 1),
-                            axis.ticks.length = unit(2, 'mm'),
-                            plot.margin = rep(unit(5, 'mm'), 4),
-                            plot.title = element_text(size = 10, hjust = 0.5),
-                            legend.position = 'none'
-                        ) + 
-                         xlab('') +
-                         ylab('Gene Expression Count')
-    
-    ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/23_12_14_', snp.1, '_', snp.2, '_dotplot.png'),
-        plot = outlier.dotplot,
-        device = 'png'
+    # write outputs to file
+    output.df <- data.frame(
+        cbind(
+            true.null.estimates,
+            true.enhancer.1.estimates,
+            true.enhancer.2.estimates,
+            true.interaction.estimates
+        )
     )
-
-    violin.df <- data.frame(interaction.counts)
-    colnames(violin.df) <- 'Count'
-    violin.df$Perturbation <- 'Guide 1 + Guide 2'
-    print(dim(violin.df))
-
-    temp.df <- data.frame(snp.1.guide.counts)
-    colnames(temp.df) <- 'Count'
-    temp.df$Perturbation <- 'Guide 1'
-    violin.df <- rbind(violin.df, temp.df)
-    print(dim(violin.df))
-
-    temp.df <- data.frame(snp.2.guide.counts)
-    colnames(temp.df) <- 'Count'
-    temp.df$Perturbation <- 'Guide 2'
-    violin.df <- rbind(violin.df, temp.df)
-    print(dim(violin.df))
-
-    any.perturbation <- snp.1.guide.vector + snp.2.guide.vector + interaction.vector
-    no.perturbation.counts <- ptprc[any.perturbation < 1]
-    temp.df <- data.frame(no.perturbation.counts)
-    colnames(temp.df) <- 'Count'
-    temp.df$Perturbation <- 'No Perturbation'
-    violin.df <- rbind(violin.df, temp.df)
-    print(dim(violin.df))
-
-    
-    plot <- ggplot(violin.df, aes(x = Perturbation, y = Count)) +
-        geom_violin()
-
-    ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_violin_plot.png'),
-        plot = plot,
-        device = 'png'
-    )
-
-    dotplot.df <- violin.df %>% group_by(Perturbation) %>% summarize(avg = mean(Count), sd = sd(Count))
-    dotplot.df$upper <- dotplot.df$avg + 2 * dotplot.df$sd
-    dotplot.df$lower <- dotplot.df$avg - 2 * dotplot.df$sd
-
-    plot <- ggplot(dotplot.df, aes(x = Perturbation, y = avg)) +
-        geom_point() +
-        geom_errorbar(aes(ymin = lower, ymax = upper)) +
-        theme_classic()
-
-    ggsave(
-        paste0('/iblm/netapp/home/karthik/GLiMMIRS/out/', snp.1, '_', snp.2, '_perturbation_dotplot.png'),
-        plot = plot,
-        device = 'png'
+    write.csv(
+        output.df,
+        paste0(
+            '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/processed/sting_seq_bootstrap/24_01_05_sting_seq_bootstrap_interactions_',
+            snp.1,
+            '_',
+            snp.2,
+            '.csv'
+        )
     )
 }
-
 
 
 
