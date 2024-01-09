@@ -60,6 +60,17 @@ enhancer.guide <- read.table(
     'data/experimental/raw/GSE120861_grna_groups.at_scale.txt.gz'
 )
 colnames(enhancer.guide) <- c('target.site', 'spacer')
+enhancer.guide$target.site <- sapply(
+    enhancer.guide$target.site,
+    FUN = function(x) {
+        if (startsWith(x, 'chr')) {
+            return (strsplit(x, '_')[[1]][1])
+        }
+        else {
+            return (x)
+        }
+    }
+)
 
 # write to h5 structure
 h5write(

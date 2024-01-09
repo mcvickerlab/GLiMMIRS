@@ -305,17 +305,17 @@ significant.interactions <- interaction.df[interaction.df$interaction.fdr.pvalue
 #     )
 # }
 
-for (i in 1:nrow(significant.interactions)) {
+for (i in 1:nrow(ptprc.pairs)) {
     
     # create vectors to hold estimate outputs
-    true.interaction.estimates <- rep(NA, 100)
-    true.enhancer.1.estimates <- rep(NA, 100)
-    true.enhancer.2.estimates <- rep(NA, 100)
-    true.null.estimates <- rep(NA, 100)
+    true.interaction.estimates <- rep(NA, 1000)
+    true.enhancer.1.estimates <- rep(NA, 1000)
+    true.enhancer.2.estimates <- rep(NA, 1000)
+    true.null.estimates <- rep(NA, 1000)
 
     # get SNP 1 and SNP 2 from significant interaction
-    snp.1 <- significant.interactions$snp.1.names[i]
-    snp.2 <- significant.interactions$snp.2.names[i]
+    snp.1 <- ptprc.pairs$snp.1[i]
+    snp.2 <- ptprc.pairs$snp.2[i]
 
     # get gRNAs corresponding to SNP 1 and SNP 2
     snp.1.guides <- ptprc.guides[ptprc.guides$Target == snp.1, ]$gRNA.ID 
@@ -347,7 +347,7 @@ for (i in 1:nrow(significant.interactions)) {
     model.df <- data.frame(model.df)
 
     # perform bootstrapping to obtain 100 estimates for interaction term
-    for (j in 1:100) {
+    for (j in 1:1000) {
         print(paste0('bootstrap iteration: ', j))
         bootstrap.df <- model.df[sample(1:nrow(model.df), size = nrow(model.df), replace = TRUE), ]
         mdl <- glm.nb(ptprc ~ snp.1.guide.vector * snp.2.guide.vector + percent.mito + grna.counts + s.scores + g2m.scores + offset(log(scaling.factors)), data = bootstrap.df)
@@ -376,7 +376,7 @@ for (i in 1:nrow(significant.interactions)) {
     write.csv(
         output.df,
         paste0(
-            '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/processed/sting_seq_bootstrap_interactions_',
+            '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/processed/sting_seq_bootstrap/24_01_05_sting_seq_bootstrap_interactions_',
             snp.1,
             '_',
             snp.2,
