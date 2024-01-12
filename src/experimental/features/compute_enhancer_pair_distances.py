@@ -18,7 +18,7 @@ enhancer_pairs = pd.read_csv(
     '/iblm/netapp/data1/external/Gasperini2019/processed/at_scale_enhancer_enhancer_pairs_both_cells_count_nodups.csv'
 )
 enhancer_pairs = enhancer_pairs[enhancer_pairs['count'] >= 10]
-gene_names = pd.read_csv('data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz',
+gene_names = pd.read_csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz',
                          names = ['gene'])
 enhancer_pairs = enhancer_pairs[enhancer_pairs['gene'].isin(gene_names['gene'])]
 
