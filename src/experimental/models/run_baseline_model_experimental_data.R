@@ -28,56 +28,69 @@ guide.info <- h5read(
     'grna/guide_info'
 )
 
+# read in guide matrix
+guide.matrix <- h5read(
+    h5.name,
+    'grna/guide_matrix'
+)
+guide.names <- h5read(
+    h5.name,
+    'grna/guide_names'
+)
+rownames(guide.matrix) <- guide.names
+barcodes <- h5read(
+    h5.name,
+    'grna/cell_barcodes'
+)
+colnames(guide.matrix) <- barcodes
 
-# read in and sort covariates
-print('reading in covariates!')
+# read in cell covariates
 covariates <- h5read(
-    file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    name = 'covariates'
+    h5.name,
+    'expr/cell_covariates'
 )
-cell.barcodes <- h5read(
-    file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    name = 'cell.barcodes'
-)
-covariates <- merge(
-    data.frame(cell.barcodes),
-    covariates,
-    by.x = 'cell.barcodes',
-    by.y = 'cell',
-    sort = FALSE
-)
-
-# read in guide efficiency information
-print('reading in guide efficiencies!')
-guide.efficiencies.table <- h5read(
-    '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    'guidescan.output'
-)
-guide.efficiencies.table$spacer <- substring(
-    guide.efficiencies.table$gRNA,
-    1,
-    nchar(guide.efficiencies.table$gRNA) - 3
-)
-
-# read in cell-guide matrix
-print('reading in cell-guide matrix!')
-cell.guide.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'cell.guide.matrix')
-guide.spacers <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'guide.spacers')
-colnames(cell.guide.matrix) <- guide.spacers
 
 # read in counts matrix
-print('reading in counts matrix!')
-counts.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.counts')
-gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.names')
-rownames(counts.matrix) <- gene.names
+expr.matrix <- h5read(
+    h5.name,
+    'expr/expr_matrix'
+)
+genes <- h5read(
+    h5.name,
+    'expr/gene_names'
+)
+rownames(expr.matrix) <- genes
+barcodes <- h5read(
+    h5.name,
+    'expr/cell_barcodes'
+)
+colnames(expr.matrix) <- barcodes
 
 # add pseudocount to count data
 pseudocount <- 0.01
-counts.matrix <- counts.matrix + pseudocount
+expr.matrix <- expr.matrix + pseudocount
 
 # compute scaling factors based on count matrix
-print('computing scaling factors!')
-scaling.factors <- colSums(counts.matrix) / 1e6
+# and add to covariates
+# the cell barcodes for the covariates and expression matrix will not match
+# otherwise!
+scaling.factors <- data.frame(colSums(expr.matrix) / 1e6)
+scaling.factors$cell <- rownames(scaling.factors)
+rownames(scaling.factors) <- NULL
+colnames(scaling.factors) <- c('scaling.factor', 'cell')
+covariates <- merge(
+    scaling.factors,
+    covariates,
+    by = 'cell',
+    sort = FALSE
+)
+
+
+
+
+
+
+
 
 enhancer.list <- rep(NA, nrow(enhancer.gene.pairs))
 gene.list <- rep(NA, nrow(enhancer.gene.pairs))
