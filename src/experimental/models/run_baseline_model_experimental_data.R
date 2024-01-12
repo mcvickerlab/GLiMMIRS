@@ -1,9 +1,33 @@
-# This program runs the baseline GLM model on all 664 enhancer-gene pairs previously published by
-# Gasperini et al. in 2019. This program was written by Karthik Guruvayurappan.
-# mamba environment: modeling
+# This script runs our "baseline" enhancer-gene model on the 664 enhancer-gene
+# pairs previously published by Gasperini et al. Our models differ by including
+# guide efficiency information and cell cycle scores.
+#
+# Author: Karthik Guruvayurappan
 
 library(MASS)
 library(rhdf5)
+
+# define h5 file name as a variable
+h5.name <- 'data/experimental/processed/gasperini_data.h5'
+
+# read in enhancer-gene pairs
+enhancer.gene <- h5read(
+    h5.name,
+    'enhancer_gene'
+)
+
+# read in enhancer-guide table
+enhancer.guide <- h5read(
+    h5.name,
+    'enhancer_guide'
+)
+
+# read in guide efficiency information
+guide.info <- h5read(
+    h5.name,
+    'grna/guide_info'
+)
+
 
 # read in and sort covariates
 print('reading in covariates!')
@@ -22,22 +46,6 @@ covariates <- merge(
     by.y = 'cell',
     sort = FALSE
 )
-
-# read in table mapping enhancers to spacers and reformat enhancer names
-print('reading in enhancer-to-spacer table!')
-enhancer.to.spacer.table <- read.table(
-    '/iblm/netapp/data1/external/Gasperini2019/suppl/GSE120861_grna_groups.at_scale.txt',
-    sep = '\t'
-)
-colnames(enhancer.to.spacer.table) <- c('target.site', 'spacer.sequence')
-enhancer.to.spacer.table$target.site <- sapply(enhancer.to.spacer.table$target.site, FUN = function(x) {
-    if (startsWith(x, 'chr')) {
-        return (strsplit(x, '_')[[1]][1])
-    }
-    else {
-        return (x)
-    }
-})
 
 # read in guide efficiency information
 print('reading in guide efficiencies!')
@@ -70,12 +78,6 @@ counts.matrix <- counts.matrix + pseudocount
 # compute scaling factors based on count matrix
 print('computing scaling factors!')
 scaling.factors <- colSums(counts.matrix) / 1e6
-
-# read in previously published enhancer gene pairs
-print('reading in enhancer gene pairs!')
-enhancer.gene.pairs <- read.csv(
-    '/iblm/netapp/data1/external/Gasperini2019/gasperini_enhancer_gene_pairs_suppl_table_2.csv'
-)
 
 enhancer.list <- rep(NA, nrow(enhancer.gene.pairs))
 gene.list <- rep(NA, nrow(enhancer.gene.pairs))

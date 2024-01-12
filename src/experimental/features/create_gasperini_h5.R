@@ -83,6 +83,11 @@ h5write(
 guide.info <- read.csv(
     'data/experimental/interim/guidescan_results.csv'
 )
+guide.info$spacer <- substring(
+    guide.info$gRNA,
+    1,
+    nchar(guide.info$gRNA) - 3
+)
 
 # write to h5 structure
 h5write(
