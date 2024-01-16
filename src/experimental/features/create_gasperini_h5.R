@@ -35,8 +35,22 @@ h5write(
 enhancer.enhancer.330 <- read.csv(
     'data/experimental/processed/enhancer_pairs_suppl_table_2.csv'
 )
-enhancer.enhancer.330$enhancer_1 <- tolower(enhancer.enhancer.330$enhancer_1)
-enhancer.enhancer.330$enhancer_2 <- tolower(enhancer.enhancer.330$enhancer_2)
+enhancer.enhancer.330$enhancer_1 <- paste0(
+    tolower(substring(enhancer.enhancer.330$enhancer_1, 1, 3)),
+    substring(
+        enhancer.enhancer.330$enhancer_1,
+        4,
+        nchar(enhancer.enhancer.330$enhancer_1)
+    )
+)
+enhancer.enhancer.330$enhancer_2 <- paste0(
+    tolower(substring(enhancer.enhancer.330$enhancer_2, 1, 3)),
+    substring(
+        enhancer.enhancer.330$enhancer_2,
+        4,
+        nchar(enhancer.enhancer.330$enhancer_2)
+    )
+)
 enhancer.enhancer.330$enhancer_1 <- sapply(
     enhancer.enhancer.330$enhancer_1,
     FUN = function(x) {
