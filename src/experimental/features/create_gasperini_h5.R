@@ -35,6 +35,30 @@ h5write(
 enhancer.enhancer.330 <- read.csv(
     'data/experimental/processed/enhancer_pairs_suppl_table_2.csv'
 )
+enhancer.enhancer.330$enhancer_1 <- tolower(enhancer.enhancer.330$enhancer_1)
+enhancer.enhancer.330$enhancer_2 <- tolower(enhancer.enhancer.330$enhancer_2)
+enhancer.enhancer.330$enhancer_1 <- sapply(
+    enhancer.enhancer.330$enhancer_1,
+    FUN = function(x) {
+        if (startsWith(x, 'chr')) {
+            return (strsplit(x, '_')[[1]][1])
+        }
+        else {
+            return (x)
+        }
+    }
+)
+enhancer.enhancer.330$enhancer_2 <- sapply(
+    enhancer.enhancer.330$enhancer_2,
+    FUN = function(x) {
+        if (startsWith(x, 'chr')) {
+            return (strsplit(x, '_')[[1]][1])
+        }
+        else {
+            return (x)
+        }
+    }
+)
 
 # write to h5 structure
 h5write(

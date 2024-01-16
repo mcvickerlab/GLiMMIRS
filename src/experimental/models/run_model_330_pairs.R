@@ -1,11 +1,22 @@
-# This program runs a generalized linear model on enhancer pairs determined by analyzing
-# the 664 enhancer-gene pairs published in the Gasperini et al. 2019 paper, and looking at
-# enhancers that target the same gene.
+# This script runs the GLiMMIRS model on the 330 enhancer-enhancer pairs
+# which were computed from the 664 previously published enhancer-gene pairs
+# from Gasperini et al.
 #
 # Author: Karthik Guruvayurappan
 
 library(rhdf5)
 library(MASS)
+
+# define h5 file name as a variable
+h5.name <- 'data/experimental/processed/gasperini_data.h5'
+
+# read in enhancer-enhancer pairs
+enhancer.pairs <- h5read(
+    h5.name,
+    'enhancer_enhancer_330'
+)
+
+
 
 # read in covariates
 print('reading in covariates!')
