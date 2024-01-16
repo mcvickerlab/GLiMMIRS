@@ -16,266 +16,281 @@ enhancer.pairs <- h5read(
     'enhancer_enhancer_330'
 )
 
-
-
-# read in covariates
-print('reading in covariates!')
-covariates <- h5read(
-    file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    name = 'covariates'
+# read in enhancer-guide table
+enhancer.guide <- h5read(
+    h5.name,
+    'enhancer_guide'
 )
-cell.barcodes <- h5read(
-    file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    name = 'cell.barcodes'
-)
-covariates <- merge(
-    data.frame(cell.barcodes),
-    covariates,
-    by.x = 'cell.barcodes',
-    by.y = 'cell',
-    sort = FALSE
-)
-
-# read in table mapping enhancers to spacers and reformat enhancer names
-print('reading in enhancer-to-spacer table!')
-enhancer.to.spacer.table <- read.table(
-    '/iblm/netapp/data1/external/Gasperini2019/suppl/GSE120861_grna_groups.at_scale.txt',
-    sep = '\t'
-)
-colnames(enhancer.to.spacer.table) <- c('target.site', 'spacer.sequence')
-enhancer.to.spacer.table$target.site <- sapply(enhancer.to.spacer.table$target.site, FUN = function(x) {
-    if (startsWith(x, 'chr')) {
-        return (strsplit(x, '_')[[1]][1])
-    }
-    else {
-        return (x)
-    }
-})
 
 # read in guide efficiency information
-print('reading in guide efficiencies!')
-guide.efficiencies.table <- h5read(
-    '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    'guidescan.output'
-)
-guide.efficiencies.table$spacer <- substring(
-    guide.efficiencies.table$gRNA,
-    1,
-    nchar(guide.efficiencies.table$gRNA) - 3
+guide.info <- h5read(
+    h5.name,
+    'grna/guide_info'
 )
 
-# read in cell-guide matrix
-print('reading in cell-guide matrix!')
-cell.guide.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'cell.guide.matrix')
-guide.spacers <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'guide.spacers')
-colnames(cell.guide.matrix) <- guide.spacers
+# read in guide matrix
+guide.matrix <- h5read(
+    h5.name,
+    'grna/guide_matrix'
+)
+guide.names <- h5read(
+    h5.name,
+    'grna/guide_names'
+)
+rownames(guide.matrix) <- guide.names
+barcodes <- h5read(
+    h5.name,
+    'grna/cell_barcodes'
+)
+colnames(guide.matrix) <- barcodes
+
+# read in cell covariates
+covariates <- h5read(
+    h5.name,
+    'expr/cell_covariates'
+)
 
 # read in counts matrix
-print('reading in counts matrix!')
-counts.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.counts')
-gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.names')
-rownames(counts.matrix) <- gene.names
+expr.matrix <- h5read(
+    h5.name,
+    'expr/expr_matrix'
+)
+genes <- h5read(
+    h5.name,
+    'expr/gene_names'
+)
+rownames(expr.matrix) <- genes
+barcodes <- h5read(
+    h5.name,
+    'expr/cell_barcodes'
+)
+colnames(expr.matrix) <- barcodes
 
 # add pseudocount to count data
 pseudocount <- 0.01
-counts.matrix <- counts.matrix + pseudocount
+expr.matrix <- expr.matrix + pseudocount
 
 # compute scaling factors based on count matrix
-print('computing scaling factors!')
-scaling.factors <- colSums(counts.matrix) / 1e6
+# and add to covariates
+# the cell barcodes for the covariates and expression matrix will not match
+# otherwise!
+scaling.factors <- data.frame(colSums(expr.matrix) / 1e6)
+scaling.factors$cell <- rownames(scaling.factors)
+rownames(scaling.factors) <- NULL
+colnames(scaling.factors) <- c('scaling.factor', 'cell')
+covariates <- merge(
+    scaling.factors,
+    covariates,
+    by = 'cell',
+    sort = FALSE
+)
 
-# read in enhancer-enhancer pairs
-enhancer.enhancer.pairs <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/enhancer_pairs_suppl_table_2.csv')
+# create vectors to hold model outputs
+enhancer.1.list <- rep(NA, nrow(enhancer.pairs))
+enhancer.2.list <- rep(NA, nrow(enhancer.pairs))
+gene.list <- rep(NA, nrow(enhancer.pairs))
 
-intercept.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-intercept.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.1.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.2.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-gene.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.1.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.1.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.2.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-enhancer.2.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-interaction.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-interaction.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-prep.batch.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-prep.batch.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-guide.count.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-guide.count.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-percent.mito.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-percent.mito.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-s.score.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-s.score.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-g2m.score.coeff.list <- rep(NA, nrow(enhancer.enhancer.pairs))
-g2m.score.pvalue.list <- rep(NA, nrow(enhancer.enhancer.pairs))
+intercept.effects <- rep(NA, nrow(enhancer.pairs))
+intercept.pvalues <- rep(NA, nrow(enhancer.pairs))
 
-for (i in 1:nrow(enhancer.enhancer.pairs)) {
+enhancer.1.effects <- rep(NA, nrow(enhancer.pairs))
+enhancer.1.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+enhancer.2.effects <- rep(NA, nrow(enhancer.pairs))
+enhancer.2.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+interaction.effects <- rep(NA, nrow(enhancer.pairs))
+interaction.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+prep.batch.effects <- rep(NA, nrow(enhancer.pairs))
+prep.batch.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+guide.count.effects <- rep(NA, nrow(enhancer.pairs))
+guide.count.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+percent.mito.effects <- rep(NA, nrow(enhancer.pairs))
+percent.mito.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+s.score.effects <- rep(NA, nrow(enhancer.pairs))
+s.score.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+g2m.score.effects <- rep(NA, nrow(enhancer.pairs))
+g2m.score.pvalues <- rep(NA, nrow(enhancer.pairs))
+
+
+for (i in 1:nrow(enhancer.pairs)) {
 
     # get name of enhancers and gene
-    enhancer.1 <- enhancer.enhancer.pairs[i, 'enhancer_1']
-    enhancer.2 <- enhancer.enhancer.pairs[i, 'enhancer_2']
-    gene <- enhancer.enhancer.pairs[i, 'gene']
+    enhancer.1 <- enhancer.pairs[i, 'enhancer_1']
+    enhancer.2 <- enhancer.pairs[i, 'enhancer_2']
+    gene <- enhancer.pairs[i, 'gene']
 
-    print(paste0('running model for ', enhancer.1, ' enhancer 1 and ', enhancer.2, ' enhancer 2 and ', gene, ' gene!'))
+    # print statement (for progress)
+    print(paste0(
+        'running ',
+        enhancer.1, 
+        ' and ', 
+        enhancer.2, 
+        ' and ',
+        gene, '!'
+    ))
 
-    enhancer.1.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.1, ]$spacer.sequence
-    enhancer.2.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.2, ]$spacer.sequence
+    # get enhancer spacer sequences for enhancers 1 and 2
+    enh.1.spacers <- enhancer.guide[
+        enhancer.guide$target.site == enhancer.1,
+        'spacer'
+    ]
+    enh.2.spacers <- enhancer.guide[
+        enhancer.guide$target.site == enhancer.2,
+        'spacer'
+    ]
 
-    # get guide effiencies corresponding to spacers
-    enhancer.1.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.1.spacers, c('spacer', 'Cutting.Efficiency')]
-    enhancer.2.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.2.spacers, c('spacer', 'Cutting.Efficiency')]
+    # get spacer guide efficiencies and set NAs to 0
+    enh.1.efficiencies <- guide.info[guide.info$spacer %in% enh.1.spacers, ]
+    enh.1.efficiencies <- enh.1.efficiencies[
+        , 
+        c('spacer', 'Cutting.Efficiency')
+    ]
+    enh.1.efficiencies[is.na(enh.1.efficiencies)] <- 0
 
-    enhancer.1.spacers.efficiencies[is.na(enhancer.1.spacers.efficiencies)] <- 0
-    enhancer.2.spacers.efficiencies[is.na(enhancer.2.spacers.efficiencies)] <- 0
+    enh.2.efficiencies <- guide.info[guide.info$spacer %in% enh.2.spacers, ]
+    enh.2.efficiencies <- enh.2.efficiencies[
+        , 
+        c('spacer', 'Cutting.Efficiency')
+    ]
+    enh.2.efficiencies[is.na(enh.2.efficiencies)] <- 0
 
-    enhancer.1.indicator.probs <- rep(1, nrow(cell.guide.matrix))
-
-    for (j in 1:nrow(enhancer.1.spacers.efficiencies)) {
-        guide.spacer <- enhancer.1.spacers.efficiencies$spacer[j]
-        guide.efficiency <- enhancer.1.spacers.efficiencies$Cutting.Efficiency[j]
-        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
-        guide.probs <- 1 - (guide.indicator.vector * guide.efficiency)
-        enhancer.1.indicator.probs <- enhancer.1.indicator.probs * guide.probs
+    # compute guide perturbation vector by computing 1 - (no perturbation prob)
+    enh.1.no.perturbation <- rep(1, ncol(guide.matrix))
+    for (j in 1:nrow(enh.1.efficiencies)) {
+        spacer <- enh.1.efficiencies[j, 'spacer']
+        efficiency <- enh.1.efficiencies[j, 'Cutting.Efficiency']
+        spacer.vector <- guide.matrix[spacer, ]
+        spacer.perturbation <- spacer.vector * efficiency
+        spacer.no.perturbation <- 1 - spacer.perturbation
+        enh.1.no.perturbation <- enh.1.no.perturbation * spacer.no.perturbation
     }
+    enh.1.perturbation <- 1 - enh.1.no.perturbation
 
-    enhancer.1.indicator.probs <- 1 - enhancer.1.indicator.probs
-    enhancer.1.indicator.vector <- enhancer.1.indicator.probs
-
-    enhancer.2.indicator.probs <- rep(1, nrow(cell.guide.matrix))
-
-    for (j in 1:nrow(enhancer.2.spacers.efficiencies)) {
-        guide.spacer <- enhancer.2.spacers.efficiencies$spacer[j]
-        guide.efficiency <- enhancer.2.spacers.efficiencies$Cutting.Efficiency[j]
-        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
-        guide.probs <- 1 - (guide.indicator.vector * guide.efficiency)
-        enhancer.2.indicator.probs <- enhancer.2.indicator.probs * guide.probs
+    enh.2.no.perturbation <- rep(1, ncol(guide.matrix))
+    for (j in 1:nrow(enh.2.efficiencies)) {
+        spacer <- enh.2.efficiencies[j, 'spacer']
+        efficiency <- enh.2.efficiencies[j, 'Cutting.Efficiency']
+        spacer.vector <- guide.matrix[spacer, ]
+        spacer.perturbation <- spacer.vector * efficiency
+        spacer.no.perturbation <- 1 - spacer.perturbation
+        enh.2.no.perturbation <- enh.2.no.perturbation * spacer.no.perturbation
     }
+    enh.2.perturbation <- 1 - enh.2.no.perturbation
 
-    enhancer.2.indicator.probs <- 1 - enhancer.2.indicator.probs
-    enhancer.2.indicator.vector <- enhancer.2.indicator.probs
+    # get gene counts
+    gene.counts <- expr.matrix[gene, ]
 
-    # get gene counts for gene
-    gene.counts <- counts.matrix[gene, ]
-
-    # create dataframe for modeling
-    model.df <- cbind(covariates, enhancer.1.indicator.vector, enhancer.2.indicator.vector, gene.counts)
-
-    # fit negative binomial GLM model
+    # fit negative binomial GLM
+    model.df <- cbind(
+        enh.1.perturbation,
+        enh.2.perturbation,
+        gene.counts,
+        covariates
+    )
+    model.formula <- as.formula(paste0(
+        'gene.counts ~ ',
+        'enh.1.perturbation * ',
+        'enh.2.perturbation + ',
+        'prep_batch + ',
+        'guide_count + ',
+        'percent.mito + ',
+        's.score + ',
+        'g2m.score + ',
+        'offset(log(scaling.factor))'
+    ))
     model <- glm.nb(
-        formula = gene.counts ~ enhancer.1.indicator.vector * enhancer.2.indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(log(scaling.factors)),
+        formula = model.formula,
         data = model.df
     )
 
+    # store model outputs
     enhancer.1.list[i] <- enhancer.1
     enhancer.2.list[i] <- enhancer.2
     gene.list[i] <- gene
-    if ('(Intercept)' %in% rownames(summary(model)$coefficients)){
-        intercept.coeff.list[i] <- summary(model)$coefficients['(Intercept)', 'Estimate']
-        intercept.pvalue.list[i] <- summary(model)$coefficients['(Intercept)', 'Pr(>|z|)']
 
-    }
-    else {
-        intercept.coeff.list[i] <- NA
-        intercept.pvalue.list[i] <- NA
-    }
-    if ('enhancer.1.indicator.vector' %in% rownames(summary(model)$coefficients)){
-        enhancer.1.coeff.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Estimate']
-        enhancer.1.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector', 'Pr(>|z|)']
+    model.coeffs <- summary(model)$coefficients
 
+    # write out enhancer and interaction coefficients and pvalues
+    if ('enh.1.perturbation' %in% rownames(model.coeffs)){
+        enhancer.1.effects[i] <- model.coeffs['enh.1.perturbation', 'Estimate']
+        enhancer.1.pvalues[i] <- model.coeffs['enh.1.perturbation', 'Pr(>|z|)']
     }
-    else {
-        enhancer.1.coeff.list[i] <- NA
-        enhancer.1.pvalue.list[i] <- NA
+    if ('enh.2.perturbation' %in% rownames(model.coeffs)){
+        enhancer.2.effects[i] <- model.coeffs['enh.2.perturbation', 'Estimate']
+        enhancer.2.pvalues[i] <- model.coeffs['enh.2.perturbation', 'Pr(>|z|)']
     }
-
-    if ('enhancer.2.indicator.vector' %in% rownames(summary(model)$coefficients)){
-        enhancer.2.coeff.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Estimate']
-        enhancer.2.pvalue.list[i] <- summary(model)$coefficients['enhancer.2.indicator.vector', 'Pr(>|z|)']
-
-    }
-    else {
-        enhancer.2.coeff.list[i] <- NA
-        enhancer.2.pvalue.list[i] <- NA
+    if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.coeffs)){
+        interaction.effects[i] <- model.coeffs[
+            'enh.1.perturbation:enh.2.perturbation',
+            'Estimate'
+        ]
+        interaction.pvalues[i] <- model.coeffs[
+            'enh.1.perturbation:enh.2.perturbation',
+            'Pr(>|z|)'
+        ]
     }
 
-    if ('enhancer.1.indicator.vector:enhancer.2.indicator.vector' %in% rownames(summary(model)$coefficients)){
-        interaction.coeff.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector:enhancer.2.indicator.vector', 'Estimate']
-        interaction.pvalue.list[i] <- summary(model)$coefficients['enhancer.1.indicator.vector:enhancer.2.indicator.vector', 'Pr(>|z|)']
+    # write intercept information
+    intercept.effects[i] <- model.coeffs['(Intercept)', 'Estimate']
+    intercept.pvalues[i] <- model.coeffs['(Intercept)', 'Pr(>|z|)']
 
-    }
-    else {
-        interaction.coeff.list[i] <- NA
-        interaction.pvalue.list[i] <- NA
-    }
+    # store covariate information
+    prep.batch.effects[i] <- model.coeffs[
+        'prep_batchprep_batch_2',
+        'Estimate'
+    ]
+    prep.batch.pvalues[i] <- model.coeffs[
+        'prep_batchprep_batch_2',
+        'Pr(>|z|)'
+    ]
 
-    if ('prep_batch' %in% rownames(summary(model)$coefficients)){
-        prep.batch.coeff.list[i] <- summary(model)$coefficients['prep_batch', 'Estimate']
-        prep.batch.pvalue.list[i] <- summary(model)$coefficients['prep_batch', 'Pr(>|z|)']
+    guide.count.effects[i] <- model.coeffs['guide_count', 'Estimate']
+    guide.count.pvalues[i] <- model.coeffs['guide_count', 'Pr(>|z|)']
 
-    }
-    else {
-        prep.batch.coeff.list[i] <- NA
-        prep.batch.pvalue.list[i] <- NA
-    }
+    percent.mito.effects[i] <- model.coeffs['percent.mito', 'Estimate']
+    percent.mito.pvalues[i] <- model.coeffs['percent.mito', 'Pr(>|z|)']
 
-    if ('guide_count' %in% rownames(summary(model)$coefficients)){
-        guide.count.coeff.list[i] <- summary(model)$coefficients['guide_count', 'Estimate']
-        guide.count.pvalue.list[i] <- summary(model)$coefficients['guide_count', 'Pr(>|z|)']
+    s.score.effects[i] <- model.coeffs['s.score', 'Estimate']
+    s.score.pvalues[i] <- model.coeffs['s.score', 'Pr(>|z|)']
 
-    }
-    else {
-        guide.count.coeff.list[i] <- NA
-        guide.count.pvalue.list[i] <- NA
-    }
-
-    if ('percent.mito' %in% rownames(summary(model)$coefficients)){
-        percent.mito.coeff.list[i] <- summary(model)$coefficients['percent.mito', 'Estimate']
-        percent.mito.pvalue.list[i] <- summary(model)$coefficients['percent.mito', 'Pr(>|z|)']
-
-    }
-    else {
-        percent.mito.coeff.list[i] <- NA
-        percent.mito.pvalue.list[i] <- NA
-    }
-
-    if ('s.score' %in% rownames(summary(model)$coefficients)){
-        s.score.coeff.list[i] <- summary(model)$coefficients['s.score', 'Estimate']
-        s.score.pvalue.list[i] <- summary(model)$coefficients['s.score', 'Pr(>|z|)']
-
-    }
-    else {
-        s.score.coeff.list[i] <- NA
-        s.score.pvalue.list[i] <- NA
-    }
-
-    if ('g2m.score' %in% rownames(summary(model)$coefficients)){
-        g2m.score.coeff.list[i] <- summary(model)$coefficients['g2m.score', 'Estimate']
-        g2m.score.pvalue.list[i] <- summary(model)$coefficients['g2m.score', 'Pr(>|z|)']
-
-    }
-    else {
-        g2m.score.coeff.list[i] <- NA
-        g2m.score.pvalue.list[i] <- NA
-    }
+    g2m.score.effects[i] <- model.coeffs['g2m.score', 'Estimate']
+    g2m.score.pvalues[i] <- model.coeffs['g2m.score', 'Pr(>|z|)']
 }
 
-# write to output file
-print('writing p-values to output file!')
-pvalue.table <- cbind(
-    intercept.coeff.list, intercept.pvalue.list,
-    enhancer.1.list, enhancer.2.list, gene.list,
-    enhancer.1.coeff.list, enhancer.1.pvalue.list,
-    enhancer.2.coeff.list, 
-    enhancer.2.pvalue.list,
-    interaction.coeff.list, interaction.pvalue.list, 
-    prep.batch.coeff.list, prep.batch.pvalue.list,
-    guide.count.coeff.list, guide.count.pvalue.list,
-    percent.mito.coeff.list, percent.mito.pvalue.list,
-    s.score.coeff.list, s.score.pvalue.list,
-    g2m.score.coeff.list, g2m.score.pvalue.list)
+# write model outputs to file
+model.table <- cbind(
+    enhancer.1.list,
+    enhancer.2.list,
+    gene.list,
+    intercept.effects,
+    intercept.pvalues,
+    enhancer.1.effects,
+    enhancer.1.pvalues,
+    enhancer.2.effects,
+    enhancer.2.pvalues,
+    interaction.effects,
+    interaction.pvalues,
+    prep.batch.effects,
+    prep.batch.pvalues,
+    guide.count.effects,
+    guide.count.pvalues,
+    percent.mito.effects,
+    percent.mito.pvalues,
+    s.score.effects,
+    s.score.pvalues,
+    g2m.score.effects,
+    g2m.score.pvalues
+)
 
 write.csv(
-    pvalue.table,
-    '/iblm/netapp/data1/external/Gasperini2019/processed/23_10_31_enhancer_enhancer_pairs_suppl_table_2_pseudocount_model_enhancer_effects.csv',
-    row.names = FALSE
+    model.table,
+    'data/experimental/processed/enhancer_pairs_330_models.csv',
+    row.names = FALSE,
+    quote = FALSE
 )
