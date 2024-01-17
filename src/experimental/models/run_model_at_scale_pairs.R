@@ -12,33 +12,32 @@ args = commandArgs(trailingOnly=TRUE)
 # # define h5 file name as a variable
 h5.name <- 'data/experimental/processed/gasperini_data.h5'
 
-# # read in enhancer-enhancer pairs
-# enhancer.pairs <- h5read(
-#     h5.name,
-#     'enhancer_enhancer_330'
-# )
+# read in enhancer-enhancer pairs
+enhancer.pairs <- read.csv(
+    args[1]
+)
 
-# # read in enhancer-guide table
-# enhancer.guide <- h5read(
-#     h5.name,
-#     'enhancer_guide'
-# )
+# read in enhancer-guide table
+enhancer.guide <- h5read(
+    h5.name,
+    'enhancer_guide'
+)
 
 # # read in guide efficiency information
-# guide.info <- h5read(
-#     h5.name,
-#     'grna/guide_info'
-# )
+guide.info <- h5read(
+    h5.name,
+    'grna/guide_info'
+)
 
-# # read in guide matrix
+# # read in guide matrix info but not matrix (for memory)
 # guide.matrix <- h5read(
 #     h5.name,
 #     'grna/guide_matrix'
 # )
-# guide.names <- h5read(
-#     h5.name,
-#     'grna/guide_names'
-# )
+guide.names <- h5read(
+    h5.name,
+    'grna/guide_names'
+)
 # rownames(guide.matrix) <- guide.names
 # barcodes <- h5read(
 #     h5.name,

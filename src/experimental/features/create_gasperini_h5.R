@@ -134,6 +134,55 @@ h5write(
     'grna/guide_info'
 )
 
+# read in expression matrix
+expr.matrix <- readMM(
+    'data/experimental/raw/GSE120861_at_scale_screen.exprs.mtx.gz'
+)
+
+# convert to dense matrix representation (for h5)
+expr.matrix <- as.matrix(expr.matrix)
+
+# define data dimensionality and chunk size
+h5createDataset(
+    h5.name,
+    'expr/expr_matrix',
+    c(nrow(expr.matrix), ncol(expr.matrix)),
+    storage.mode = 'integer',
+    chunk = c(2000, ncol(expr.matrix))
+)
+
+# write to h5 file
+h5write(
+    expr.matrix,
+    h5.name,
+    'expr/expr_matrix'
+)
+
+
+# write gene names to h5 structure
+genes <- read.table(
+    'data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz'
+)
+genes <- genes$V1
+
+h5write(
+    genes,
+    h5.name,
+    'expr/gene_names'
+)
+
+# write cell barcodes to h5 structure
+barcodes <- read.table(
+    'data/experimental/raw/GSE120861_at_scale_screen.cells.txt.gz'
+)
+barcodes <- barcodes$V1
+
+h5write(
+    barcodes,
+    h5.name,
+    'expr/cell_barcodes'
+)
+
 # read in phenodata file (for covariates)
 covariates <- read.table(
     'data/experimental/raw/GSE120861_at_scale_screen.phenoData.txt.gz'
@@ -174,59 +223,39 @@ colnames(g2m.scores) <- c('cell', 'g2m.score')
 covariates <- merge(covariates, s.scores)
 covariates <- merge(covariates, g2m.scores)
 
+# read in counts matrix
+expr.matrix <- h5read(
+    h5.name,
+    'expr/expr_matrix'
+)
+genes <- h5read(
+    h5.name,
+    'expr/gene_names'
+)
+rownames(expr.matrix) <- genes
+barcodes <- h5read(
+    h5.name,
+    'expr/cell_barcodes'
+)
+colnames(expr.matrix) <- barcodes
+
+# compute scaling factors and add to covariates
+scaling.factors <- data.frame(colSums(expr.matrix) / 1e6)
+scaling.factors$cell <- rownames(scaling.factors)
+rownames(scaling.factors) <- NULL
+colnames(scaling.factors) <- c('scaling.factor', 'cell')
+covariates <- merge(
+    scaling.factors,
+    covariates,
+    by = 'cell',
+    sort = FALSE
+)
+
 # write to h5 structure
 h5write(
     covariates,
     h5.name,
     'expr/cell_covariates'
-)
-
-# read in expression matrix
-expr.matrix <- readMM(
-    'data/experimental/raw/GSE120861_at_scale_screen.exprs.mtx.gz'
-)
-
-# convert to dense matrix representation (for h5)
-expr.matrix <- as.matrix(expr.matrix)
-
-# define data dimensionality and chunk size
-h5createDataset(
-    h5.name,
-    'expr/expr_matrix',
-    c(nrow(expr.matrix), ncol(expr.matrix)),
-    storage.mode = 'integer',
-    chunk = c(2000, ncol(expr.matrix))
-)
-
-# write to h5 file
-h5write(
-    expr.matrix,
-    h5.name,
-    'expr/expr_matrix'
-)
-
-# write gene names to h5 structure
-genes <- read.table(
-    'data/experimental/raw/GSE120861_at_scale_screen.genes.txt.gz'
-)
-genes <- genes$V1
-
-h5write(
-    genes,
-    h5.name,
-    'expr/gene_names'
-)
-
-# write cell barcodes to h5 structure
-barcodes <- read.table(
-    'data/experimental/raw/GSE120861_at_scale_screen.cells.txt.gz'
-)
-barcodes <- barcodes$V1
-
-h5write(
-    barcodes,
-    h5.name,
-    'expr/cell_barcodes'
 )
 
 # read in guide matrix
