@@ -49,6 +49,7 @@ covariates <- h5read(
     h5.name,
     'expr/cell_covariates'
 )
+covariates$scaling.factor <- as.vector(covariates$scaling.factor)
 
 # read in counts matrix
 expr.matrix <- h5read(
@@ -69,21 +70,6 @@ colnames(expr.matrix) <- barcodes
 # add pseudocount to count data
 pseudocount <- 0.01
 expr.matrix <- expr.matrix + pseudocount
-
-# compute scaling factors based on count matrix
-# and add to covariates
-# the cell barcodes for the covariates and expression matrix will not match
-# otherwise!
-scaling.factors <- data.frame(colSums(expr.matrix) / 1e6)
-scaling.factors$cell <- rownames(scaling.factors)
-rownames(scaling.factors) <- NULL
-colnames(scaling.factors) <- c('scaling.factor', 'cell')
-covariates <- merge(
-    scaling.factors,
-    covariates,
-    by = 'cell',
-    sort = FALSE
-)
 
 # create vectors to hold model outputs
 enhancer.1.list <- rep(NA, nrow(enhancer.pairs))
