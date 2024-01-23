@@ -64,10 +64,6 @@ genes <- h5read(
 # )
 # colnames(expr.matrix) <- barcodes
 
-# # add pseudocount to count data
-pseudocount <- 0.01
-expr.matrix <- expr.matrix + pseudocount
-
 # # create vectors to hold model outputs
 enhancer.1.list <- rep(NA, nrow(enhancer.pairs))
 enhancer.2.list <- rep(NA, nrow(enhancer.pairs))
@@ -183,6 +179,10 @@ for (i in 1:nrow(enhancer.pairs)) {
         'expr/expr_matrix',
         index = list(gene.index, NULL)
     )
+
+    # add pseudocount to gene counts
+    pseudocount <- 0.01
+    gene.counts <- gene.counts + pseudocount
 
     # fit negative binomial GLM
     enh.1.perturbation <- t(enh.1.perturbation)[,1]
