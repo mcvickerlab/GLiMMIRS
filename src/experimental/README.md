@@ -76,6 +76,8 @@ Conda Environment: ```envs/modeling.yaml```
 
 We now have all of the required input data to run GLiMMIRS-base, which runs on enhancer-gene pairs. We run GLiMMIRS-base on the 664 enhancer-gene pairs that were previously published in the Gasperini et al. paper. The key differences between our model and the previously published model are the inclusion of guide efficiency information and cell cycle scores.
 
+In addition, we ran two negative control experiments using GLiMMIRS-base. The first was where we mismatched genes. Here, instead of testing an enhancer's effect on its previously published target gene, we tested the enhancer's effect against a randomly selected gene. The second negative control was where we shuffled the perturbations assigned to each cell. The scripts for running these negative control analyses can be found at ```models/run_baseline_model_neg_mismatch_gene.R``` and ```models/run_baseline_models_neg_shuffled_guides.R``` for the mismatched gene and shuffled perturbation analyses, respectively.
+
 
 
 
