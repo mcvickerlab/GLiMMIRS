@@ -41,6 +41,7 @@ plot <- ggplot(models, aes(
     color = is.significant
     )) +
     geom_point() +
+    geom_abline(slope = 1, intercept = 0) +
     theme_classic() + 
     scale_color_manual(
         breaks = c(TRUE, FALSE),
