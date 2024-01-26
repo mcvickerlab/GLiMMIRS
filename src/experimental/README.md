@@ -69,6 +69,15 @@ Conda Environment: ```envs/hdf5.yaml```
 
 A key metric for GLiMMIRS is the number of cells that recieve a perturbation to both enhancers in an enhancer-enhancer pair. For each enhancer-enhancer pair from the Gasperini at-scale data, this script computes the number of cells with both enhancers perturbed. Furthermore, this script also records the number of cells with each individual perturbation. The outputs are stored in CSV files for downstream plotting scripts.
 
+### Step 10: Run enhancer-gene models on the previously published 664 enhancer-gene pairs.
+Script: ```models/run_baseline_model.R```
+
+Conda Environment: ```envs/modeling.yaml```
+
+We now have all of the required input data to run GLiMMIRS-base, which runs on enhancer-gene pairs. We run GLiMMIRS-base on the 664 enhancer-gene pairs that were previously published in the Gasperini et al. paper. The key differences between our model and the previously published model are the inclusion of guide efficiency information and cell cycle scores.
+
+
+
 
 
 
