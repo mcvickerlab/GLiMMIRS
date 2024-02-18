@@ -161,23 +161,86 @@ for (i in 1:nrow(significant.results)) {
         'offset(log(scaling.factor))'
     ))
 
-    # initialize empty vectors to store outputs
-    permutation.interaction.coeffs <- rep(NA, 1000)
-    permutation.interaction.pvalues <- rep(NA, 1000)
+    # implement adaptive permutation scheme
+    current.iters <- 100
+    not.converged <- TRUE
+    permutation.outputs.df <- data.frame()
 
-    for (j in 1:1000) {
+    while ((current.iters <= 10000) & not.converged) {
 
-        print(paste0('iteration ', j))
+        # define empty vectors to hold model outputs
+        intercept.effects <- rep(NA, current.iters)
+        intercept.pvalues <- rep(NA, current.iters)
 
-        # shuffle perturbations -> null distribution of interactions
-        perturbations.df <- model.df[
-            ,
-            c('enh.1.perturbation', 'enh.2.perturbation')
-        ]
-        perturbations.df <- perturbations.df[sample(nrow(perturbations.df)), ]
+        enhancer.1.effects <- rep(NA, current.iters)
+        enhancer.1.pvalues <- rep(NA, current.iters)
 
-        model.df$enh.1.perturbation <- perturbations.df$enh.1.perturbation
-        model.df$enh.2.perturbation <- perturbations.df$enh.2.perturbation
+        enhancer.2.effects <- rep(NA, current.iters)
+        enhancer.2.pvalues <- rep(NA, current.iters)
+
+        interaction.effects <- rep(NA, current.iters)
+        interaction.pvalues <- rep(NA, current.iters)
+
+
+        for (j in 1:current.iters) {
+
+            # shuffle perturbations -> null distribution of interactions
+            perturbations.df <- model.df[
+                ,
+                c('enh.1.perturbation', 'enh.2.perturbation')
+            ]
+            perturbations.df <- perturbations.df[
+                sample(nrow(perturbations.df)), 
+            ]
+            permutation.df <- model.df
+            permutation.df$enh.1.perturbation <- perturbations.df$enh.1.perturbation
+            permutation.df$enh.2.perturbation <- perturbations.df$enh.2.perturbation
+
+            # refit model with resampled cells
+            model <- glm.nb(
+                formula = model.formula,
+                data = permutation.df
+            )
+
+            model.coeffs <- summary(model)$coefficients
+
+            # write out enhancer and interaction coefficients and pvalues
+            if ('enh.1.perturbation' %in% rownames(model.coeffs)){
+                enhancer.1.effects[i] <- model.coeffs['enh.1.perturbation', 'Estimate']
+                enhancer.1.pvalues[i] <- model.coeffs['enh.1.perturbation', 'Pr(>|z|)']
+            }
+            if ('enh.2.perturbation' %in% rownames(model.coeffs)){
+                enhancer.2.effects[i] <- model.coeffs['enh.2.perturbation', 'Estimate']
+                enhancer.2.pvalues[i] <- model.coeffs['enh.2.perturbation', 'Pr(>|z|)']
+            }
+            if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.coeffs)){
+                interaction.effects[i] <- model.coeffs[
+                    'enh.1.perturbation:enh.2.perturbation',
+                    'Estimate'
+                ]
+                interaction.pvalues[i] <- model.coeffs[
+                    'enh.1.perturbation:enh.2.perturbation',
+                    'Pr(>|z|)'
+                ]
+            }
+
+            # write intercept information
+            intercept.effects[i] <- model.coeffs['(Intercept)', 'Estimate']
+            intercept.pvalues[i] <- model.coeffs['(Intercept)', 'Pr(>|z|)']
+        }
+
+
+
+        # increase permutations if significant
+        current.iters <- current.iters * 10
+    }
+
+
+
+
+
+
+
         
         # refit model with resampled cells
         model <- glm.nb(
