@@ -229,54 +229,40 @@ for (i in 1:nrow(significant.results)) {
             intercept.pvalues[i] <- model.coeffs['(Intercept)', 'Pr(>|z|)']
         }
 
+        true.interaction.coeff <- significant.results[i, 'interaction.effects']
+        perm.interaction.coeffs <- interaction.effects[!is.na(interaction.effects)]
+        perm.pvalue <- sum(abs(perm.interaction.coeffs) > abs(true.interaction.coeff)) / length(perm.interaction.coeffs)
 
+        # stop early if p-value is insignificant
+        if ((perm.pvalue > 0.1) | (current.iters == 10000)) {
+            not.converged <- FALSE
+            permutation.outputs.df <- data.frame(cbind(
+                intercept.effects,
+                intercept.pvalues,
+                enhancer.1.effects,
+                enhancer.1.pvalues,
+                enhancer.2.effects,
+                enhancer.2.pvalues,
+                interaction.effects,
+                interaction.pvalues
+            ))
+        }
 
         # increase permutations if significant
         current.iters <- current.iters * 10
     }
 
-
-
-
-
-
-
-        
-        # refit model with resampled cells
-        model <- glm.nb(
-            formula = model.formula,
-            data = model.df
-        )
-
-        # store model outputs
-        model.values <- summary(model)$coefficients
-        if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.values)) {
-            permutation.interaction.coeffs[j] <- model.values[
-                'enh.1.perturbation:enh.2.perturbation',
-                'Estimate'
-            ]
-            permutation.interaction.pvalues[j] <- model.values[
-                'enh.1.perturbation:enh.2.perturbation',
-                'Pr(>|z|)'
-            ]
-        }
-    }
-
-    # write estimates and p-values to outputs
-    output.df <- data.frame(cbind(
-        permutation.interaction.coeffs,
-        permutation.interaction.pvalues
-    ))
+    # write out permutation estimate and p-values
     write.csv(
-        output.df,
+        permutation.outputs.df,
         paste0(
-            'data/experimental/processed/permutation_test_results/',
+            'data/experimental/processed/adaptive_permutation_test_results/',
             enhancer.1,
             '_',
             enhancer.2,
             '_',
             gene,
-            '_1000_permutations.csv'
+            '_adaptive_permutations.csv'
         ),
         row.names = FALSE,
         quote = FALSE
