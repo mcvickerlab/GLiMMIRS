@@ -53,12 +53,10 @@ genes <- h5read(
 # iterate through significant results and generate permutations
 for (i in 1:nrow(significant.results)) {
 
-    # create vectors to hold outputs
-
     # define enhancers and gene
-    enhancer.1 <- significant.results[i, 'enhancer.1']
-    enhancer.2 <- significant.results[i, 'enhancer.2']
-    gene <- significant.results[i, 'gene']
+    enhancer.1 <- significant.results[i, 'enhancer.1.list']
+    enhancer.2 <- significant.results[i, 'enhancer.2.list']
+    gene <- significant.results[i, 'gene.list']
 
     # print statement (for progress tracking)
     print(paste0(
@@ -96,22 +94,32 @@ for (i in 1:nrow(significant.results)) {
     enh.2.efficiencies[is.na(enh.2.efficiencies)] <- 0
 
     # compute guide perturbation vector by computing 1 - (no perturbation prob)
-    enh.1.no.perturbation <- rep(1, ncol(guide.matrix))
+    enh.1.no.perturbation <- rep(1, nrow(covariates))
     for (j in 1:nrow(enh.1.efficiencies)) {
         spacer <- enh.1.efficiencies[j, 'spacer']
         efficiency <- enh.1.efficiencies[j, 'Cutting.Efficiency']
-        spacer.vector <- guide.matrix[spacer, ]
+        spacer.index <- match(spacer, guide.names)
+        spacer.vector <- h5read(
+            h5.name,
+            'grna/guide_matrix',
+            index = list(spacer.index, NULL)
+        )
         spacer.perturbation <- spacer.vector * efficiency
         spacer.no.perturbation <- 1 - spacer.perturbation
         enh.1.no.perturbation <- enh.1.no.perturbation * spacer.no.perturbation
     }
     enh.1.perturbation <- 1 - enh.1.no.perturbation
 
-    enh.2.no.perturbation <- rep(1, ncol(guide.matrix))
+    enh.2.no.perturbation <- rep(1, nrow(covariates))
     for (j in 1:nrow(enh.2.efficiencies)) {
         spacer <- enh.2.efficiencies[j, 'spacer']
         efficiency <- enh.2.efficiencies[j, 'Cutting.Efficiency']
-        spacer.vector <- guide.matrix[spacer, ]
+        spacer.index <- match(spacer, guide.names)
+        spacer.vector <- h5read(
+            h5.name,
+            'grna/guide_matrix',
+            index = list(spacer.index, NULL)
+        )
         spacer.perturbation <- spacer.vector * efficiency
         spacer.no.perturbation <- 1 - spacer.perturbation
         enh.2.no.perturbation <- enh.2.no.perturbation * spacer.no.perturbation
@@ -119,15 +127,28 @@ for (i in 1:nrow(significant.results)) {
     enh.2.perturbation <- 1 - enh.2.no.perturbation
 
     # get gene counts
-    gene.counts <- expr.matrix[gene, ]
+    gene.index <- match(gene, genes)
+    gene.counts <- h5read(
+        h5.name,
+        'expr/expr_matrix',
+        index = list(gene.index, NULL)
+    )
 
-    # create data frame and formula for modeling
-    model.df <- data.frame(cbind(
+    # add pseudocount to gene counts
+    pseudocount <- 0.01
+    gene.counts <- gene.counts + pseudocount
+
+    # fit negative binomial GLM
+    enh.1.perturbation <- t(enh.1.perturbation)[,1]
+    enh.2.perturbation <- t(enh.2.perturbation)[,1]
+    gene.counts <- t(gene.counts)[,1]
+    covariates$scaling.factor <- as.vector(covariates$scaling.factor)
+    model.df <- cbind(
         enh.1.perturbation,
         enh.2.perturbation,
         gene.counts,
         covariates
-    ))
+    )
     model.formula <- as.formula(paste0(
         'gene.counts ~ ',
         'enh.1.perturbation * ',
