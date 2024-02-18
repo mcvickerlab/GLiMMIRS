@@ -1,53 +1,21 @@
 # Author: Karthik Guruvayurappan
 
-library(stats)
 library(rhdf5)
 library(MASS)
 
 # create directory for outputs
-dir.create('data/experimental/processed/permutation_test_results/')
+dir.create('data/experimental/processed/adaptive_permutation_test_results/')
 
-# read in at-scale enhancer pair analysis results
-model.results <- data.frame()
+# read in command line argument (for batch processing)
+args = commandArgs(trailingOnly=TRUE)
 
-for (i in 1:32) {
-    batch.file <- paste0(
-        'data/experimental/processed/enhancer_pairs_at_scale_',
-        i,
-        '.csv'
-    )
-    batch.results <- read.csv(batch.file)
-    model.results <- rbind(model.results, batch.results)
-}
-
-# there should be 82,314 model results in total
-
-# filter for results with valid guide efficiency info
-model.results <- model.results[complete.cases(model.results), ]
-
-# should have 69,660 total models
-
-# compute FDR-adjusted p-values and filter
-model.results$adj.interaction.pvalues <- p.adjust(
-    model.results$interaction.pvalues,
-    method = 'fdr'
-)
-significant.results <- model.results[
-    model.results$adj.interaction.pvalues < 0.1,
-
-]
-
-# should have 46 significant interactions
-
-# filter for necessary columns in significant interactions
-significant.results <- significant.results[
-    ,
-    c('enhancer.1.list', 'enhancer.2.list', 'gene.list')
-]
-colnames(significant.results) <- c('enhancer.1', 'enhancer.2', 'gene')
-
-
+# define h5 name as a variable
 h5.name <- 'data/experimental/processed/gasperini_data.h5'
+
+# read in batch significant interactions
+significant.results <- read.csv(
+    args[1]
+)
 
 # read in enhancer-guide table
 enhancer.guide <- h5read(
@@ -61,51 +29,31 @@ guide.info <- h5read(
     'grna/guide_info'
 )
 
-# read in guide matrix
-guide.matrix <- h5read(
-    h5.name,
-    'grna/guide_matrix'
-)
+# read in guide names (but not matrix)
 guide.names <- h5read(
     h5.name,
     'grna/guide_names'
 )
-rownames(guide.matrix) <- guide.names
-barcodes <- h5read(
-    h5.name,
-    'grna/cell_barcodes'
-)
-colnames(guide.matrix) <- barcodes
+
+# filter enhancer-guide table to only include guides in matrix
+enhancer.guide <- enhancer.guide[enhancer.guide$spacer %in% guide.names, ]
 
 # read in cell covariates
 covariates <- h5read(
     h5.name,
     'expr/cell_covariates'
 )
-covariates$scaling.factor <- as.vector(covariates$scaling.factor)
 
-# read in counts matrix
-expr.matrix <- h5read(
-    h5.name,
-    'expr/expr_matrix'
-)
+# read in genes (but not counts matrix)
 genes <- h5read(
     h5.name,
     'expr/gene_names'
 )
-rownames(expr.matrix) <- genes
-barcodes <- h5read(
-    h5.name,
-    'expr/cell_barcodes'
-)
-colnames(expr.matrix) <- barcodes
-
-# add pseudocount to count data
-pseudocount <- 0.01
-expr.matrix <- expr.matrix + pseudocount
 
 # iterate through significant results and generate permutations
 for (i in 1:nrow(significant.results)) {
+
+    # create vectors to hold outputs
 
     # define enhancers and gene
     enhancer.1 <- significant.results[i, 'enhancer.1']
@@ -193,10 +141,10 @@ for (i in 1:nrow(significant.results)) {
     ))
 
     # initialize empty vectors to store outputs
-    permutation.interaction.coeffs <- rep(NA, 100)
-    permutation.interaction.pvalues <- rep(NA, 100)
+    permutation.interaction.coeffs <- rep(NA, 1000)
+    permutation.interaction.pvalues <- rep(NA, 1000)
 
-    for (j in 1:100) {
+    for (j in 1:1000) {
 
         print(paste0('iteration ', j))
 
@@ -218,14 +166,16 @@ for (i in 1:nrow(significant.results)) {
 
         # store model outputs
         model.values <- summary(model)$coefficients
-        permutation.interaction.coeffs[j] <- model.values[
-            'enh.1.perturbation:enh.2.perturbation',
-            'Estimate'
-        ]
-        permutation.interaction.pvalues[j] <- model.values[
-            'enh.1.perturbation:enh.2.perturbation',
-            'Pr(>|z|)'
-        ]
+        if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.values)) {
+            permutation.interaction.coeffs[j] <- model.values[
+                'enh.1.perturbation:enh.2.perturbation',
+                'Estimate'
+            ]
+            permutation.interaction.pvalues[j] <- model.values[
+                'enh.1.perturbation:enh.2.perturbation',
+                'Pr(>|z|)'
+            ]
+        }
     }
 
     # write estimates and p-values to outputs
@@ -242,7 +192,7 @@ for (i in 1:nrow(significant.results)) {
             enhancer.2,
             '_',
             gene,
-            '_permutations.csv'
+            '_1000_permutations.csv'
         ),
         row.names = FALSE,
         quote = FALSE
