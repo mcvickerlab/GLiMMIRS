@@ -30,13 +30,6 @@ significant.results <- model.results[
 
 ]
 
-# filter for necessary columns in significant interactions
-significant.results <- significant.results[
-    ,
-    c('enhancer.1.list', 'enhancer.2.list', 'gene.list')
-]
-colnames(significant.results) <- c('enhancer.1', 'enhancer.2', 'gene')
-
 # split significant interactions into 32 batches
 rownames(significant.results) <- NULL
 batches <- as.integer(rownames(significant.results)) %% 32

@@ -53,12 +53,10 @@ genes <- h5read(
 # iterate through significant results and generate permutations
 for (i in 1:nrow(significant.results)) {
 
-    # create vectors to hold outputs
-
     # define enhancers and gene
-    enhancer.1 <- significant.results[i, 'enhancer.1']
-    enhancer.2 <- significant.results[i, 'enhancer.2']
-    gene <- significant.results[i, 'gene']
+    enhancer.1 <- significant.results[i, 'enhancer.1.list']
+    enhancer.2 <- significant.results[i, 'enhancer.2.list']
+    gene <- significant.results[i, 'gene.list']
 
     # print statement (for progress tracking)
     print(paste0(
@@ -96,22 +94,32 @@ for (i in 1:nrow(significant.results)) {
     enh.2.efficiencies[is.na(enh.2.efficiencies)] <- 0
 
     # compute guide perturbation vector by computing 1 - (no perturbation prob)
-    enh.1.no.perturbation <- rep(1, ncol(guide.matrix))
+    enh.1.no.perturbation <- rep(1, nrow(covariates))
     for (j in 1:nrow(enh.1.efficiencies)) {
         spacer <- enh.1.efficiencies[j, 'spacer']
         efficiency <- enh.1.efficiencies[j, 'Cutting.Efficiency']
-        spacer.vector <- guide.matrix[spacer, ]
+        spacer.index <- match(spacer, guide.names)
+        spacer.vector <- h5read(
+            h5.name,
+            'grna/guide_matrix',
+            index = list(spacer.index, NULL)
+        )
         spacer.perturbation <- spacer.vector * efficiency
         spacer.no.perturbation <- 1 - spacer.perturbation
         enh.1.no.perturbation <- enh.1.no.perturbation * spacer.no.perturbation
     }
     enh.1.perturbation <- 1 - enh.1.no.perturbation
 
-    enh.2.no.perturbation <- rep(1, ncol(guide.matrix))
+    enh.2.no.perturbation <- rep(1, nrow(covariates))
     for (j in 1:nrow(enh.2.efficiencies)) {
         spacer <- enh.2.efficiencies[j, 'spacer']
         efficiency <- enh.2.efficiencies[j, 'Cutting.Efficiency']
-        spacer.vector <- guide.matrix[spacer, ]
+        spacer.index <- match(spacer, guide.names)
+        spacer.vector <- h5read(
+            h5.name,
+            'grna/guide_matrix',
+            index = list(spacer.index, NULL)
+        )
         spacer.perturbation <- spacer.vector * efficiency
         spacer.no.perturbation <- 1 - spacer.perturbation
         enh.2.no.perturbation <- enh.2.no.perturbation * spacer.no.perturbation
@@ -119,15 +127,28 @@ for (i in 1:nrow(significant.results)) {
     enh.2.perturbation <- 1 - enh.2.no.perturbation
 
     # get gene counts
-    gene.counts <- expr.matrix[gene, ]
+    gene.index <- match(gene, genes)
+    gene.counts <- h5read(
+        h5.name,
+        'expr/expr_matrix',
+        index = list(gene.index, NULL)
+    )
 
-    # create data frame and formula for modeling
-    model.df <- data.frame(cbind(
+    # add pseudocount to gene counts
+    pseudocount <- 0.01
+    gene.counts <- gene.counts + pseudocount
+
+    # fit negative binomial GLM
+    enh.1.perturbation <- t(enh.1.perturbation)[,1]
+    enh.2.perturbation <- t(enh.2.perturbation)[,1]
+    gene.counts <- t(gene.counts)[,1]
+    covariates$scaling.factor <- as.vector(covariates$scaling.factor)
+    model.df <- cbind(
         enh.1.perturbation,
         enh.2.perturbation,
         gene.counts,
         covariates
-    ))
+    )
     model.formula <- as.formula(paste0(
         'gene.counts ~ ',
         'enh.1.perturbation * ',
@@ -140,59 +161,108 @@ for (i in 1:nrow(significant.results)) {
         'offset(log(scaling.factor))'
     ))
 
-    # initialize empty vectors to store outputs
-    permutation.interaction.coeffs <- rep(NA, 1000)
-    permutation.interaction.pvalues <- rep(NA, 1000)
+    # implement adaptive permutation scheme
+    current.iters <- 100
+    not.converged <- TRUE
+    permutation.outputs.df <- data.frame()
 
-    for (j in 1:1000) {
+    while ((current.iters <= 10000) & not.converged) {
 
-        print(paste0('iteration ', j))
+        # define empty vectors to hold model outputs
+        intercept.effects <- rep(NA, current.iters)
+        intercept.pvalues <- rep(NA, current.iters)
 
-        # shuffle perturbations -> null distribution of interactions
-        perturbations.df <- model.df[
-            ,
-            c('enh.1.perturbation', 'enh.2.perturbation')
-        ]
-        perturbations.df <- perturbations.df[sample(nrow(perturbations.df)), ]
+        enhancer.1.effects <- rep(NA, current.iters)
+        enhancer.1.pvalues <- rep(NA, current.iters)
 
-        model.df$enh.1.perturbation <- perturbations.df$enh.1.perturbation
-        model.df$enh.2.perturbation <- perturbations.df$enh.2.perturbation
-        
-        # refit model with resampled cells
-        model <- glm.nb(
-            formula = model.formula,
-            data = model.df
-        )
+        enhancer.2.effects <- rep(NA, current.iters)
+        enhancer.2.pvalues <- rep(NA, current.iters)
 
-        # store model outputs
-        model.values <- summary(model)$coefficients
-        if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.values)) {
-            permutation.interaction.coeffs[j] <- model.values[
-                'enh.1.perturbation:enh.2.perturbation',
-                'Estimate'
+        interaction.effects <- rep(NA, current.iters)
+        interaction.pvalues <- rep(NA, current.iters)
+
+
+        for (j in 1:current.iters) {
+
+            # shuffle perturbations -> null distribution of interactions
+            perturbations.df <- model.df[
+                ,
+                c('enh.1.perturbation', 'enh.2.perturbation')
             ]
-            permutation.interaction.pvalues[j] <- model.values[
-                'enh.1.perturbation:enh.2.perturbation',
-                'Pr(>|z|)'
+            perturbations.df <- perturbations.df[
+                sample(nrow(perturbations.df)), 
             ]
+            permutation.df <- model.df
+            permutation.df$enh.1.perturbation <- perturbations.df$enh.1.perturbation
+            permutation.df$enh.2.perturbation <- perturbations.df$enh.2.perturbation
+
+            # refit model with resampled cells
+            model <- glm.nb(
+                formula = model.formula,
+                data = permutation.df
+            )
+
+            model.coeffs <- summary(model)$coefficients
+
+            # write out enhancer and interaction coefficients and pvalues
+            if ('enh.1.perturbation' %in% rownames(model.coeffs)){
+                enhancer.1.effects[i] <- model.coeffs['enh.1.perturbation', 'Estimate']
+                enhancer.1.pvalues[i] <- model.coeffs['enh.1.perturbation', 'Pr(>|z|)']
+            }
+            if ('enh.2.perturbation' %in% rownames(model.coeffs)){
+                enhancer.2.effects[i] <- model.coeffs['enh.2.perturbation', 'Estimate']
+                enhancer.2.pvalues[i] <- model.coeffs['enh.2.perturbation', 'Pr(>|z|)']
+            }
+            if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.coeffs)){
+                interaction.effects[i] <- model.coeffs[
+                    'enh.1.perturbation:enh.2.perturbation',
+                    'Estimate'
+                ]
+                interaction.pvalues[i] <- model.coeffs[
+                    'enh.1.perturbation:enh.2.perturbation',
+                    'Pr(>|z|)'
+                ]
+            }
+
+            # write intercept information
+            intercept.effects[i] <- model.coeffs['(Intercept)', 'Estimate']
+            intercept.pvalues[i] <- model.coeffs['(Intercept)', 'Pr(>|z|)']
         }
+
+        true.interaction.coeff <- significant.results[i, 'interaction.effects']
+        perm.interaction.coeffs <- interaction.effects[!is.na(interaction.effects)]
+        perm.pvalue <- sum(abs(perm.interaction.coeffs) > abs(true.interaction.coeff)) / length(perm.interaction.coeffs)
+
+        # stop early if p-value is insignificant
+        if ((perm.pvalue > 0.1) | (current.iters == 10000)) {
+            not.converged <- FALSE
+            permutation.outputs.df <- data.frame(cbind(
+                intercept.effects,
+                intercept.pvalues,
+                enhancer.1.effects,
+                enhancer.1.pvalues,
+                enhancer.2.effects,
+                enhancer.2.pvalues,
+                interaction.effects,
+                interaction.pvalues
+            ))
+        }
+
+        # increase permutations if significant
+        current.iters <- current.iters * 10
     }
 
-    # write estimates and p-values to outputs
-    output.df <- data.frame(cbind(
-        permutation.interaction.coeffs,
-        permutation.interaction.pvalues
-    ))
+    # write out permutation estimate and p-values
     write.csv(
-        output.df,
+        permutation.outputs.df,
         paste0(
-            'data/experimental/processed/permutation_test_results/',
+            'data/experimental/processed/adaptive_permutation_test_results/',
             enhancer.1,
             '_',
             enhancer.2,
             '_',
             gene,
-            '_1000_permutations.csv'
+            '_adaptive_permutations.csv'
         ),
         row.names = FALSE,
         quote = FALSE
