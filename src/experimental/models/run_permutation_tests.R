@@ -234,7 +234,7 @@ for (i in 1:nrow(significant.results)) {
         perm.pvalue <- sum(abs(perm.interaction.coeffs) > abs(true.interaction.coeff)) / length(perm.interaction.coeffs)
 
         # stop early if p-value is insignificant
-        if ((perm.pvalue > 0.1) | (current.iters == 10000)) {
+        if ((perm.pvalue > (10/current.iters)) | (current.iters == 10000)) {
             not.converged <- FALSE
             permutation.outputs.df <- data.frame(cbind(
                 intercept.effects,
