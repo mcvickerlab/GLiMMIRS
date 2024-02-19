@@ -206,27 +206,27 @@ for (i in 1:nrow(significant.results)) {
 
             # write out enhancer and interaction coefficients and pvalues
             if ('enh.1.perturbation' %in% rownames(model.coeffs)){
-                enhancer.1.effects[i] <- model.coeffs['enh.1.perturbation', 'Estimate']
-                enhancer.1.pvalues[i] <- model.coeffs['enh.1.perturbation', 'Pr(>|z|)']
+                enhancer.1.effects[j] <- model.coeffs['enh.1.perturbation', 'Estimate']
+                enhancer.1.pvalues[j] <- model.coeffs['enh.1.perturbation', 'Pr(>|z|)']
             }
             if ('enh.2.perturbation' %in% rownames(model.coeffs)){
-                enhancer.2.effects[i] <- model.coeffs['enh.2.perturbation', 'Estimate']
-                enhancer.2.pvalues[i] <- model.coeffs['enh.2.perturbation', 'Pr(>|z|)']
+                enhancer.2.effects[j] <- model.coeffs['enh.2.perturbation', 'Estimate']
+                enhancer.2.pvalues[j] <- model.coeffs['enh.2.perturbation', 'Pr(>|z|)']
             }
             if ('enh.1.perturbation:enh.2.perturbation' %in% rownames(model.coeffs)){
-                interaction.effects[i] <- model.coeffs[
+                interaction.effects[j] <- model.coeffs[
                     'enh.1.perturbation:enh.2.perturbation',
                     'Estimate'
                 ]
-                interaction.pvalues[i] <- model.coeffs[
+                interaction.pvalues[j] <- model.coeffs[
                     'enh.1.perturbation:enh.2.perturbation',
                     'Pr(>|z|)'
                 ]
             }
 
             # write intercept information
-            intercept.effects[i] <- model.coeffs['(Intercept)', 'Estimate']
-            intercept.pvalues[i] <- model.coeffs['(Intercept)', 'Pr(>|z|)']
+            intercept.effects[j] <- model.coeffs['(Intercept)', 'Estimate']
+            intercept.pvalues[j] <- model.coeffs['(Intercept)', 'Pr(>|z|)']
         }
 
         true.interaction.coeff <- significant.results[i, 'interaction.effects']
