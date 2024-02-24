@@ -223,6 +223,7 @@ if (!is.null(args$lambda)) {
 	power.plotdf.list <- list()
 	i <- 1
 
+	# iterate through each value of lambda
 	for (lambda in lambda.list) {
 		print(paste("lambda=", lambda))
 		one.hot.mtx <- h5read(args$h5, paste0("guides/one_hot/", lambda))
