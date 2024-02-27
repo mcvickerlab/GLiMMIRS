@@ -18,3 +18,23 @@ concat_enhancer_pair_name <- function(enhancer_1, enhancer_2, gene) {
   )
   output
 }
+
+#' Plots a basic publication-ready histogram
+#'
+#' @param plot_df Data frame with data to plot
+#' @param x Column name for input to the histogram
+#'
+plot_histogram <- function(plot_df, x) {
+  ggplot2::ggplot(plot_df, aes(x = {{ x }})) +
+    geom_histogram(color = 'black') +
+    theme_classic() +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    ylab('Count') +
+    theme(
+      axis.line = element_line(linewidth = 1),
+      axis.ticks = element_line(color = 'black', linewidth = 1),
+      axis.ticks.length = unit(2, 'mm'),
+      plot.margin = rep(unit(10, 'mm'), 4)
+    )
+}

@@ -40,30 +40,23 @@ for (i in 1:nrow(significant_interactions)) {
   permutation_results <- read.csv(permutation_results_filename)
 
   # plot histograms of permutation coefficients
-  plot <- ggplot(permutation_results, aes(x = interaction.effects)) +
-    geom_histogram(color = 'black') +
-    theme_classic() +
+  plot <- plot_histogram(permutation_results, interaction.effects) +
     geom_vline(
       xintercept = observed_interaction,
       color = 'red',
       linetype = 'dashed'
-    ) + 
-    scale_x_continuous(expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0)) +
+    ) +
     xlab('Interaction Coefficient') +
     ylab('Count') +
     ggtitle(paste(enhancer_1, enhancer_2, gene)) +
     theme(
-      axis.line = element_line(linewidth = 1),
       axis.title.x = element_text(size = 14, color = 'black'),
       axis.title.y = element_text(size = 14, color = 'black'),
       axis.text = element_text(size = 10, color = 'black'),
-      axis.ticks = element_line(color = 'black', linewidth = 1),
-      axis.ticks.length = unit(2, 'mm'),
-      plot.margin = rep(unit(10, 'mm'), 4),
-      plot.title = element_text(size = 8.5, color = 'black', hjust = 0.5),
+      plot.title = element_text(size = 8.5, color = 'black', hjust = 0.5)
     )
 
+  # save to output files
   ggsave(
     filename = paste0(
       'out/adaptive_permutation_histograms/',
