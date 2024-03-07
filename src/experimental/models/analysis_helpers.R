@@ -35,3 +35,30 @@ get_significant_results <- function() {
   significant.results
 }
 
+#' Read in entire at-scale expression matrix
+#'
+read_expr_matrix <- function(h5_name) {
+
+  # read in expression matrix values
+  expr_matrix <- rhdf5::h5read(
+    h5_name,
+    'expr/expr_matrix'
+  )
+
+  # add gene names as rows
+  genes <- rhdf5::h5read(
+    h5_name,
+    'expr/gene_names'
+  )
+  rownames(expr_matrix) <- genes
+
+  # add cell barcodes as columns
+  barcodes <- rhdf5::h5read(
+    h5_name,
+    'expr/cell_barcodes'
+  )
+  colnames(expr_matrix) <- barcodes
+  
+  return(expr_matrix)
+}
+
