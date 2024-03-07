@@ -26,7 +26,7 @@ prop_umis_metric <- log10(gene_umi_counts / cells_with_umi_counts)
 gene_umi_counts_n50 <- gene_umi_counts / 2
 n50_per_gene <- rep(NA, nrow(expr_matrix))
 
-for (i in 1:5) {
+for (i in 1:nrow(expr_matrix)) {
 
   # get counts for gene 
   gene_counts <- expr_matrix[i, ]
