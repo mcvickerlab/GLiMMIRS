@@ -23,13 +23,13 @@ results <- results[order(results$interaction.pvalues), ]
 results$unif <- 1:nrow(results) / nrow(results)
 
 # perform FDR correction on interaction p-values
-results$adj.interaction.pvalues <- p.adjust(
+results$adj_interaction_pvalues <- p.adjust(
   results$interaction.pvalues,
   method = 'fdr'
 )
 
 # print number of significant interactions
-print(sum(results$adj.interaction.pvalues < 0.1))
+print(sum(results$adj_interaction_pvalues < 0.1))
 
 # create QQ-plot
 plot <- ggplot(results, aes(
