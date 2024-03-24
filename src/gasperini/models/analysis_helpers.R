@@ -47,6 +47,15 @@ read_enhancer_guide_table <- function() {
       'enhancer_guide'
   )
 
+  # read in guide names
+  guide_names <- h5read(
+      h5_name,
+      'grna/guide_names'
+  )
+
+  # filter enhancer-guide table to only include guides in matrix
+  enhancer_guide <- enhancer_guide[enhancer_guide$spacer %in% guide_names, ]
+
   return (enhancer_guide)
 }
 
