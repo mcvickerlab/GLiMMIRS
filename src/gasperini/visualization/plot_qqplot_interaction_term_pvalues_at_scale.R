@@ -23,6 +23,25 @@ for (i in 1:32) {
 # filter for cases where all coefficients exist
 models <- models[complete.cases(models), ]
 
+# read in the "true" double perturbation counts
+perturbation_counts <- read.csv(
+  paste0(
+    'data/gasperini/processed/',
+    'enhancer_pair_efficiency_adjusted_double_perturb_counts.csv'
+  )
+)
+
+# merge model outputs with perturbation counts
+models <- merge(
+  models,
+  perturbation_counts,
+  by.x = c('enhancer.1.list', 'enhancer.2.list', 'gene.list'),
+  by.y = c('enhancer_1_list', 'enhancer_2_list', 'gene_list')
+)
+
+# filter for true 10 cell threshold
+models <- models[models$double_perturbation_counts >= 10, ]
+
 # print out how many models remain after filtering
 print(dim(models))
 

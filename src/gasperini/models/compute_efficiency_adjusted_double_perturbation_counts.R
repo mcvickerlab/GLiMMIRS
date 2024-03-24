@@ -48,7 +48,7 @@ enhancer_2_list <- rep(NA, nrow(enhancer_pairs))
 gene_list <- rep(NA, nrow(enhancer_pairs))
 double_perturbation_counts <- rep(NA, nrow(enhancer_pairs))
 
-for (i in 1:10) {
+for (i in 1:nrow(enhancer_pairs)) {
 
   # get name of enhancers and gene
   enhancer_1 <- enhancer_pairs[i, 'enhancer_1']
@@ -95,6 +95,6 @@ write.csv(
   paste0(
     'data/gasperini/processed/',
     'enhancer_pair_efficiency_adjusted_double_perturb_counts.csv'
-  )
+  ),
   row.names = FALSE
 )
