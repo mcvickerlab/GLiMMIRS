@@ -22,6 +22,25 @@ get_significant_results <- function() {
   # filter for cases with valid guide efficiencies
   model.results <- model.results[stats::complete.cases(model.results), ]
 
+  # read in the "true" double perturbation counts
+  perturbation_counts <- read.csv(
+    paste0(
+      'data/gasperini/processed/',
+      'enhancer_pair_efficiency_adjusted_double_perturb_counts.csv'
+    )
+  )
+
+  # merge model outputs with perturbation counts
+  models <- merge(
+    models,
+    perturbation_counts,
+    by.x = c('enhancer.1.list', 'enhancer.2.list', 'gene.list'),
+    by.y = c('enhancer_1_list', 'enhancer_2_list', 'gene_list')
+  )
+
+  # filter for true 10 cell threshold
+  models <- models[models$double_perturbation_counts >= 10, ]
+
   # compute FDR-adjusted p-values and filter for significant results
   model.results$adj.interaction.pvalues <- p.adjust(
       model.results$interaction.pvalues,
