@@ -7,32 +7,51 @@
 get_significant_results <- function() {
 
   # read in results from at-scale enhancer pair analysis
-  model.results <- data.frame()
+  model_results <- data.frame()
 
   for (i in 1:32) {
-    batch.file <- paste0(
+    batch_file <- paste0(
       'data/gasperini/processed/enhancer_pairs_at_scale_',
       i,
       '.csv'
     )
-    batch.results <- read.csv(batch.file)
-    model.results <- rbind(model.results, batch.results)
+    batch_results <- read.csv(batch_file)
+    model_results <- rbind(model_results, batch_results)
   }
 
   # filter for cases with valid guide efficiencies
-  model.results <- model.results[stats::complete.cases(model.results), ]
+  model_results <- model_results[stats::complete.cases(model_results), ]
+
+  # read in the "true" double perturbation counts
+  perturbation_counts <- read.csv(
+    paste0(
+      'data/gasperini/processed/',
+      'enhancer_pair_efficiency_adjusted_double_perturb_counts.csv'
+    )
+  )
+
+  # merge model outputs with perturbation counts
+  model_results <- merge(
+    model_results,
+    perturbation_counts,
+    by.x = c('enhancer.1.list', 'enhancer.2.list', 'gene.list'),
+    by.y = c('enhancer_1_list', 'enhancer_2_list', 'gene_list')
+  )
+
+  # filter for true 10 cell threshold
+  model_results <- model_results[model_results$double_perturbation_counts >= 10, ]
 
   # compute FDR-adjusted p-values and filter for significant results
-  model.results$adj.interaction.pvalues <- p.adjust(
-      model.results$interaction.pvalues,
+  model_results$adj_interaction_pvalues <- p.adjust(
+      model_results$interaction.pvalues,
       method = 'fdr'
   )
-  significant.results <- model.results[
-      model.results$adj.interaction.pvalues < 0.1,
+  significant_results <- model_results[
+      model_results$adj_interaction_pvalues < 0.1,
 
   ]
 
-  significant.results
+  significant_results
 }
 
 # define name of h5 file as variable
