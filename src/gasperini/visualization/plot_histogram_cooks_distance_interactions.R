@@ -21,6 +21,8 @@ enhancer_2_list <- rep(NA, nrow(significant_results))
 gene_list <- rep(NA, nrow(significant_results))
 mean_cooks_distances <- rep(NA, nrow(significant_results))
 max_cooks_distances <- rep(NA, nrow(significant_results))
+mean_double_perturb_cooks_distances <- rep(NA, nrow(significant_results))
+discard_cooks_distance <- rep(NA, nrow(significant_results))
 
 # iterate through significant interactions
 for (i in 1:nrow(significant_results)) {
@@ -62,6 +64,22 @@ for (i in 1:nrow(significant_results)) {
     
   ]
 
+  # compute mean of double perturb cell cook's distances
+  mean_double_perturb_cooks_distances[i] <- mean(
+    double_perturb_cells$cooks_distances
+  )
+
+  # compute whether enhancer pair would be discarded or not
+  discard_pair <- (
+    sum(
+      double_perturb_cells$cooks_distances > (
+        3 * mean_double_perturb_cooks_distances[i]
+      )
+    ) > 0
+  )
+  discard_cooks_distance[i] <- discard_pair
+
+  # plot double perturb cell cook's distances
   plot <- ggplot(double_perturb_cells, aes(x = cooks_distances)) +
     geom_histogram() +
     theme_classic()
@@ -92,9 +110,10 @@ summary_df <- data.frame(cbind(
   enhancer_2_list,
   gene_list,
   mean_cooks_distances,
-  max_cooks_distances
+  max_cooks_distances,
+  mean_double_perturb_cooks_distances,
+  discard_cooks_distance
 ))
-summary_df$f_stat <- qf(0.99, 9, 205797 - 9)
 
 # write summary statistics to output file
 write.csv(
