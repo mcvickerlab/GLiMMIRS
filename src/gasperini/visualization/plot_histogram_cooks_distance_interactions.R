@@ -80,10 +80,17 @@ for (i in 1:nrow(significant_results)) {
     device = 'png'
   )
 
+  # save enhancer names and gene name to output list
+  enhancer_1_list[i] <- enhancer_1
+  enhancer_2_list[i] <- enhancer_2
+  gene_list[i] <- gene
 }
 
 # create output dataframe of summary statistics
 summary_df <- data.frame(cbind(
+  enhancer_1_list,
+  enhancer_2_list,
+  gene_list,
   mean_cooks_distances,
   max_cooks_distances
 ))
