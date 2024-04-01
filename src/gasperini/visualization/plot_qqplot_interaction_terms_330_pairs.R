@@ -36,8 +36,8 @@ plot <- ggplot(results, aes(
   x = -log10(unif), 
   y = -log10(interaction.pvalues)
   )) +
-  geom_point(size = 3) +
-  geom_abline(slope = 1, intercept = 0) +
+  geom_point(size = 3, color = 'darkgray') +
+  geom_abline(slope = 1, intercept = 0, linewidth = 1) +
   theme_classic() +
   scale_x_continuous(expand = c(0.02, 0)) +
   scale_y_continuous(expand = c(0.02, 0)) +
@@ -45,9 +45,9 @@ plot <- ggplot(results, aes(
   ylab(bquote(Observed -log[10](italic(p)))) +
   theme(
     axis.line = element_line(linewidth = 1),
-    axis.title.x = element_text(size = 20, color = 'black'),
-    axis.title.y = element_text(size = 20, color = 'black'),
-    axis.text = element_text(size = 20, color = 'black'),
+    axis.title.x = element_text(size = 24, color = 'black'),
+    axis.title.y = element_text(size = 24, color = 'black'),
+    axis.text = element_text(size = 24, color = 'black', family = 'Helvetica'),
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4)
@@ -55,7 +55,7 @@ plot <- ggplot(results, aes(
 
 
 ggsave(
-  filename = 'out/qqplot_interaction_pvalues_330_pairs.png',
+  filename = 'out/qqplot_interaction_pvalues_330_pairs.pdf',
   plot = plot,
-  device = 'png'
+  device = 'pdf'
 )
