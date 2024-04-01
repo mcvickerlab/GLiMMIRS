@@ -1,8 +1,5 @@
-# From the at-scale enhancer-enhancer interaction analysis, there were 6
-# interaction terms which were significant. However, it appears that these
-# results were dominated by a high count from a single cell. This script
-# generates 95% confidence intervals using a boostrap analysis as opposed to
-# standard error estimates from the lm() function.
+# This script performs bootstrap sampling to generate confidence intervals for
+# the significant interactions from the at-scale GLiMMIRS analysis.
 #
 # Author: Karthik Guruvayurappan
 
@@ -10,152 +7,131 @@ library(stats)
 library(rhdf5)
 library(MASS)
 
-# read in output results from at-scale enhancer-enhancer analysis
-at.scale.results <- read.csv(
-    '/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_enhancer_at_scale_20_cells_pseudocount_model.csv'
-)
-at.scale.results <- at.scale.results[complete.cases(at.scale.results), ]
+# useful analysis functions
+source('src/gasperini/models/analysis_helpers.R')
 
-# add FDR adjusted p-values and filter for FDR < 0.1
-at.scale.results$adjusted.interaction.pvalue <- p.adjust(at.scale.results$interaction.pvalue.list, method = 'fdr')
-significant.interactions <- at.scale.results[at.scale.results$adjusted.interaction.pvalue < 0.1, ]
+# create directory to hold outputs
+dir.create('data/gasperini/processed/gasperini_bootstraps/')
 
-# filter for necessary columns in significant interactions
-significant.interactions <- significant.interactions[, c('enhancer.1.list', 'enhancer.2.list', 'gene.list')]
-colnames(significant.interactions) <- c('enhancer.1', 'enhancer.2', 'gene')
+# read in significant interactions and filter columns
+significant_results <- get_significant_results()
+significant_results <- significant_results[
+  ,
+  c('enhancer.1.list', 'enhancer.2.list', 'gene.list')
+]
+colnames(significant_results) <- c('enhancer_1', 'enhancer_2', 'gene')
 
-# read in and sort covariates
-print('reading in covariates!')
-covariates <- h5read(
-    file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    name = 'covariates'
-)
-cell.barcodes <- h5read(
-    file = '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    name = 'cell.barcodes'
-)
-covariates <- merge(
-    data.frame(cell.barcodes),
-    covariates,
-    by.x = 'cell.barcodes',
-    by.y = 'cell',
-    sort = FALSE
-)
-
-# read in table mapping enhancers to spacers and reformat enhancer names
-print('reading in enhancer-to-spacer table!')
-enhancer.to.spacer.table <- read.table(
-    '/iblm/netapp/data1/external/Gasperini2019/suppl/GSE120861_grna_groups.at_scale.txt',
-    sep = '\t'
-)
-colnames(enhancer.to.spacer.table) <- c('target.site', 'spacer.sequence')
-enhancer.to.spacer.table$target.site <- sapply(enhancer.to.spacer.table$target.site, FUN = function(x) {
-    if (startsWith(x, 'chr')) {
-        return (strsplit(x, '_')[[1]][1])
-    }
-    else {
-        return (x)
-    }
-})
+# read in enhancer-guide table
+enhancer_guide <- read_enhancer_guide_table()
 
 # read in guide efficiency information
-print('reading in guide efficiencies!')
-guide.efficiencies.table <- h5read(
-    '/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5',
-    'guidescan.output'
-)
-guide.efficiencies.table$spacer <- substring(
-    guide.efficiencies.table$gRNA,
-    1,
-    nchar(guide.efficiencies.table$gRNA) - 3
-)
+guide_info <- read_guide_efficiency_info()
 
-# read in cell-guide matrix
-print('reading in cell-guide matrix!')
-cell.guide.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'cell.guide.matrix')
-guide.spacers <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'guide.spacers')
-colnames(cell.guide.matrix) <- guide.spacers
+# read in guide matrix
+guide_matrix <- read_guide_matrix()
 
-# read in counts matrix
-print('reading in counts matrix!')
-counts.matrix <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.counts')
-gene.names <- h5read('/iblm/netapp/data1/external/Gasperini2019/processed/gasperini_data.h5', 'gene.names')
-rownames(counts.matrix) <- gene.names
+# read in gene expression matrix
+expr_matrix <- read_expr_matrix()
 
-# compute scaling factors based on count matrix
-print('computing scaling factors!')
-scaling.factors <- colSums(counts.matrix) / 1e6
+# read in cell-level covariates
+covariates <- read_covariates()
 
-for (i in 1:nrow(significant.interactions)) {
+for (i in 1:nrow(significant_results)) {
 
-    # define enhancers and gene
-    enhancer.1 <- significant.interactions[i, 'enhancer.1']
-    enhancer.2 <- significant.interactions[i, 'enhancer.2']
-    gene <- significant.interactions[i, 'gene']
+  # define enhancers and gene
+  enhancer_1 <- significant_results[i, 'enhancer_1']
+  enhancer_2 <- significant_results[i, 'enhancer_2']
+  gene <- significant_results[i, 'gene']
 
-    enhancer.1.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.1, ]$spacer.sequence
-    enhancer.2.spacers <- enhancer.to.spacer.table[enhancer.to.spacer.table$target.site == enhancer.2, ]$spacer.sequence
+  # get perturbation vectors corresponding to enhancers
+  enh_1_perturbation <- get_enhancer_perturbation(enhancer_1, enhancer_guide,
+                                                  guide_info, guide_matrix)
+  enh_2_perturbation <- get_enhancer_perturbation(enhancer_2, enhancer_guide,
+                                                  guide_info, guide_matrix)
 
-    # get guide effiencies corresponding to spacers
-    enhancer.1.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.1.spacers, c('spacer', 'Cutting.Efficiency')]
-    enhancer.2.spacers.efficiencies <- guide.efficiencies.table[guide.efficiencies.table$spacer %in% enhancer.2.spacers, c('spacer', 'Cutting.Efficiency')]
+  # get gene expression counts
+  gene_counts <- expr_matrix[gene, ]
 
-    enhancer.1.spacers.efficiencies[is.na(enhancer.1.spacers.efficiencies)] <- 0
-    enhancer.2.spacers.efficiencies[is.na(enhancer.2.spacers.efficiencies)] <- 0
+  # create data frame for modeling
+  model_df <- cbind(
+    enh_1_perturbation,
+    enh_2_perturbation,
+    gene_counts,
+    covariates
+  )
 
-    enhancer.1.indicator.probs <- rep(1, nrow(cell.guide.matrix))
+  # fit model
+  model_formula <- as.formula(paste0(
+    'gene_counts ~ ',
+    'enh_1_perturbation * ',
+    'enh_2_perturbation + ',
+    'prep_batch + ',
+    'guide_count + ',
+    'percent.mito + ',
+    's.score + ',
+    'g2m.score + ',
+    'offset(log(scaling.factor))'
+  ))
 
-    for (j in 1:nrow(enhancer.1.spacers.efficiencies)) {
-        guide.spacer <- enhancer.1.spacers.efficiencies$spacer[j]
-        guide.efficiency <- enhancer.1.spacers.efficiencies$Cutting.Efficiency[j]
-        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
-        guide.probs <- 1 - (guide.indicator.vector * guide.efficiency)
-        enhancer.1.indicator.probs <- enhancer.1.indicator.probs * guide.probs
-    }
+  # define vectors to hold bootstrap results
+  num_bootstraps <- 100
+  bootstrap_intercepts <- rep(NA, num_bootstraps)
+  bootstrap_enh1_betas <- rep(NA, num_bootstraps)
+  bootstrap_enh2_betas <- rep(NA, num_bootstraps)
+  bootstrap_interaction_betas <- rep(NA, num_bootstraps)
 
-    enhancer.1.indicator.probs <- 1 - enhancer.1.indicator.probs
-    enhancer.1.indicator.vector <- enhancer.1.indicator.probs
+  for (j in 1:num_bootstraps) {
 
-    enhancer.2.indicator.probs <- rep(1, nrow(cell.guide.matrix))
+    # bootstrap cells
+    bootstrap_df <- model_df[
+      sample(1:nrow(model_df), size = nrow(model_df), replace = TRUE),
 
-    for (j in 1:nrow(enhancer.2.spacers.efficiencies)) {
-        guide.spacer <- enhancer.2.spacers.efficiencies$spacer[j]
-        guide.efficiency <- enhancer.2.spacers.efficiencies$Cutting.Efficiency[j]
-        guide.indicator.vector <- cell.guide.matrix[, guide.spacer]
-        guide.probs <- 1 - (guide.indicator.vector * guide.efficiency)
-        enhancer.2.indicator.probs <- enhancer.2.indicator.probs * guide.probs
-    }
+    ]
 
-    enhancer.2.indicator.probs <- 1 - enhancer.2.indicator.probs
-    enhancer.2.indicator.vector <- enhancer.2.indicator.probs
+    # fit model
+    bootstrap_model <- glm.nb(
+      formula = model_formula,
+      data = bootstrap_df
+    )
 
-    # get gene counts for gene
-    pseudocount <- 0.01
-    gene.counts <- counts.matrix[gene, ] + pseudocount
+    # get coefficients
+    model_coeffs <- summary(bootstrap_model)$coefficients
+    intercept <- model_coeffs['(Intercept)', 'Estimate']
+    enh1_beta <- model_coeffs['enh_1_perturbation', 'Estimate']
+    enh2_beta <- model_coeffs['enh_2_perturbation', 'Estimate']
+    interaction_beta <- model_coeffs[
+      'enh_1_perturbation:enh_2_perturbation',
+      'Estimate'
+    ]
 
-    # create dataframe for modeling
-    model.df <- cbind(covariates, enhancer.1.indicator.vector, enhancer.2.indicator.vector, gene.counts)
+    # add to output vectors
+    bootstrap_intercepts[j] <- intercept
+    bootstrap_enh1_betas[j] <- enh1_beta
+    bootstrap_enh2_betas[j] <- enh2_beta
+    bootstrap_interaction_betas[j] <- interaction_beta
+    
+  }
 
-    interaction.coefficient.estimates <- rep(NA, 100)
+  # create output data frame
+  output_df <- data.frame(cbind(
+    bootstrap_intercepts, 
+    bootstrap_enh1_betas, 
+    bootstrap_enh2_betas, 
+    bootstrap_interaction_betas
+  ))
 
-    for (j in 1:100) {
-
-        print(paste0('iteration ', j))
-
-        # resample cells with replacement
-        bootstrap.df <- model.df[sample(1:nrow(model.df), size = nrow(model.df), replace = TRUE), ]
-        
-        # refit model with resampled cells
-        bootstrap.model <- glm.nb(
-            formula = gene.counts ~ enhancer.1.indicator.vector * enhancer.2.indicator.vector + prep_batch + guide_count + percent.mito + s.score + g2m.score + offset(log(scaling.factors)),
-            data = bootstrap.df
-        )
-
-        # record coefficient estimate
-        interaction.coefficient.estimates[j] <- summary(bootstrap.model)$coefficients['enhancer.1.indicator.vector:enhancer.2.indicator.vector', 'Estimate']
-
-    }
-
-    # write coefficient estimates to output file
-    write.csv(interaction.coefficient.estimates, paste0('/iblm/netapp/data1/external/Gasperini2019/processed/', '23_02_23_', enhancer.1, '_', enhancer.2, '_', gene, '_bootstrap_coefficient_estimates.csv'), row.names = FALSE)
+  # write to output file
+  write.csv(
+    output_df,
+    paste0(
+      'data/gasperini/processed/gasperini_bootstraps/',
+      enhancer_1,
+      '_',
+      enhancer_2,
+      '_',
+      gene,
+      '_bootstrap_results.csv'
+    ),
+    row.names = FALSE
+  )
 }
