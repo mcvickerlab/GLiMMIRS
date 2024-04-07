@@ -9,7 +9,7 @@ import itertools
 
 # read in gene-gRNA group pairs tested in at-scale perturbation screen
 enhancer_gene_pairs = pd.read_csv(
-    'data/experimental/raw/GSE120861_gene_gRNAgroup_pair_table.at_scale.txt.gz',
+    'data/gasperini/raw/GSE120861_gene_gRNAgroup_pair_table.at_scale.txt.gz',
     sep = '\t'
 )
 
@@ -51,6 +51,8 @@ enhancers = enhancers.drop_duplicates()
 # compute positions for each enhancer
 enhancers['gRNAgroup.position'] = (enhancers['gRNAgroup.start'] + \
                                    enhancers['gRNAgroup.stop']) / 2
+
+enhancers.to_csv('data/gasperini/processed/enhancer_coords.csv', index = False)
 
 # data frame should have a shape of 5,766 x 5 (paper has 5,779)
 
