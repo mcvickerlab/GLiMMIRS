@@ -49,7 +49,6 @@ for (i in 1:nrow(significant_results)) {
     order(cooks_distances$cooks_distances, decreasing = TRUE),
     
   ]
-  print(head(cooks_distances, 50))
 
   # compute summary statistics and add to output
   mean_cooks_distance <- mean(cooks_distances$cooks_distances)
