@@ -67,7 +67,7 @@ plot <- ggplot(models, aes(
     y = -log10(interaction.pvalues),
     color = is_significant
     )) +
-    geom_point(size = 2) +
+    geom_point(size = 3) +
     geom_abline(slope = 1, intercept = 0) +
     theme_classic() + 
     scale_x_continuous(expand = c(0.02, 0)) +
@@ -76,26 +76,27 @@ plot <- ggplot(models, aes(
     ylab(bquote(Observed -log[10](italic(p)))) +
     theme(
       axis.line = element_line(linewidth = 1),
-      axis.title.x = element_text(size = 20, color = 'black'),
-      axis.title.y = element_text(size = 20, color = 'black'),
-      axis.text = element_text(size = 20, color = 'black'),
+      axis.title.x = element_text(size = 24, color = 'black'),
+      axis.title.y = element_text(size = 24, color = 'black'),
+      axis.text = element_text(size = 24, color = 'black'),
       axis.ticks = element_line(color = 'black', linewidth = 1),
       axis.ticks.length = unit(2, 'mm'),
       plot.margin = rep(unit(10, 'mm'), 4),
-      legend.text = element_text(size = 12)
+      legend.position = 'none'
+      # legend.text = element_text(size = 12)
     ) +
     labs(color = NULL) +
     scale_color_manual(
         breaks = c(TRUE, FALSE),
-        values = c('red', 'black'),
-        labels = c('Significant (FDR < 0.1)', 'Insignificant')
+        values = c('red', 'darkgray')
+        # labels = c('Significant (FDR < 0.1)', 'Insignificant')
     )
 
 ggsave(
-    'out/qqplot_interaction_pvalues_at_scale.png',
+    'out/qqplot_interaction_pvalues_at_scale.pdf',
     plot,
-    device = 'png',
-    width = 8,
+    device = 'pdf',
+    width = 7,
     height = 7,
     units = 'in'
 )
