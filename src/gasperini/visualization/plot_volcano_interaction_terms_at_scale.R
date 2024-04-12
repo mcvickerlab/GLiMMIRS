@@ -38,7 +38,7 @@ plot <- ggplot(models, aes(
   y = -log10(interaction.pvalues),
   color = is_significant
   )) +
-  geom_point() +
+  geom_point(size = 3) +
   theme_classic() +
   scale_x_continuous(expand = c(0.02, 0)) +
   scale_y_continuous(expand = c(0.02, 0)) +
@@ -46,67 +46,28 @@ plot <- ggplot(models, aes(
   ylab(bquote(Observed -log[10](italic(p)))) +
   theme(
     axis.line = element_line(linewidth = 1),
-    axis.title.x = element_text(size = 20, color = 'black'),
-    axis.title.y = element_text(size = 20, color = 'black'),
-    axis.text = element_text(size = 20, color = 'black'),
+    axis.title.x = element_text(size = 24, color = 'black'),
+    axis.title.y = element_text(size = 24, color = 'black'),
+    axis.text = element_text(size = 24, color = 'black'),
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4),
-    legend.text = element_text(size = 12)
+    legend.position = 'none'
+    # legend.text = element_text(size = 12)
   ) +
   labs(color = NULL) +
   scale_color_manual(
     breaks = c(TRUE, FALSE),
-    values = c('red', 'black'),
-    labels = c('Significant (FDR < 0.1)', 'Insignificant')
+    values = c('red', 'darkgray')
+    # labels = c('Significant (FDR < 0.1)', 'Insignificant')
   )
 
 # save plot to output file
 ggsave(
-  filename = 'out/volcano_interaction_terms_at_scale.png',
+  filename = 'out/volcano_interaction_terms_at_scale.pdf',
   plot = plot,
-  device = 'png',
-  width = 8,
+  device = 'pdf',
+  width = 7,
   height = 7,
   unit = 'in'
-)
-
-
-
-
-# convert pvalues to -log10 scale
-interaction.pvalues$adjusted.pvalue <- p.adjust(interaction.pvalues$pvalue, method = 'fdr')
-interaction.pvalues$dot.color <- 'black'
-interaction.pvalues$dot.color[interaction.pvalues$adjusted.pvalue < 0.1] <- 'red'
-interaction.pvalues <- interaction.pvalues[complete.cases(interaction.pvalues$coeff), ]
-
-volcano.plot <- ggplot(interaction.pvalues, aes(x = coeff, y = scaled.pvalue)) +
-    geom_point(aes(color = dot.color), size = 3) +
-    scale_x_continuous(expand = c(0.02, 0)) +
-    scale_y_continuous(expand = c(0.02, 0)) +
-    xlab(bquote(Coefficient)) + 
-    ylab(bquote(-log[10](italic(p)))) +
-    theme_classic() +
-    theme(
-    axis.line = element_line(linewidth = 1),
-    axis.title.x = element_text(size = 20, color = 'black'),
-    axis.title.y = element_text(size = 20, color = 'black'),
-    axis.text = element_text(size = 20, color = 'black'),
-    axis.ticks = element_line(color = 'black', linewidth = 1),
-    axis.ticks.length = unit(2, 'mm'),
-    plot.margin = rep(unit(10, 'mm'), 4),
-    legend.position = "none"
-    ) +
-    scale_color_manual(values = c('black', 'red'))
-    
-ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_at_scale_interaction_volcano_plot.pdf',
-    device = 'pdf',
-    plot = volcano.plot
-)
-
-ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_20_at_scale_interaction_volcano_plot.png',
-    device = 'png',
-    plot = volcano.plot
 )
