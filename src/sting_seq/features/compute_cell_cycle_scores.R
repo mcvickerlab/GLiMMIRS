@@ -2,9 +2,12 @@
 #
 # Author: Karthik Guruvayurappan
 
-library(Matrix) # for Matrix reading
-library(Seurat) # for single-cell analysis
-library(ggplot2) # for plotting
+library(Matrix)
+library(Seurat)
+library(ggplot2)
+
+# source analysis helper functions
+source('src/sting_seq/features/analysis_helpers.R')
 
 # read in STING-seq expression matrix (for all lanes)
 rna <- Read10X(
