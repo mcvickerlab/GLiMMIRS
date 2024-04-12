@@ -49,7 +49,6 @@ for (i in 1:nrow(significant_results)) {
     order(cooks_distances$cooks_distances, decreasing = TRUE),
     
   ]
-  print(head(cooks_distances, 50))
 
   # compute summary statistics and add to output
   mean_cooks_distance <- mean(cooks_distances$cooks_distances)
@@ -81,8 +80,21 @@ for (i in 1:nrow(significant_results)) {
 
   # plot double perturb cell cook's distances
   plot <- ggplot(double_perturb_cells, aes(x = cooks_distances)) +
-    geom_histogram() +
-    theme_classic()
+    geom_histogram(fill = 'darkgray', color = 'darkgray') +
+    theme_classic() +
+    scale_x_continuous(expand = c(0.02, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    xlab("Cook's Distance") + 
+    ylab("Count") +
+    theme(
+    axis.line = element_line(linewidth = 1),
+    axis.title.x = element_text(size = 24, color = 'black'),
+    axis.title.y = element_text(size = 24, color = 'black'),
+    axis.text = element_text(size = 24, color = 'black'),
+    axis.ticks = element_line(color = 'black', linewidth = 1),
+    axis.ticks.length = unit(2, 'mm'),
+    plot.margin = rep(unit(10, 'mm'), 4),
+    )
 
   ggsave(
     filename = paste0(
@@ -92,10 +104,10 @@ for (i in 1:nrow(significant_results)) {
       enhancer_2,
       '_',
       gene,
-      '.png'
+      '.pdf'
     ),
     plot = plot,
-    device = 'png'
+    device = 'pdf'
   )
 
   # save enhancer names and gene name to output list
