@@ -27,7 +27,30 @@ data/sting_seq/raw/sting_seq_suppl_table_s3a.csv
 data/sting_seq/raw/sting_seq_suppl_table_s3c.csv
 ```
 
-## Step 2: 
+## Step 2: Compute cell cycle scores
+
+One of the covariates that is used in GLiMMIRS models is the cell cycle score. To compute the cell cycle scores using the STING-seq expression matrix,
+run the following command from the GLiMMIRS home directory:
+
+```
+Rscript src/sting_seq/features/compute_cell_cycle_scores.R
+```
+
+The cell cycle scoring is computed using the [Seurat](https://satijalab.org/seurat/) package for single-cell analysis. A conda environment that contains
+all of the dependencies for this code is located in `envs/seurat.yaml`.
+
+After succesfully running this code, the cell cycle scores will be stored in the following files:
+
+```
+data/sting_seq/interim/cell_cycle_s_scores.csv
+data/sting_seq/interim/cell_cycle_g2m_scores.csv
+```
+
+## Step 3: Run GLiMMIRS-base on the 9 SNPs for the *PTPRC* locus
+
+The next step is to run enhancer-gene models to see if we can reproduce the result previously published in the STING-seq paper. In their paper, they found
+that 6 out of the 9 loci had a significant effect on gene expression. We are able to reproduce a similar result using our GLiMMIRS-base baseline model.
+
 
 
 Contact: Karthik Guruvayurappan (guruvak@mskcc.org)
