@@ -50,7 +50,21 @@ data/sting_seq/interim/cell_cycle_g2m_scores.csv
 
 The next step is to run enhancer-gene models to see if we can reproduce the result previously published in the STING-seq paper. In their paper, they found
 that 6 out of the 9 loci had a significant effect on gene expression. We are able to reproduce a similar result using our GLiMMIRS-base baseline model.
+To run this analysis, run the following command from the GLiMMIRS home directory:
+
+```
+Rscript src/sting_seq/models/run_GLiMMIRS_base.R
+```
+
+This script uses the same dependencies as step 2. A conda environment containing all of these dependencies can be found in `envs/seurat.yaml`. 
+
+After successfully running this code, the following file will be produced:
+
+```
+data/sting_seq/processed/GLiMMIRS_base_ptprc_results.csv
+```
 
 
+## Step 4: 
 
 Contact: Karthik Guruvayurappan (guruvak@mskcc.org)
