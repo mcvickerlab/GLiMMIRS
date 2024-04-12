@@ -8,6 +8,8 @@ library(MASS)
 library(ggplot2)
 library(dplyr)
 
+# create directory to hold STING-seq interaction Cook's Distances
+
 # read in RNA matrix
 # read in STING-seq expression matrix (for all lanes)
 rna <- Read10X(
@@ -73,8 +75,8 @@ scaling.factors <- n.umis / 1e6
 grna.counts <- covariates$Unique.gRNAs..after.adaptive.thresholding
 
 # get cell cycle scores
-s.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_11_14_sting_seq_v1_cell_cycle_s_scores.csv')
-g2m.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/interim/23_11_14_sting_seq_v1_cell_cycle_g2m_scores.csv')
+s.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/gasperini/interim/23_11_14_sting_seq_v1_cell_cycle_s_scores.csv')
+g2m.scores <- read.csv('/iblm/netapp/home/karthik/GLiMMIRS/data/gasperini/interim/23_11_14_sting_seq_v1_cell_cycle_g2m_scores.csv')
 rownames(s.scores) <- s.scores$X 
 rownames(g2m.scores) <- g2m.scores$X 
 s.scores <- s.scores$S.Score 
@@ -113,7 +115,7 @@ for (i in 1:length(ptprc.snps)) {
 baseline.fdr.pvalues <- p.adjust(baseline.p.values, method = 'fdr')
 baseline.bonferroni.pvalues <- p.adjust(baseline.p.values, method = 'bonferroni')
 baseline.df <- data.frame(cbind(baseline.snps, baseline.estimates, baseline.p.values, baseline.fdr.pvalues, baseline.bonferroni.pvalues))
-write.csv(baseline.df, '/iblm/netapp/home/karthik/GLiMMIRS/data/experimental/processed/sting_seq_baseline_models.csv', row.names = FALSE)
+write.csv(baseline.df, '/iblm/netapp/home/karthik/GLiMMIRS/data/gasperini/processed/sting_seq_baseline_models.csv', row.names = FALSE)
 
 # generate pairwise combinations of enhancers for PTPRC
 ptprc.pairs <- data.frame(t(combn(ptprc.snps, 2)))
@@ -172,6 +174,9 @@ for (i in 1:nrow(ptprc.pairs)) {
     enhancer.1.pvalues[i] <- summary(mdl)$coefficients['snp.1.guide.vector', 'Pr(>|z|)']
     enhancer.2.pvalues[i] <- summary(mdl)$coefficients['snp.2.guide.vector', 'Pr(>|z|)']
     interaction.pvalues[i] <- summary(mdl)$coefficients['snp.1.guide.vector:snp.2.guide.vector', 'Pr(>|z|)']
+
+    # write cook's distance information to output file
+
 }
 
 interaction.fdr.pvalues <- p.adjust(interaction.pvalues, method = 'fdr')
