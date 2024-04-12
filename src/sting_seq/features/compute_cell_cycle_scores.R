@@ -9,6 +9,9 @@ library(ggplot2)
 # source analysis helper functions
 source('src/sting_seq/features/analysis_helpers.R')
 
+# read in STING-seq expression matrix
+expr_matrix <- read_expr_matrix()
+
 # read in STING-seq expression matrix (for all lanes)
 rna <- Read10X(
     data.dir = '/iblm/netapp/data1/external/Morris_2023_STING_seq/cDNA_v1/'
