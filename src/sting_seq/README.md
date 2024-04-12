@@ -65,6 +65,22 @@ data/sting_seq/processed/GLiMMIRS_base_ptprc_results.csv
 ```
 
 
-## Step 4: 
+## Step 4: Run GLiMMIRS-int on pairwise combinations of *PTPRC* SNPs
+
+The next step is to interrogate for possible interactions between regulatory sequences using GLiMMIRS-int. We have 36 pairs that we test. To run
+these models, run the following command from the GLiMMIRS home directory: 
+
+```
+Rscript src/sting_seq/models/run_GLiMMIRS_int.R
+```
+
+This script uses the same dependencies as step 3. A conda environment containing all of these dependencies can be found in `envs/seurat.yaml`.
+
+After successfully running this code, the following file will be produced:
+
+```
+data/sting_seq/processed/GLiMMIRS_int_ptprc.csv
+```
+
 
 Contact: Karthik Guruvayurappan (guruvak@mskcc.org)
