@@ -43,7 +43,7 @@ plot.df$unif <- -log10(plot.df$unif)
 plot.df$pvalue <- -log10(plot.df$pvalue)
 
 qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) + 
-    geom_abline(slope = 1, intercept = 0) +
+    geom_abline(slope = 2, intercept = 0, linewidth = 1) +
     geom_point(size = 5) +
     # geom_abline(slope = 1, intercept = 0) +
     scale_x_continuous(expand = c(0.02, 0)) +
@@ -53,34 +53,34 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
     theme_classic() +
     theme(
         axis.line = element_line(linewidth = 1),
-        axis.title.x = element_text(size = 32, color = 'black'),
-        axis.title.y = element_text(size = 32, color = 'black'),
-        axis.text = element_text(size = 32, color = 'black'),
+        axis.title.x = element_text(size = 28, color = 'black'),
+        axis.title.y = element_text(size = 28, color = 'black'),
+        axis.text = element_text(size = 28, color = 'black'),
         axis.ticks = element_line(color = 'black', linewidth = 1),
         axis.ticks.length = unit(2, 'mm'),
         legend.title = element_blank(),
-        legend.position = c(0.15, 0.89),
-        legend.text = element_text(size = 32, color = 'black'),
+        legend.position = c(0.25, 0.89),
+        legend.text = element_text(size = 22, color = 'black'),
         plot.margin = rep(unit(10, 'mm'), 4),
     ) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_baseline_model_experimental_data_qqplot.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/baseline_model_experimental_data_qqplot.pdf',
     device = 'pdf',
     plot = qq.plot,
-    width = 46,
-    height = 27,
-    units = 'cm'
+    width = 7.694,
+    height = 7,
+    units = 'in'
 )
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_baseline_model_experimental_data_qqplot.png',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/baseline_model_experimental_data_qqplot.png',
     device = 'png',
     plot = qq.plot,
-    width = 46,
-    height = 27,
-    units = 'cm'
+    width = 7.694,
+    height = 7,
+    units = 'in'
 )
 
 zoom.in.published <- published.pvalues[published.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
