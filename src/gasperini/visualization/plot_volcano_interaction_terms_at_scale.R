@@ -23,21 +23,77 @@ for (i in 1:32) {
 # filter for cases where all coefficients exist
 models <- models[complete.cases(models), ]
 
-# perform multiple testing correction on the interaction term p-values
-models$adj_interaction_pvalues <- p.adjust(
-  models$interaction.pvalues,
-  method = 'fdr'
+# read in the "true" double perturbation counts
+perturbation_counts <- read.csv(
+  paste0(
+    'data/gasperini/processed/',
+    'enhancer_pair_efficiency_adjusted_double_perturb_counts.csv'
+  )
 )
 
-# add a variable which marks significant interactions
+# merge model outputs with perturbation counts
+models <- merge(
+  models,
+  perturbation_counts,
+  by.x = c('enhancer.1.list', 'enhancer.2.list', 'gene.list'),
+  by.y = c('enhancer_1_list', 'enhancer_2_list', 'gene_list')
+)
+
+# filter for true 10 cell threshold
+models <- models[models$double_perturbation_counts >= 10, ]
+
+# print out how many models remain after filtering
+print(dim(models))
+
+# perform multiple testing correction on interaction p-values
+models$adj_interaction_pvalues <- p.adjust(
+    models$interaction.pvalues,
+    method = 'fdr'
+)
+print(sum(models$adj_interaction_pvalues < 0.1))
+
+# add whether interaction is significant after correction to models
 models$is_significant <- models$adj_interaction_pvalues < 0.1
+
+# read in Cook's Distance summary statistics
+cooks_summary_stats <- read.csv(
+  'data/gasperini/processed/interaction_cooks_distance_summary_stats.csv'
+)
+
+# merge models with summary stats
+models <- merge(
+  models,
+  cooks_summary_stats,
+  by.x = c('enhancer.1.list', 'enhancer.2.list', 'gene.list'),
+  by.y = c('enhancer_1_list', 'enhancer_2_list', 'gene_list'),
+  all.x = TRUE,
+  sort = FALSE
+)
+
+# add a label column for type of set
+labels <- rep(NA, nrow(models))
+
+for (i in 1:nrow(models)) {
+  if (models$is_significant[i]) {
+    if (models$discard_cooks_distance[i]) {
+      labels[i] <- 'Outlier'
+    }
+    else {
+      labels[i] <- 'Significant (FDR < 0.1)'
+    }
+  }
+  else {
+    labels[i] <- 'Insignificant'
+  }
+}
+models$label <- labels
 
 # plot volcano plot
 plot <- ggplot(models, aes(
   x = interaction.effects, 
   y = -log10(interaction.pvalues),
-  color = is_significant
-  )) +
+  color = label
+)) +
   geom_point(size = 3) +
   theme_classic() +
   scale_x_continuous(expand = c(0.02, 0)) +
@@ -52,14 +108,13 @@ plot <- ggplot(models, aes(
     axis.ticks = element_line(color = 'black', linewidth = 1),
     axis.ticks.length = unit(2, 'mm'),
     plot.margin = rep(unit(10, 'mm'), 4),
-    legend.position = 'none'
-    # legend.text = element_text(size = 12)
+    legend.position = c(0.35, 0.89),
+    legend.text = element_text(size = 20)
   ) +
   labs(color = NULL) +
   scale_color_manual(
-    breaks = c(TRUE, FALSE),
-    values = c('red', 'darkgray')
-    # labels = c('Significant (FDR < 0.1)', 'Insignificant')
+    breaks = c('Outlier', 'Significant (FDR < 0.1)', 'Insignificant'),
+    values = c('deepskyblue', 'red', 'darkgray')
   )
 
 # save plot to output file
