@@ -90,7 +90,7 @@ compute Cook's distance for every cell in the two significant interactions and l
 distances, run the following command from the GLiMMIRS home directory:
 
 ```
-Rscript src/sting_seq/compute_cooks_distance_significant_interactions.R
+Rscript src/sting_seq/models/compute_cooks_distance_significant_interactions.R
 ```
 
 This script has the same dependencies as step 4. A conda environment containing all of these dependencies can be found in `envs/seurat.yaml`.
@@ -99,6 +99,24 @@ After successfully running this code, the following files will be produced:
 ```
 data/sting_seq/processed/rs1326279_rs1926231_cooks_distances.csv
 data/sting_seq/processed/rs1926231_rs6669994_cooks_distances.csv
+```
+
+
+## Step 6: Make Volcano Plot Summarize Results
+
+The next step is to summarize all of the results in a volcano plot, which shows the interaction terms, and interaction term p-values, and that
+the two significant interactions observed by GLiMMIRS are removed by our Cook's distance-based outlier procedure. To generate the plot, run the
+following command from the GLiMMIRS home directory:
+
+```
+Rscript src/sting_seq/visualization/plot_volcano_plot.R
+```
+
+This script depends on some plotting packages in R. A conda environment containing all of the dependencies can be found in `envs/plotting.yaml`.
+
+After succesfully running this code, the output plot will be available as a PDF in:
+```
+out/sting_seq_volcano_plot.pdf
 ```
 
 Contact: Karthik Guruvayurappan (guruvak@mskcc.org)
