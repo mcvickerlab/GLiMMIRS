@@ -102,7 +102,7 @@ data/sting_seq/processed/rs1926231_rs6669994_cooks_distances.csv
 ```
 
 
-## Step 6: Make Volcano Plot Summarize Results
+## Step 6: Make Volcano Plot to Summarize Results
 
 The next step is to summarize all of the results in a volcano plot, which shows the interaction terms, and interaction term p-values, and that
 the two significant interactions observed by GLiMMIRS are removed by our Cook's distance-based outlier procedure. To generate the plot, run the
