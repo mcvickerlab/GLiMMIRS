@@ -9,13 +9,13 @@ import pandas as pd
 
 # load in output file from GuideScan and filter 'NGG' from end of guides
 guidescan = pd.read_csv(
-    'data/experimental/interim/guidescan_results.csv'
+    'data/gasperini/interim/guidescan_results.csv'
 )
 guidescan['guide_spacer'] = guidescan['gRNA'].apply(lambda x: x[:-3])
 
 # load in guide RNA spacer sequences from supplementary table 2
 guide_sequences = pd.read_excel(
-    'data/experimental/raw/suppl_table_2.xlsx',
+    'data/gasperini/raw/suppl_table_2.xlsx',
     sheet_name = 1
 )
 
