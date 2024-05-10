@@ -9,7 +9,7 @@ library(Seurat)
 library(ggplot2)
 
 # load in UMI count (expression) matrix from at-scale screen
-data.path <- 'data/experimental/raw/'
+data.path <- 'data/gasperini/raw/'
 expression.matrix <- readMM(
     paste0(data.path, 'GSE120861_at_scale_screen.exprs.mtx.gz')
 )
@@ -70,6 +70,12 @@ for (i in 1:nrow(gene.symbols)) {
     }
 }
 
+write.csv(
+  gene.symbols,
+  'data/gasperini/processed/ensembl_hgnc_gene_mapping.csv',
+  row.names = FALSE
+)
+
 # set gene names of expression matrix to HGNC symbols
 rownames(expression.matrix) <- gene.symbols[, 'hgnc_symbol']
 
@@ -99,23 +105,9 @@ gene.expression <- CellCycleScoring(
     set.ident = TRUE
 )
 
-# run PCA to show cell separation based on cell cycle phase
-gene.expression <- RunPCA(gene.expression, features = c(s.genes, g2m.genes))
-cell.cycle.pca <- DimPlot(gene.expression, raster = FALSE)
-
-# save plot
-ggsave(
-    filename = 'out/cell_cycle_pca.png',
-    plot = cell.cycle.pca,
-    device = 'png',
-    height = 7,
-    width = 7,
-    units = 'in'
-)
-
 # write scores to CSV files
 s.scores <- gene.expression[[]]['S.Score']
 g2m.scores <- gene.expression[[]]['G2M.Score']
 
-write.csv(s.scores, 'data/experimental/interim/cell_cycle_s_scores.csv')
-write.csv(g2m.scores, 'data/experimental/interim/cell_cycle_g2m_scores.csv')
+write.csv(s.scores, 'data/gasperini/interim/cell_cycle_s_scores.csv')
+write.csv(g2m.scores, 'data/gasperini/interim/cell_cycle_g2m_scores.csv')

@@ -6,8 +6,8 @@
 
 import pandas as pd
 
-RAW_DATA_PATH = 'data/experimental/raw/'
-INTERIM_DATA_PATH = 'data/experimental/interim/'
+RAW_DATA_PATH = 'data/gasperini/raw/'
+INTERIM_DATA_PATH = 'data/gasperini/interim/'
 
 # read in file containing guide spacer sequences from Gasperini 2019 paper
 guide_sequences = pd.read_excel(RAW_DATA_PATH + 'suppl_table_2.xlsx',

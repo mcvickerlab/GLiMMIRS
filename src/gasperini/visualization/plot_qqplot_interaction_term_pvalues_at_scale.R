@@ -61,11 +61,44 @@ print(sum(models$adj_interaction_pvalues < 0.1))
 # add whether interaction is significant after correction to models
 models$is_significant <- models$adj_interaction_pvalues < 0.1
 
+# read in Cook's Distance summary statistics
+cooks_summary_stats <- read.csv(
+  'data/gasperini/processed/interaction_cooks_distance_summary_stats.csv'
+)
+
+# merge models with summary stats
+models <- merge(
+  models,
+  cooks_summary_stats,
+  by.x = c('enhancer.1.list', 'enhancer.2.list', 'gene.list'),
+  by.y = c('enhancer_1_list', 'enhancer_2_list', 'gene_list'),
+  all.x = TRUE,
+  sort = FALSE
+)
+
+# add a label column for type of set
+labels <- rep(NA, nrow(models))
+
+for (i in 1:nrow(models)) {
+  if (models$is_significant[i]) {
+    if (models$discard_cooks_distance[i]) {
+      labels[i] <- 'Outlier'
+    }
+    else {
+      labels[i] <- 'Significant (FDR < 0.1)'
+    }
+  }
+  else {
+    labels[i] <- 'Insignificant'
+  }
+}
+models$label <- labels
+
 # plot qq-plot
 plot <- ggplot(models, aes(
     x = -log10(unif),
     y = -log10(interaction.pvalues),
-    color = is_significant
+    color = label
     )) +
     geom_point(size = 3) +
     geom_abline(slope = 1, intercept = 0) +
@@ -82,14 +115,17 @@ plot <- ggplot(models, aes(
       axis.ticks = element_line(color = 'black', linewidth = 1),
       axis.ticks.length = unit(2, 'mm'),
       plot.margin = rep(unit(10, 'mm'), 4),
-      legend.position = 'none'
-      # legend.text = element_text(size = 12)
+      legend.position = c(0.35, 0.89),
+      legend.text = element_text(size = 20)
     ) +
     labs(color = NULL) +
     scale_color_manual(
-        breaks = c(TRUE, FALSE),
-        values = c('red', 'darkgray')
-        # labels = c('Significant (FDR < 0.1)', 'Insignificant')
+        breaks = c(
+          'Outlier',
+          'Significant (FDR < 0.1)',
+          'Insignificant'
+        ),
+        values = c('deepskyblue', 'red', 'darkgray')
     )
 
 ggsave(

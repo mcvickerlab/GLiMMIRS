@@ -1,11 +1,14 @@
 # This script runs our "baseline" enhancer-gene model on the 664 enhancer-gene
 # pairs previously published by Gasperini et al. Our models differ by including
-# guide efficiency information and cell cycle scores.
+# guide efficiency information and cell cycle scores. However, this script
+# shuffles the guide assignments to create a "negative control".
 #
 # Author: Karthik Guruvayurappan
 
 library(MASS)
 library(rhdf5)
+
+set.seed(1)
 
 # define h5 file name as a variable
 h5.name <- 'data/gasperini/processed/gasperini_data.h5'
@@ -108,6 +111,9 @@ for (i in 1:nrow(enhancer.gene)) {
     # get gene counts
     gene.counts <- expr.matrix[gene, ]
 
+    # scramble the perturbation vector
+    perturbation <- sample(perturbation)
+
     # fit negative binomial GLM
     model.df <- cbind(perturbation, gene.counts, covariates)
     model.formula <- as.formula(paste0(
@@ -144,7 +150,7 @@ model.table <- cbind(
 )
 write.csv(
     model.table,
-    'data/gasperini/processed/baseline_models.csv',
+    'data/gasperini/processed/baseline_models_shuffled_guides.csv',
     row.names = FALSE,
     quote = FALSE
 )

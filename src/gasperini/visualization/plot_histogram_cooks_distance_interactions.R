@@ -70,11 +70,7 @@ for (i in 1:nrow(significant_results)) {
 
   # compute whether enhancer pair would be discarded or not
   discard_pair <- (
-    sum(
-      double_perturb_cells$cooks_distances > (
-        3 * mean_double_perturb_cooks_distances[i]
-      )
-    ) > 0
+    (max_cooks_distance / mean(double_perturb_cells$cooks_distances)) > 5
   )
   discard_cooks_distance[i] <- discard_pair
 

@@ -7,6 +7,8 @@
 library(MASS)
 library(rhdf5)
 
+set.seed(1)
+
 # define h5 file name as a variable
 h5.name <- 'data/gasperini/processed/gasperini_data.h5'
 
@@ -80,7 +82,7 @@ for (i in 1:nrow(enhancer.gene)) {
 
     # get name of enhancer and gene
     enhancer <- enhancer.gene[i, 'Target_Site']
-    gene <- enhancer.gene[i, 'ENSG']
+    gene <- sample(enhancer.gene$ENSG, 1)
 
     # print statement (for progress)
     print(paste0('running ', enhancer, ' and ', gene, '!'))
@@ -144,7 +146,7 @@ model.table <- cbind(
 )
 write.csv(
     model.table,
-    'data/gasperini/processed/baseline_models.csv',
+    'data/gasperini/processed/baseline_models_mismatch_gene.csv',
     row.names = FALSE,
     quote = FALSE
 )
