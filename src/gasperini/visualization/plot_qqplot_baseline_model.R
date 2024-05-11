@@ -5,8 +5,10 @@
 library(stats)
 library(ggplot2)
 library(RColorBrewer)
+library(readxl)
 
 # read in Gasperini paper p-values
+gasperini_models <- read.csv('data/gasperini/raw/suppl_table_2.xlsx')
 published.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/gasperini_enhancer_gene_pairs_suppl_table_2.csv')
 published.pvalues <- published.pvalues[, c('Target_Site', 'ENSG', 'Diff_expression_test_raw_pval')]
 colnames(published.pvalues) <- c('enhancer', 'gene', 'pvalue')
