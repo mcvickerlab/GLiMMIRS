@@ -7,44 +7,80 @@ library(ggplot2)
 library(RColorBrewer)
 library(readxl)
 
+create_qq_df <- function(x) {
+  
+  # set column names
+  colnames(x) <- c('enhancer', 'gene', 'pvalue')
+
+  # filter for complete cases
+  x <- x[complete.cases(x), ]
+
+  # order pvalues
+  x <- x[order(x$pvalue), ]
+
+  # add uniform distribution
+  x$unif <- 1:nrow(x) / nrow(x)
+
+  return (x)
+}
+
 # read in Gasperini paper p-values
-gasperini_models <- read.csv('data/gasperini/raw/suppl_table_2.xlsx')
-published.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/gasperini_enhancer_gene_pairs_suppl_table_2.csv')
-published.pvalues <- published.pvalues[, c('Target_Site', 'ENSG', 'Diff_expression_test_raw_pval')]
-colnames(published.pvalues) <- c('enhancer', 'gene', 'pvalue')
-published.pvalues <- published.pvalues[complete.cases(published.pvalues), ]
-published.pvalues <- published.pvalues[order(published.pvalues$pvalue), ]
-published.pvalues$unif <- seq(1, nrow(published.pvalues), length.out = nrow(published.pvalues)) / nrow(published.pvalues)
-published.pvalues$set <- 'Gasperini'
+gasperini_models <- read_excel(
+  'data/gasperini/raw/suppl_table_2.xlsx',
+  sheet = 'B_AtScale_664_enhancergenepairs')
+gasperini_models <- gasperini_models[
+  ,
+  c(
+    'Target_Site',
+    'ENSG',
+    'Diff_expression_test_raw_pval'
+  )
+]
+gasperini_models <- create_qq_df(gasperini_models)
+gasperini_models$set <- 'Gasperini'
 
 # read in baseline model p-values
-baseline.pvalues <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model.csv')
-colnames(baseline.pvalues) <- c('enhancer', 'gene', 'pvalue')
-baseline.pvalues <- baseline.pvalues[complete.cases(baseline.pvalues), ]
-baseline.pvalues <- baseline.pvalues[order(baseline.pvalues$pvalue), ]
-baseline.pvalues$unif <- seq(1, nrow(baseline.pvalues), length.out = nrow(baseline.pvalues)) / nrow(baseline.pvalues)
-baseline.pvalues$set <- 'Baseline'
+baseline_models <- read.csv('data/gasperini/processed/baseline_models.csv')
+baseline_models <- baseline_models[
+  ,
+  c('enhancer.list', 'gene.list', 'pvalue.list')
+]
+baseline_models <- create_qq_df(baseline_models)
+baseline_models$set <- 'Baseline'
 
-baseline.pvalues.scrambled.guide <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_scrambled_guides.csv')
-colnames(baseline.pvalues.scrambled.guide) <- c('enhancer', 'gene', 'pvalue')
-baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[complete.cases(baseline.pvalues.scrambled.guide), ]
-baseline.pvalues.scrambled.guide <- baseline.pvalues.scrambled.guide[order(baseline.pvalues.scrambled.guide$pvalue), ]
-baseline.pvalues.scrambled.guide$unif <- seq(1, nrow(baseline.pvalues.scrambled.guide), length.out = nrow(baseline.pvalues.scrambled.guide)) / nrow(baseline.pvalues.scrambled.guide)
-baseline.pvalues.scrambled.guide$set <- 'Shuffled Guides'
+# read in shuffled guide p-values
+shuffled_guide_models <- read.csv(
+  'data/gasperini/processed/baseline_models_shuffled_guides.csv'
+)
+shuffled_guide_models <- shuffled_guide_models[
+  ,
+  c('enhancer.list', 'gene.list', 'pvalue.list')
+]
+shuffled_guide_models <- create_qq_df(shuffled_guide_models)
+shuffled_guide_models$set <- 'Shuffled Guides'
 
-baseline.pvalues.mismatch.gene <- read.csv('/iblm/netapp/data1/external/Gasperini2019/processed/23_01_12_enhancer_gene_pairs_suppl_table_2_baseline_pseudocount_model_neg_mismatch_gene.csv')
-colnames(baseline.pvalues.mismatch.gene) <- c('enhancer', 'gene', 'pvalue')
-baseline.pvalues.mismatch.gene <- baseline.pvalues.mismatch.gene[complete.cases(baseline.pvalues.mismatch.gene), ]
-baseline.pvalues.mismatch.gene <- baseline.pvalues.mismatch.gene[order(baseline.pvalues.mismatch.gene$pvalue), ]
-baseline.pvalues.mismatch.gene$unif <- seq(1, nrow(baseline.pvalues.mismatch.gene), length.out = nrow(baseline.pvalues.mismatch.gene)) / nrow(baseline.pvalues.mismatch.gene)
-baseline.pvalues.mismatch.gene$set <- 'Mismatch Gene'
+# read in mismatch gene p-values
+mismatch_gene_models <- read.csv(
+  'data/gasperini/processed/baseline_models_mismatch_gene.csv'
+)
+mismatch_gene_models <- mismatch_gene_models[
+  ,
+  c('enhancer.list', 'gene.list', 'pvalue.list')
+]
+mismatch_gene_models <- create_qq_df(mismatch_gene_models)
+mismatch_gene_models$set <- 'Mismatch Gene'
 
-plot.df <- rbind(published.pvalues, baseline.pvalues, baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene)
-plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
-plot.df$unif <- -log10(plot.df$unif)
-plot.df$pvalue <- -log10(plot.df$pvalue)
+# create data frame for plotting
+plot_df <- rbind(
+  gasperini_models,
+  baseline_models,
+  shuffled_guide_models,
+  mismatch_gene_models
+)
+plot_df$pvalue[plot_df$pvalue == 0] <- 2.2e-308
 
-qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) + 
+
+qq_plot <- ggplot(plot_df, aes(x = -log10(unif), y = -log10(pvalue), color = set)) + 
     geom_abline(slope = 2, intercept = 0, linewidth = 1) +
     geom_point(size = 5) +
     # geom_abline(slope = 1, intercept = 0) +
@@ -63,67 +99,15 @@ qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) +
         legend.title = element_blank(),
         legend.position = c(0.25, 0.89),
         legend.text = element_text(size = 22, color = 'black'),
-        plot.margin = rep(unit(10, 'mm'), 4),
+        plot.margin = unit(rep('5', 4), 'mm')
     ) +
     scale_colour_brewer(palette = 'Set1')
 
 ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/baseline_model_experimental_data_qqplot.pdf',
+    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/baseline_model_qqplot.pdf',
     device = 'pdf',
-    plot = qq.plot,
+    plot = qq_plot,
     width = 7.694,
     height = 7,
     units = 'in'
-)
-
-ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/out/baseline_model_experimental_data_qqplot.png',
-    device = 'png',
-    plot = qq.plot,
-    width = 7.694,
-    height = 7,
-    units = 'in'
-)
-
-zoom.in.published <- published.pvalues[published.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
-zoom.in.baseline <- baseline.pvalues[baseline.pvalues$pvalue > min(baseline.pvalues.mismatch.gene$pvalue), ]
-plot.df <- rbind(baseline.pvalues.scrambled.guide, baseline.pvalues.mismatch.gene, zoom.in.published, zoom.in.baseline)
-plot.df$pvalue[plot.df$pvalue == 0] <- 2.2e-308
-plot.df$unif <- -log10(plot.df$unif)
-plot.df$pvalue <- -log10(plot.df$pvalue)
-
-qq.plot <- ggplot(plot.df, aes(x = unif, y = pvalue, color = set)) + 
-    geom_abline(slope = 1, intercept = 0) +
-    geom_point() +
-    # geom_abline(slope = 1, intercept = 0) +
-    scale_x_continuous(expand = c(0.02, 0)) +
-    scale_y_continuous(expand = c(0.02, 0)) +
-    xlab(bquote(Expected -log[10](italic(p)))) + 
-    ylab(bquote(Observed -log[10](italic(p)))) +
-    theme_classic() +
-    theme(
-        axis.line = element_line(linewidth = 1),
-        axis.title.x = element_text(size = 20, color = 'black'),
-        axis.title.y = element_text(size = 20, color = 'black'),
-        axis.text = element_text(size = 20, color = 'black'),
-        axis.ticks = element_line(color = 'black', linewidth = 1),
-        axis.ticks.length = unit(2, 'mm'),
-        legend.title = element_blank(),
-        legend.position = c(0.6, 0.89),
-        legend.text = element_text(size = 14, color = 'black'),
-        legend.background = element_rect(color = 'black'),
-        plot.margin = rep(unit(10, 'mm'), 4),
-    ) +
-    scale_colour_brewer(palette = 'Set1')
-
-ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_baseline_model_experimental_data_neg_controls_qqplot.pdf',
-    device = 'pdf',
-    plot = qq.plot
-)
-
-ggsave(
-    filename = '/iblm/netapp/home/karthik/GLiMMIRS/plots/23_04_24_baseline_model_experimental_data_neg_controls_qqplot.png',
-    device = 'png',
-    plot = qq.plot
 )
