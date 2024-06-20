@@ -3,14 +3,20 @@
 # this program include a simulated count matrix, values for the various covariates, model
 # coefficients that were used for simulation, and guide metadata including efficiency and target
 # gene.
+#
+# UPDATE: sampling distributions (hard coded parameters) match estimates obtained from MLE with empirical data
 # This program was written by Jessica Zhou.
 
 library(argparse)
 library(Matrix)
+library(mvtnorm)
+library(ggplot2)
+library(hexbin)
 library(rhdf5)
 library(sn)
 library(dplyr)
 library(tidyr)
+library(patchwork)
 
 # define parser to handle input arguments from command line
 parser <- ArgumentParser(description = "process input arguments")
@@ -39,9 +45,15 @@ parser$add_argument("--npairs", action = "store", type = "integer",
                     help = "number of ground truth pairs with interaction effects")
 parser$add_argument("--nneg", action = "store", type = "integer",
                     default = NULL,
-                    help = "number of negative control pairs (if NULL, equal to npairs)")
+                    help = "number of negative controls - pairs targeting same gene w/o interaction")
 parser$add_argument("--out", action = "store", type = "character",
 	                help = "where to save outputs")
+parser$add_argument("--png", action = "store_true", 
+                    help = "if true, save PNGs of data metrics")
+parser$add_argument("--tiff", action = "store_true",
+                    help = "if true, save TIFFs of data metrics")
+parser$add_argument("--pdf", action = "store_true", 
+                    help = "if true, save PDF of plots")
 args <- parser$parse_args()
 
 ##############################################################
@@ -55,7 +67,30 @@ print(args)
 #  one beta per gene
 #  rnorm params obtained by fitting to experimental data
 ##############################################################
-baselines <- rnorm(args$genes, mean = 2.24, sd = 1.8)
+# baselines <- rnorm(args$genes, mean = 2.24, sd = 1.8)
+baselines <- rnorm(args$genes, mean = 2.95, sd = 1.55)
+
+baselines.p <- hist(baselines, xlab = expression(beta[0]), 
+                    main = expression(paste("N(", mu, "=2.95, ", sigma,
+                    "=1.55)")))
+
+if (args$png) {
+    png(file.path(args$out, "baselines.png"))
+    print(baselines.p)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "baselines.tiff"))
+    print(baselines.p)
+    dev.off()
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "baselines.pdf"))
+    print(baselines.p)
+    dev.off()
+}
 
 #######################################
 #  assign guides to cells 
@@ -68,6 +103,39 @@ cat(sprintf("%d unique gRNAs with %d gRNAs per target (%d total targets)\n",
 
 # get nr of gRNAs per cell - different set for each value of lambda
 guides.per.cell.list <- lapply(args$lambda, function(x) {rpois(args$cells, x)})
+
+### visualize 
+guides.per.cell.plotdf <- data.frame(guides.per.cell.list)
+colnames(guides.per.cell.plotdf) <- args$lambda
+guides.per.cell.plotdf$cell <- 1:args$cells
+
+guides.per.cell.plotdf <- guides.per.cell.plotdf %>% 
+                            pivot_longer(-cell, names_to = "lambda", values_to = "nguides")
+guides.per.cell.plotdf$lambda <- factor(guides.per.cell.plotdf$lambda, levels = sort(args$lambda))
+
+guides.per.cell.hist <- ggplot(guides.per.cell.plotdf, aes(x = nguides, color = lambda, fill = lambda)) + 
+                            geom_histogram(alpha = 0.5, position = "identity") + 
+                            theme_classic() +
+                            theme(text = element_text(size = 14)) +
+                            ggtitle("gRNAs per cell")
+
+if (args$png) {
+    png(file.path(args$out, "guides_per_cell.png"))
+    print(guides.per.cell.hist)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "guides_per_cell.tiff"))
+    print(guides.per.cell.hist)
+    dev.off()
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "guides_per_cell.pdf"))
+    print(guides.per.cell.hist)
+    dev.off()
+} 
 
 ### assign gRNAs to cells
 # initialize list of one hot encodings
@@ -100,6 +168,27 @@ for (i in 1:length(args$lambda)) {
 #  assign guide efficiencies
 #######################################
 efficiencies <- rbeta(num.guides, 6,3)
+efficiencies.p <- hist(efficiencies,
+                    main = expression(paste(beta, "(", a, "=6, ", b,
+                    "=3)")))
+# visualize
+if (args$png) {
+    png(file.path(args$out, "efficiencies_hist.png"))
+    print(efficiencies.p)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "efficiencies_hist.tiff"))
+    print(efficiencies.p)
+    dev.off()
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "efficiencies_hist.pdf"))
+    print(efficiencies.p)
+    dev.off()
+}
 
 #######################################
 #  assign guides to target sites
@@ -136,6 +225,7 @@ ts.pairs <- as.data.frame(t(possible.target.pairs[,ts.pairs.ix]))
 # convert to df of target site pairs with interactions 
 colnames(ts.pairs) <- c("tsA","tsB")
 row.names(ts.pairs) <- c(1:args$npairs)
+head(ts.pairs)
 
 #########################################################################
 #  identify "negative control" pairs (NEG)
@@ -154,16 +244,19 @@ neg.pairs.ix <- sample(possible.neg.ix, n.neg, replace = FALSE)
 # convert to df 
 neg.ctrl.pairs <- as.data.frame(t(possible.target.pairs[,neg.pairs.ix]))
 colnames(neg.ctrl.pairs) <- c("neg.tsA", "neg.tsB")
+head(neg.ctrl.pairs)
 
 ####################################################
 #  assign target genes to target site pairs
 ####################################################
 
 # determine target genes for POS pairs (with interaction)
-target.genes <- sample(1:args$genes, args$npairs, replace = FALSE)
+# target.genes <- sample(1:args$genes, args$npairs, replace = FALSE)
+target.genes <- 1:args$npairs
 
 # determine target genes for NEG pairs (no interaction)
-target.genes.neg <- sample(setdiff(1:args$genes, target.genes), n.neg, replace = FALSE)
+# target.genes.neg <- sample(setdiff(1:args$genes, target.genes), n.neg, replace = FALSE)
+target.genes.neg <- (args$npairs + 1):(args$npairs + n.neg)
 
 # add data to data frames of pos/neg pairs
 ts.pairs$target.genes <- target.genes
@@ -203,15 +296,105 @@ ncells.per.pair.df$pair <- 1:nrow(ts.pairs)
 write.csv(ncells.per.pair.df, file.path(args$out, "ncells_per_pair.csv"),
             quote = FALSE, row.names = FALSE)
 
+# coerce df for plotting
+ncells.per.pair.plotdf <- ncells.per.pair.df %>% 
+                            pivot_longer(!pair, names_to = "lambda", values_to = "ncells")
+
+ncells.per.pair.plotdf$lambda <- factor(ncells.per.pair.plotdf$lambda, levels = sort(args$lambda))
+
+# histogram
+ts.pair.freq.p <- ggplot(ncells.per.pair.plotdf, aes(x = ncells, color = lambda, fill = lambda)) + 
+                    geom_histogram(alpha = 0.5, position = "identity") + 
+                    theme_classic() +
+                    theme(text = element_text(size = 14)) +
+                    ggtitle("Frequency of target site pairs") 
+
+# plot
+if (args$png) {
+    png(file.path(args$out, "ts_pair_freq_hist.png"))
+    print(ts.pair.freq.p)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "ts_pair_freq_hist.tiff"))
+    print(ts.pair.freq.p)
+    dev.off()
+
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "ts_pair_freq_hist.pdf"))
+    print(ts.pair.freq.p)
+    dev.off()
+
+}
+
+# boxplot
+ts.pair.freq.box <- ggplot(ncells.per.pair.plotdf, aes(x = lambda, y = ncells, color = lambda)) + 
+                    geom_boxplot() + 
+                    theme_classic() +
+                    theme(text = element_text(size = 14)) +
+                    ggtitle("Frequency of target site pairs")
+
+# plot
+if (args$png) {
+    png(file.path(args$out, "ts_pair_freq_boxplot.png"))
+    print(ts.pair.freq.box)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "ts_pair_freq_boxplot.tiff"))
+    print(ts.pair.freq.box)
+    dev.off()
+
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "ts_pair_freq_boxplot.pdf"))
+    print(ts.pair.freq.box)
+    dev.off()
+
+}                    
+
+# plot histogram and boxplot together
+if (args$png) {
+    png(file.path(args$out, "ts_pair_freq_patchwork.png"))
+    print(ts.pair.freq.p  | ts.pair.freq.box)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "ts_pair_freq_patchwork.tiff"))
+    print(ts.pair.freq.p  | ts.pair.freq.box)
+    dev.off()
+
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "ts_pair_freq_patchwork.pdf"))
+    print(ts.pair.freq.p  | ts.pair.freq.box)
+    dev.off()
+}
+
+
 #####################################################################
 #  assign effect sizes for individual target sites on target gene
 #  betaA, betaB, betaAB
 #####################################################################
-ts.pairs$betaA <- -1*rgamma(dim(ts.pairs)[1], shape = 6, scale = 0.5)
-ts.pairs$betaB <- -1*rgamma(dim(ts.pairs)[1], shape = 6, scale = 0.5)
+# ts.pairs$betaA <- -1*rgamma(dim(ts.pairs)[1], shape = 6, scale = 0.5)
+# ts.pairs$betaB <- -1*rgamma(dim(ts.pairs)[1], shape = 6, scale = 0.5)
 
-neg.ctrl.pairs$betaA <- -1*rgamma(dim(neg.ctrl.pairs)[1], shape = 6, scale = 0.5)
-neg.ctrl.pairs$betaB <- -1*rgamma(dim(neg.ctrl.pairs)[1], shape = 6, scale = 0.5)
+# neg.ctrl.pairs$betaA <- -1*rgamma(dim(neg.ctrl.pairs)[1], shape = 6, scale = 0.5)
+# neg.ctrl.pairs$betaB <- -1*rgamma(dim(neg.ctrl.pairs)[1], shape = 6, scale = 0.5)
+
+ts.pairs$betaA <- -1*rnorm(dim(ts.pairs)[1], mean=-0.02, sd=0.16)
+ts.pairs$betaB <- -1*rnorm(dim(ts.pairs)[1], mean=-0.02, sd=0.16)
+
+neg.ctrl.pairs$betaA <- -1*rnorm(dim(neg.ctrl.pairs)[1], mean=-0.02, sd=0.16)
+neg.ctrl.pairs$betaB <- -1*rnorm(dim(neg.ctrl.pairs)[1], mean=-0.02, sd=0.16)
+
 
 # combine pos + neg pairs into one table
 neg.ctrl.pairs.tmp <- neg.ctrl.pairs
@@ -251,22 +434,93 @@ cell.cycle.scores.plotdf <- cell.cycle.scores %>%
                             tidyr::pivot_longer(!cell, names_to = "cell cycle", values_to = "score")
 
 
+if (args$png) {
+    png(file.path(args$out, "cell_cycle_scores_hist.png"))
+    print(ggplot(cell.cycle.scores.plotdf, 
+        aes(x = score, fill = `cell cycle`, color = `cell cycle`)) + 
+            geom_histogram(position = "dodge", alpha = 0.5) + 
+            theme_classic() + theme(text = element_text(size = 20)) 
+            )
+    dev.off()
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "cell_cycle_scores_hist.pdf"))
+    print(ggplot(cell.cycle.scores.plotdf, 
+        aes(x = score, fill = `cell cycle`, color=`cell cycle`)) + 
+            geom_histogram(position = "dodge", alpha = 0.5) + 
+            theme_classic() + theme(text = element_text(size = 20)) 
+            )
+    dev.off()
+}
+
 # write cell cycle scores (X2, X3) to file
 # row index = cell identifier
 cell.cycle.scores <- data.frame(s.scores, g2m.scores)
-write.table(cell.cycle.scores, file.path(args$out, "cell_cycle_scores.txt"), row.names = TRUE, quote = FALSE)
+write.table(cell.cycle.scores, file.path(args$out, "cell_cycle_scores.txt"), row.names=TRUE, quote=FALSE)
 
 ####################################################
 #  simulate beta_S, beta_G2M (from gamma distr.)
 ####################################################
-beta.s <- rgamma(args$genes, shape = 6, scale = 0.5)
-beta.g2m <- rgamma(args$genes, shape = 6, scale = 0.5)
+# beta.s <- rgamma(args$genes, shape = 6, scale = 0.5)
+# beta.g2m <- rgamma(args$genes, shape = 6, scale = 0.5)
+beta.s <- rnorm(args$genes, mean=-0.21, sd=1.04)
+beta.g2m <- rnorm(args$genes, mean=0.004, sd=0.49)
+
+if (args$png) {
+    png(file.path(args$out, "beta_S_hist.png"))
+    hist(beta.s)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "beta_S_hist.tiff"))
+    hist(beta.s)
+    dev.off()
+}
+
+if (args$png) {
+    png(file.path(args$out, "beta_G2M_hist.png"))
+    hist(beta.g2m)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "beta_G2M_hist.tiff"))
+    hist(beta.g2m)
+    dev.off()
+}
 
 ####################################################
 #  simulate beta_pct.mito, x_pct.mito
 ####################################################
 percent.mito <- rbeta(args$cells, shape1 = 3.3, shape2 = 81.48)
-beta.pct.mito <- rgamma(args$genes, shape = 6 , scale = 0.5)
+# beta.pct.mito <- rgamma(args$genes, shape = 6 , scale = 0.5)
+beta.pct.mito <- rnorm(args$genes, mean=-0.37, sd=9.04)
+
+if (args$png) {
+    png(file.path(args$out, "percent_mito_hist.png"))
+    hist(percent.mito)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "percent_mito_hist.tiff"))
+    hist(percent.mito)
+    dev.off()
+}
+
+if (args$png) {
+    png(file.path(args$out, "beta_percent_mito_hist.png"))
+    hist(beta.pct.mito)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "beta_percent_mito_hist.tiff"))
+    hist(beta.pct.mito)
+    dev.off()
+}
 
 # write percent.mito to file
 # row index = cell identifier
@@ -277,17 +531,18 @@ write.table(percent.mito.df, file.path(args$out, "percent_mito.txt"), row.names 
 #  write all "true" coeff values to table
 ######################################################
 all.target.genes <- all.ts.pairs$target.gene
-nt.genes <- setdiff(1:args$genes, all.target.genes)
+# nt.genes <- setdiff(1:args$genes, all.target.genes)
 
-# get table of betaA, betaB, and interaction coeffs for NT genes (0)
-ab.coeffs.nt <- data.frame(gene = nt.genes, betaA = 0, betaB = 0)
+# # get table of betaA, betaB, and interaction coeffs for NT genes (0)
+# ab.coeffs.nt <- data.frame(gene = nt.genes, betaA = 0, betaB = 0)
 
 # subset coeffs for pos and neg pairs and rename columns to match table for NT genes
 ab.coeffs.targets <- all.ts.pairs %>% select(target.genes, betaA, betaB)
 colnames(ab.coeffs.targets)[1] <- "gene"
 
 # bind tables
-ab.coeffs.all <- rbind(ab.coeffs.targets, ab.coeffs.nt) %>% arrange(gene)
+# ab.coeffs.all <- rbind(ab.coeffs.targets, ab.coeffs.nt) %>% arrange(gene)
+ab.coeffs.all <- ab.coeffs.targets %>% arrange(gene)
 
 # add all other coeffs to table
 all.coeffs <- ab.coeffs.all
@@ -295,6 +550,9 @@ all.coeffs$beta0 <- baselines
 all.coeffs$beta.s <- beta.s
 all.coeffs$beta.g2m <- beta.g2m
 all.coeffs$percent.mito <- beta.pct.mito
+
+print('all coeffs:')
+head(all.coeffs)
 
 # row index = gene identifier
 write.table(all.coeffs, file.path(args$out, "coeffs.txt"), row.names = TRUE, quote = FALSE)
@@ -309,6 +567,24 @@ t.vec <- rpois(args$cells, 50000)
 # get scaling factors
 scaling.factors <- t.vec / 1e6
 
+# plot distribution of scaling factors
+if (args$png) {
+    png(file.path(args$out, "scaling_factors_hist.png"))
+    hist(scaling.factors)
+    dev.off()
+}
+
+if (args$tiff) {
+    tiff(file.path(args$out, "scaling_factors_hist.tiff"))
+    hist(scaling.factors)
+    dev.off()
+}
+
+if (args$pdf) {
+    pdf(file.path(args$out, "scaling_factors_hist.pdf"))
+    hist(scaling.factors)
+    dev.off()
+}
 # write scaling factors to file
 # row index = cell identifier
 write.table(data.frame(scaling.factors), file.path(args$out, "scaling_factors.txt"), 
@@ -325,6 +601,7 @@ h5createFile(h5.path)
 print('creating groups')
 h5createGroup(h5.path, "counts")
 h5createGroup(h5.path, "linear_predictor")
+h5createGroup(h5.path, "mu")
 h5createGroup(h5.path, "x")
 h5createGroup(h5.path, "x/x_a")
 h5createGroup(h5.path, "x/x_b")
@@ -349,6 +626,14 @@ xab.mtx.list <- replicate(length(args$lambda),
 
 # initialize counts matrices list
 # one matrix per value of lambda and interaction size
+# total = length(lambda)*length(effect sizes)
+# sim.counts.list <- replicate(length(args$lambda)*length(args$effect),
+#                             matrix(0,args$genes, args$cells), simplify = FALSE)
+# sim.counts.list <- lapply(1:length(args$lambda), function(x) {
+#         lapply(1:length(args$effect), function(x) {
+#                 matrix(0, args$genes, args$cells)
+#             })
+#     })
 print('initializing simulated counts matrices')
 sim.counts.list <- replicate(length(args$lambda), 
                             replicate(length(args$effect), 
@@ -357,12 +642,23 @@ sim.counts.list <- replicate(length(args$lambda),
                             simplify = FALSE)
 
 # initialize matrix lists for storing LP/mu
+# lp.mtx.list <- replicate(length(args$lambda)*length(args$effect),
+#                          matrix(0,args$genes, args$cells), simplify = FALSE)
 print('initializing LP matrices')
 lp.mtx.list <- replicate(length(args$lambda), 
+                            replicate(length(args$effect), 
+                                matrix(0, args$genes, args$cells), 
+                                simplify = FALSE), 
+                            simplify = FALSE)
+# mu.mtx.list <- replicate(length(args$lambda)*length(args$effect),
+#                          matrix(0,args$genes, args$cells), simplify = FALSE)
+print('initializing mu matrices')
+mu.mtx.list <- replicate(length(args$lambda), 
                             replicate(length(args$effect), 
                                 matrix(0,args$genes, args$cells), 
                                 simplify = FALSE), 
                             simplify = FALSE)
+
 
 ### test with genes targeted by pair with interaction term
 pos.test.genes <- sample(ts.pairs$target.genes, 10, replace = FALSE)
@@ -433,11 +729,15 @@ for (gene in 1:args$genes) {
                     lp <- b0 + beta.a*xa + beta.b*xb + beta.ab*xab + 
                                 beta.s.score*x.s + beta.g2m.score*x.g2m + beta.mito*x.mito + 
                                 log(scaling.factors)
+                    # lp.mtx.list[[i*j]][gene,] <- lp
                     lp.mtx.list[[i]][[j]][gene,] <- lp
                     mu <- exp(lp)
+                    # mu.mtx.list[[i*j]][gene,] <- mu
+                    mu.mtx.list[[i]][[j]][gene,] <- mu
 
                     # use rnbinom to generate counts for gene for each cell and update counts matrix 
                     counts <- rnbinom(length(mu), mu = mu, size = 1.5)
+                    # sim.counts.list[[i*j]][gene,] <- counts
                     sim.counts.list[[i]][[j]][gene,] <- counts
                 }
             } else { 
@@ -453,7 +753,12 @@ for (gene in 1:args$genes) {
                 counts <- rnbinom(length(mu), mu = mu, size = 1.5)
                 
                 for (j in 1:length(args$effect)) {
+                    # lp.mtx.list[[i*j]][gene,] <- lp
+                    # mu.mtx.list[[i*j]][gene,] <- mu
+                    # sim.counts.list[[i*j]][gene,] <- counts
+
                     lp.mtx.list[[i]][[j]][gene,] <- lp
+                    mu.mtx.list[[i]][[j]][gene,] <- mu
                     sim.counts.list[[i]][[j]][gene,] <- counts
                 } 
             }
@@ -467,7 +772,11 @@ for (gene in 1:args$genes) {
         counts <- rnbinom(length(mu), mu = mu, size = 1.5)
         for (i in 1:length(args$lambda)) {
             for (j in 1:length(args$effect)) {
+                # lp.mtx.list[[i*j]][gene,] <- lp
+                # mu.mtx.list[[i*j]][gene,] <- mu
+                # sim.counts.list[[i*j]][gene,] <- counts
                 lp.mtx.list[[i]][[j]][gene,] <- lp
+                mu.mtx.list[[i]][[j]][gene,] <- mu
                 sim.counts.list[[i]][[j]][gene,] <- counts
             }
         }
@@ -516,6 +825,7 @@ for (i in 1:length(args$lambda)) {
         h5createDataset(h5.path, paste0("counts/", set.name), 
                         dim(sim.counts.list[[i]][[j]]), 
                         storage.mode = "integer", chunk = c(1000,10000), level = 5)
+        # h5write(sim.counts.list[[i*j]], h5.path, paste0("counts/",set.name))
         h5write(sim.counts.list[[i]][[j]], h5.path, paste0("counts/",set.name))
 
         
@@ -523,7 +833,15 @@ for (i in 1:length(args$lambda)) {
         h5createDataset(h5.path, paste0("linear_predictor/", set.name), 
                         dim(lp.mtx.list[[i]][[j]]),
                         storage.mode = "double", chunk=c(1000, 10000), level=5)
+        # h5write(lp.mtx.list[[i*j]], h5.path, paste0("linear_predictor/", set.name))
         h5write(lp.mtx.list[[i]][[j]], h5.path, paste0("linear_predictor/", set.name))
+        
+        print('writing mu')
+        h5createDataset(h5.path, paste0("mu/", set.name), dim(mu.mtx.list[[i]][[j]]),
+                        storage.mode = "double", chunk=c(1000, 10000), level=5)
+        # h5write(mu.mtx.list[[i*j]], h5.path, paste0("mu/", set.name))
+        h5write(mu.mtx.list[[i]][[j]], h5.path, paste0("mu/", set.name))
+        
 
     }
 }
@@ -556,3 +874,4 @@ h5write(scaling.factors, h5.path, "scaling_factors")
 print('writing lambda and effect sizes')
 h5write(args$lambda, h5.path, "lambda")
 h5write(args$effect, h5.path, "effect.sizes")
+write(args$lambda, file.path(args$out, "lambdas_list.txt"), sep='\n')

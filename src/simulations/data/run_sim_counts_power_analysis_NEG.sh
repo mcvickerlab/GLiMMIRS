@@ -5,7 +5,7 @@
 #$ -e /iblm/netapp/data1/jezhou/err
 
 # outdir=$HOME/crisprqtl_sim/sim_data
-outdir=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_interactions_2guides_power_analysis_28-11-2023/
+outdir=/iblm/netapp/data1/jezhou/crisprQTL/simulated_data_interactions_2guides_power_analysis_NEG_EFFECT_28-11-2023/
 
 mkdir -p $outdir
 
@@ -27,15 +27,15 @@ Rscript $PWD/sim_counts_interactions_power_analysis_updated.R --out $outdir \
 --cells 50000 \
 --genes 1000 \
 --effect 0.5 1 2 3 4 5 6 \
---png --tiff --pdf
+--png --tiff --pdf --neg_effect
 
 # message the user on slack if possible
 exit_code="$?"
 if command -v 'slack' &>/dev/null; then
     if [ "$exit_code" -eq 0 ]; then
-		slack "sim_counts_interactions for power analysis 28-Nov-2023 (positive interaction effects) finished successfully" &>/dev/null
+		slack "sim_counts_interactions for power analysis 28-Nov-2023 with neg. interaction effects finished successfully" &>/dev/null
 	else
-		slack "sim_counts_interactions for power analysis 28-Nov-2023 (positive interaction effects) exited with error code $exit_code"
+		slack "sim_counts_interactions for power analysis 28-Nov-2023 with neg. interaction effects exited with error code $exit_code"
 	fi
 fi
 exit "$exit_code"
