@@ -22,7 +22,7 @@ fi
 # --png --tiff --pdf
 
 # simulate data resembling at scale experiment
-Rscript $PWD/sim_counts_interactions_power_analysis_updated.R --out $outdir \
+Rscript $PWD/sim_counts_interactions_power_analysis.R --out $outdir \
 --lambda 15 20 30 50  \
 --cells 50000 \
 --genes 1000 \
