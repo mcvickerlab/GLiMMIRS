@@ -44,6 +44,11 @@ models <- models[models$double_perturbation_counts >= 10, ]
 
 # print out how many models remain after filtering
 print(dim(models))
+write.csv(
+  models, 
+  'data/gasperini/processed/enhancer_pairs_at_scale.csv',
+  row.names = FALSE
+)
 
 # sort results by p-value
 models <- models[order(models$interaction.pvalues), ]
